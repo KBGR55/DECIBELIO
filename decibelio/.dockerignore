@@ -1,0 +1,5 @@
+target/
+!target/*.war
+#!target/liberty/wlp/usr/shared/resources/*
+!target/liberty/wlp/usr/servers/defaultServer/resources/*
+!target/liberty/wlp/usr/servers/defaultServer/lib/global/*

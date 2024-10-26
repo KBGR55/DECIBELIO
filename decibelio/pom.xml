@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>unl.feirnnr.cc</groupId>
+    <artifactId>decibelio</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>war</packaging>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <final.name>decibelio</final.name>
+
+        <!--START DATASOURCE CONFIG -->
+        <driver.jdbc.dir>${server.config.dir}/lib/global</driver.jdbc.dir>
+        <db.server.name>localhost</db.server.name>
+        <db.port.number>5433</db.port.number>
+
+        <liberty.bootstrap.driver.jdbc.dir>${driver.jdbc.dir}</liberty.bootstrap.driver.jdbc.dir>
+        <liberty.bootstrap.db.server.name>${db.server.name}</liberty.bootstrap.db.server.name>
+        <liberty.bootstrap.db.port.number>${db.port.number}</liberty.bootstrap.db.port.number>
+
+        <param.driver.jdbc.dir>${env.DRIVER_JDBC_DIR}</param.driver.jdbc.dir>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>10.0.0</version>
+            <scope>provided</scope>
+            <type>pom</type>
+        </dependency>
+        <!--<dependency>
+        <groupId>jakarta.platform</groupId>
+        <artifactId>jakarta.jakartaee-web-api</artifactId>
+        <version>10.0.0</version>
+        <scope>provided</scope><type>pom</type>
+        </dependency>-->
+        <dependency>
+            <groupId>org.eclipse.microprofile</groupId>
+            <artifactId>microprofile</artifactId>
+            <version>6.1</version>
+            <type>pom</type>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <version>42.7.3</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-web-api</artifactId>
+            <version>10.0.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-csv</artifactId>
+            <version>1.8</version>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <finalName>${final.name}</finalName>
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-war-plugin</artifactId>
+                    <version>3.3.2</version>
+                </plugin>
+                <plugin>
+                    <groupId>io.openliberty.tools</groupId>
+                    <artifactId>liberty-maven-plugin</artifactId>
+                    <version>3.10.3</version>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+        <plugins>
+            <plugin>
+                <groupId>io.openliberty.tools</groupId>
+                <artifactId>liberty-maven-plugin</artifactId>
+
+                <configuration>
+                    <!--
+                    <include>runnable</include>
+                    <serverName>${final.name}</serverName>
+                    <bootstrapProperties>
+                        <project.name>${final.name}</project.name>
+                        <jwt.issuer>https://server.example.com</jwt.issuer>
+                        <app.context.root>/</app.context.root>
+                    </bootstrapProperties>
+                    -->
+                    <copyDependencies>
+                        <dependencyGroup>
+                            <!--Funcionando con docker-compose-->
+                            <location>lib/global</location>
+
+                            <!--<location>${project.build.directory}/liberty/wlp/${shared.jdbc.dir}</location>-->
+                            <dependency>
+                                <groupId>org.postgresql</groupId>
+                                <artifactId>postgresql</artifactId>
+                                <version>42.4.2</version>
+                            </dependency>
+                        </dependencyGroup>
+
+                    </copyDependencies>
+
+                </configuration>
+
+            </plugin>
+        </plugins>
+    </build>
+</project>

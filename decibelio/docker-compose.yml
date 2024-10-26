@@ -1,0 +1,99 @@
+version: '3.8'
+
+services:
+  decibelio-db:
+    image: postgres:${POSTGRES_VERSION}
+    restart: unless-stopped
+    container_name: decibelio-db-container
+    environment:
+      POSTGRES_DB: decibeliodb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: admin@987
+    ports:
+      - ${DB_PORT_PUBLIC}:5432
+    volumes:
+      - decibelio-db-data:/var/lib/postgresql/data
+      #- ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
+    #net: ${NETWORK}
+    networks:
+      decibelio-network:
+        ipv4_address: 172.21.0.252
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}" ]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+#  adminer-bd:
+#    image: adminer
+#    container_name: decibelio-adminer-bd-container
+#    restart: unless-stopped
+#    restart: always
+#    ports:
+#      - 8080:8080
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgAdmin4-container
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "adminDB@postgres.org"
+      PGADMIN_DEFAULT_PASSWORD: "admin123"
+    ports:
+      - "16543:80"
+    depends_on:
+      - decibelio-db
+    networks:
+      decibelio-network:
+        ipv4_address: 172.21.0.253
+
+  decibelio-api:
+    container_name: decibelio-api-container
+    build: .
+    image: decibelio-api:latest
+    environment:
+      #- NAMESPACE=
+      - DRIVER_JDBC_DIR=/config/
+      - DB_SERVER_NAME=decibelio-db
+      - DB_PORT_NUMBER=5432
+      - DB_NAME=decibeliodb
+      - DB_USER=postgres
+      - DB_PASSWORD=admin@987
+      #SPRING_DATASOURCE_USERNAME: postgres decibelio
+      #SPRING_DATASOURCE_PASSWORD: admin@987 decibelio_22#
+      #SERVER_PORT: 4000
+    ports:
+      - "9081:9080"
+      - "9443:9443"
+    depends_on:
+      - decibelio-db
+    deploy:
+      resources:
+        limits:
+          #cpus: '0.50'
+          memory: 1024M
+        reservations:
+          #cpus: '0.25'
+          memory: 512M
+    networks:
+      decibelio-network:
+        ipv4_address: 172.21.0.2
+
+networks:
+  decibelio-network:
+    driver: bridge
+    #driver_opts:
+    #    parent: eth0
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.21.0.0/24
+
+volumes:
+  decibelio-db-data:
+    name: decibelio-db-data
+    driver: local
+    driver_opts:
+      type: none
+      device: ${LOCAL_DATA_DIR_BD}
+      o: bind

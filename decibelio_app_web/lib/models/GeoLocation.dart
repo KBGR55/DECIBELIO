@@ -1,24 +1,24 @@
 import 'dart:convert';
-class GeoLocation {
-  double latitude = 0.0;
-   double longitude = 0.0;
-  
-  GeoLocation();
 
-  GeoLocation.fromMap(Map<dynamic, dynamic> mapa) {
-    latitude = double.parse(mapa['latitude']);
-    longitude = double.parse(mapa['longitude']);
-   
-  }
+class GeoLocation {
+  double latitude;  // Cambiar a double para que coincida con el modelo de Java
+  double longitude; // Cambiar a double para que coincida con el modelo de Java
+
+  GeoLocation({required this.latitude, required this.longitude});
+
+  GeoLocation.fromMap(Map<String, dynamic> map) 
+    : latitude = map['latitude'].toDouble(), // Asegúrate de que sea un double
+      longitude = map['longitude'].toDouble(); // Asegúrate de que sea un double
 
   @override
   String toString() {
-    return 'Latitude: $latitude, Longitude: $longitude';
+    return 'GeoLocation(latitude: $latitude, longitude: $longitude)';
   }
 
   static Map<String, dynamic> toMap(GeoLocation model) => <String, dynamic>{
-        "latitude": model.latitude,
-        "longitude": model.longitude,
-      };
+    "latitude": model.latitude,
+    "longitude": model.longitude,
+  };
+
   static String serialize(GeoLocation model) => json.encode(GeoLocation.toMap(model));
 }

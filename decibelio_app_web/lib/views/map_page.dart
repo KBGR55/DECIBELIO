@@ -1,3 +1,4 @@
+import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
 import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -12,6 +13,7 @@ class AnimatedMapControllerPage extends StatefulWidget{
 
   final String title;
   final Color color;
+  
 
   @override
   AnimatedMapControllerPageState createState() =>
@@ -27,8 +29,33 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   static const _dublin = LatLng(53.3498, -6.2603);
   final Facade _facade = Facade();
   ListSensorDTO? sensors;
+  ListMetricDTO? metricLast;
   final List<Marker> _markers = [];
   final mapController = MapController();
+  double _currentZoom = 12.0;
+   LatLng _selectedLocation = LatLng(-3.99313, -79.20422);
+ 
+
+    void _zoomIn() {
+    setState(() {
+      if (_currentZoom < 18.0) {
+        // Verificar el zoom máximo
+        _currentZoom++;
+        mapController.move(_selectedLocation, _currentZoom);
+      }
+    });
+  }
+
+  // Función para disminuir el zoom
+  void _zoomOut() {
+    setState(() {
+      if (_currentZoom > 5.0) {
+        // Verificar el zoom mínimo
+        _currentZoom--;
+        mapController.move(_selectedLocation, _currentZoom);
+      }
+    });
+  }
 
   @override
   void initState() {
@@ -40,12 +67,16 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     try {
       ListSensorDTO sensorData = await _facade.listSensorDTO();
       if (sensorData.status == 'SUCCESS') {
+         ListMetricDTO metricLastData= await _facade.listMetricLastDTO();
         setState(() {
           sensors = sensorData;
+          metricLast = metricLastData;
           _populateMarkers();
           _centerMapOnMarkers(); // Center the map on markers after fetching
         });
+        print("Metrcis fetched: $metricLast");
         print("Sensors fetched: $sensors");
+
       } else {
         print("Failed to fetch sensors: ${sensorData.message}");
       }
@@ -54,8 +85,9 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     }
   }
 
-  void _populateMarkers() {
-    _markers.clear();
+ void _populateMarkers() {
+  _markers.clear();
+  if (sensors != null && sensors!.data.isNotEmpty) {
     for (var sensor in sensors!.data) {
       Marker marker = Marker(
         width: 35,
@@ -63,12 +95,33 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
         point: LatLng(sensor.latitude, sensor.longitude),
         child: GestureDetector(
           onTap: () {
+            String? value;
+            String? date;
+            String? time;
+
+            // Buscar la métrica correspondiente al sensor
+            if (metricLast != null) {
+              for (var metric in metricLast!.data) {
+                if (metric.sensorExternalId == sensor.externalId) {
+                  value = metric.value.toString();
+                  date = metric.date; // Obtener la fecha
+                  time = metric.time; // Obtener la hora
+                  break;
+                }
+              }
+            }
+
             showDialog(
               context: context,
               builder: (BuildContext context) {
                 return AlertDialog(
                   title: Text(sensor.name),
-                  content: Text('Tipo de sensor: ${sensor.sensorType}'),
+                  content: Text(
+                    'Tipo de sensor: ${sensor.sensorType}\n'
+                    'Valor: ${value ?? 'No disponible'}\n'
+                    'Fecha: ${date ?? 'No disponible'}\n'
+                    'Hora: ${time ?? 'No disponible'}',
+                  ),
                   actions: [
                     TextButton(
                       child: const Text('Cerrar'),
@@ -90,8 +143,10 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
       );
       _markers.add(marker);
     }
+  } else {
+    print("No sensors available or sensors data is null.");
   }
-
+}
   void _centerMapOnMarkers() {
     if (_markers.isNotEmpty) {
       double totalLat = 0;
@@ -102,8 +157,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
       }
       double centerLat = totalLat / _markers.length;
       double centerLng = totalLng / _markers.length;
-      mapController.move(LatLng(centerLat, centerLng),
-          15); // Move to calculated center with zoom level 15
+      mapController.move(LatLng(centerLat, centerLng),15); 
     }
   }
 
@@ -171,7 +225,6 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
               child: FlutterMap(
                 mapController: mapController,
                 options: const MapOptions(
-                  initialCenter: LatLng(-3.99313, -79.20422),
                   initialZoom: 15,
                   maxZoom: 20,
                   minZoom: 3,
@@ -187,6 +240,24 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 ],
               ),
             ),
+              Positioned(
+                    // Posicionar botones de zoom
+                    top: 10,
+                    right: 10,
+                    child: Column(
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.add),
+                          onPressed: _zoomIn,
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.remove),
+                          onPressed: _zoomOut,
+                        ),
+                      ],
+                    ),
+                  ),
+               
           ],
         ),
       ),

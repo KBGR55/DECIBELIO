@@ -31,7 +31,6 @@ class conexion  {
   }
   
   Future<RespuestaGenerica> solicitudGet(String dir_recurso, String token) async{
-    log("${this.NAME}:Solicitud en Get");
     Map<String, String> _header = {'Content-Type':'application/json'};
     if(token != NO_TOKEN){
       _header = {'Content-Type':'applicaion/json', 'x-api-token': token};
@@ -41,7 +40,7 @@ class conexion  {
     log(url);
     try{
       final response = await http.get(uri, headers: _header);
-      //log(response.body);
+      log(response.body);
     log(response.statusCode.toString());
       if(response.statusCode != 200){
         return _responseJson('FAILURE', response.body, "No data",'No data');

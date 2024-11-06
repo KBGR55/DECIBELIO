@@ -285,4 +285,9 @@ public class DecibelioFacade {
         return rangeService.findByLandUseAndTimeFrame(landUseId, timeFrameId);
     }
 
+
+    public List<Metric> findLastMetricOfActiveSensors() {
+        return metricService.findLastMetricOfActiveSensors();
+    }    
+
 }

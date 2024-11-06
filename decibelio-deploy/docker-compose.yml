@@ -107,8 +107,6 @@ services:
 networks:
   decibelio-network:
     driver: bridge
-    #driver_opts:
-    #    parent: eth0
     ipam:
       driver: default
       config:
@@ -121,11 +119,4 @@ volumes:
     driver_opts:
       type: none
       device: ${LOCAL_DATA_DIR_BD}
-      o: bind
-  decibelio-web-bind:
-    name: decibelio-web-bind
-    driver: local
-    driver_opts:
-      type: none
-      device: ../decibelio_app_web/web
       o: bind

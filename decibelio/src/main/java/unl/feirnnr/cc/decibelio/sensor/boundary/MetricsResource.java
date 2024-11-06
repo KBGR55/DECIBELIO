@@ -47,6 +47,20 @@ public class MetricsResource {
         return Response.ok(result).build();
     }
 
+    @GET
+    @Path("/last")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get find last metrics")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successful operation"),
+            @APIResponse(responseCode = "404", description = "Error: Not found"),
+    })
+    public Response getAllMetricsFind() {
+        List<Metric> metrics = decibelioFacade.findLastMetricOfActiveSensors();
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully", Metric.class, metrics);
+        return Response.ok(result).build();
+    }
+
     @POST
     @Path("/upload")
     @Consumes(MediaType.MULTIPART_FORM_DATA)

@@ -6,6 +6,12 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 class SensorCreateControllerPage extends StatefulWidget {
+
+  const SensorCreateControllerPage({super.key, required this.title, required this.color});
+
+  final String title;
+  final Color color;
+
   @override
   _SensorCreateControllerPageState createState() =>
       _SensorCreateControllerPageState();
@@ -13,6 +19,7 @@ class SensorCreateControllerPage extends StatefulWidget {
 
 class _SensorCreateControllerPageState
     extends State<SensorCreateControllerPage> {
+  GlobalKey<ScaffoldState> sensorScreenKey = GlobalKey<ScaffoldState>();
   final conexion _con = conexion();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _externalIdController = TextEditingController();

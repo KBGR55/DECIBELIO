@@ -7,13 +7,17 @@ import 'package:decibelio_app_web/services/file_upload_service.dart';
 import 'package:decibelio_app_web/models/RespuestaGenerica.dart';
 
 class SubirDatoControllerPage  extends StatefulWidget {
-  const SubirDatoControllerPage ({Key? key}) : super(key: key);
+  const SubirDatoControllerPage ({super.key, required this.title, required this.color});
+
+  final String title;
+  final Color color;
 
   @override
   _SubirDatoState createState() => _SubirDatoState();
 }
 
 class _SubirDatoState extends State<SubirDatoControllerPage > {
+  GlobalKey<ScaffoldState> sensorDataScreenKey = GlobalKey<ScaffoldState>();
   String? _fileName;
   html.File? _file;
   late DropzoneViewController controller;

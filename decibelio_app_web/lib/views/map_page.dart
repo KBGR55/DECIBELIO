@@ -6,9 +6,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
 
-class AnimatedMapControllerPage extends StatefulWidget {
+class AnimatedMapControllerPage extends StatefulWidget{
   static const String route = '/map_controller_animated';
-  const AnimatedMapControllerPage({super.key});
+  const AnimatedMapControllerPage({super.key, required this.title, required this.color});
+
+  final String title;
+  final Color color;
 
   @override
   AnimatedMapControllerPageState createState() =>
@@ -17,6 +20,8 @@ class AnimatedMapControllerPage extends StatefulWidget {
 
 class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     with TickerProviderStateMixin {
+
+  GlobalKey<ScaffoldState> mapScreenKey = GlobalKey<ScaffoldState>();
   static const _london = LatLng(-3.99313, -79.20422);
   static const _paris = LatLng(-4.032126227155394, -79.20267644603182);
   static const _dublin = LatLng(53.3498, -6.2603);

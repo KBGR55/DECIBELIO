@@ -28,10 +28,12 @@ dependencies:
   flutter_map: ^7.0.2
   flutter_map_cancellable_tile_provider: ^3.0.2
   flutter_svg: ^2.0.10+1
-  flutter_bloc: ^8.0.1
+  flutter_bloc: ^8.1.6
   provider: ^6.0.2
   file_picker: ^5.0.0
   flutter_dropzone: ^4.0.2
+  badges: ^3.1.2
+  equatable: ^2.0.5
 
 dev_dependencies:
   build_runner: ^2.4.0
@@ -60,6 +62,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
      - assets/icons/
+     - assets/images/
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

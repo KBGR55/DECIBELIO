@@ -45,13 +45,17 @@ class HomeScreen extends StatelessWidget {
         builder: (context, state) {
           switch (state) {
             case '/upload':
-              return SubirDatoControllerPage();
+              return SubirDatoControllerPage(title: "Second Screen",
+                color: Colors.redAccent);
             case '/map':
-              return AnimatedMapControllerPage();
+              return AnimatedMapControllerPage(title: "Map Screen",
+                color: Colors.blueAccent);
             case '/sensor_create':
-              return SensorCreateControllerPage();
+              return SensorCreateControllerPage(title: "Thirst Screen",
+                color: Colors.greenAccent);
             default:
-              return AnimatedMapControllerPage();
+              return AnimatedMapControllerPage(title: "Map Screen",
+                color: Colors.blueAccent);
           }
         },
       ),

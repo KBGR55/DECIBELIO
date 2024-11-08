@@ -63,7 +63,7 @@ services:
       #SPRING_DATASOURCE_PASSWORD: admin@987 decibelio_22#
       #SERVER_PORT: 4000
     ports:
-      - "9081:9080"
+      - "9080:9080"
       - "9443:9443"
     depends_on:
       - decibelio-db

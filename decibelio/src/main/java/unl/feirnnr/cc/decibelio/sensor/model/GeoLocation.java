@@ -12,7 +12,8 @@ public class GeoLocation implements Serializable {
     float longitude; //C
 
     public GeoLocation() {
-        }
+    }
+    
     public GeoLocation(float latitude, float longitude) {
         this.latitude = latitude;
         this.longitude = longitude;

@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:decibelio_app_web/models/RespuestaGenerica.dart';
 
 class FileUploadService {
-    final String URL_BASE = "http://localhost:9081/decibelio/api/metrics/upload";
+    final String URL_BASE = "http://localhost:9080/decibelio/api/metrics/upload";
 
   // Método para subir un archivo al servidor
   Future<RespuestaGenerica> uploadFile(html.File file) async {

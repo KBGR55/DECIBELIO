@@ -34,17 +34,10 @@ public class GoogleAuthResource {
     private static final Logger LOGGER = Logger.getLogger(GoogleAuthResource.class.getName());
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
-    @Inject
-    @ConfigProperty(name = "CLIENT_ID")
-    private String clientId;
+    private final String clientId = System.getenv("CLIENT_ID");
+    private final String clientSecret = System.getenv("CLIENT_SECRET");
+    private final String redirectUri = System.getenv("REDIRECT_URI");
 
-    @Inject
-    @ConfigProperty(name = "CLIENT_SECRET")
-    private String clientSecret;
-
-    @Inject
-    @ConfigProperty(name = "REDIRECT_URI")
-    private String redirectUri;
 
     @GET
     @Path("/google/login")
@@ -109,6 +102,8 @@ public class GoogleAuthResource {
         payload.put("email", userInfo.get("emailAddresses").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString());
         payload.put("picture", userInfo.get("photos").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString());
         payload.put("name", userInfo.get("names").getAsJsonArray().get(0).getAsJsonObject().get("displayName").getAsString());
+        payload.put("firstName", userInfo.get("givenName").getAsString());
+        payload.put("lastName", userInfo.get("familyName").getAsString());
         return payload;
     }
 

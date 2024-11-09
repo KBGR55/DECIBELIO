@@ -12,6 +12,7 @@ import 'package:decibelio_app_web/views/sensor_create.dart';
 import 'package:decibelio_app_web/views/sidemenu.dart';
 import 'package:decibelio_app_web/views/subir_dato.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class MyHomePage extends StatefulWidget {
   const MyHomePage({Key? key, required this.title}) : super(key: key);
@@ -68,12 +69,17 @@ class _MyHomePageState extends State<MyHomePage> {
                     maxWidth: 150,
                   ),
                   child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/profile.png',
-                      cacheHeight: 60,
-                      cacheWidth: 60,
-                      fit: BoxFit.cover,
-                    ),
+                 child: SvgPicture.string(
+  '''
+  <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
+    <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
+    <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
+  </svg>
+  ''',
+  width: 60,
+  height: 60,
+)
+
                   ),
                 ),
                 const Divider(

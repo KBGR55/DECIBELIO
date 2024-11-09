@@ -1,40 +1,46 @@
-# Install Operating system and dependencies
-FROM ubuntu:20.04
+# Usa una imagen base más ligera
+FROM debian:bullseye-slim
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update 
-RUN apt-get install -y curl git wget unzip libgconf-2-4 gdb libstdc++6 libglu1-mesa fonts-droid-fallback python3
-RUN apt-get clean
+# Instalar dependencias necesarias, incluyendo git y xz-utils
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    curl wget unzip git xz-utils libstdc++6 libglu1-mesa fonts-droid-fallback python3 ca-certificates && \
+    rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/*
 
-ENV DEBIAN_FRONTEND=dialog
+# Variables de entorno de Flutter
 ENV PUB_HOSTED_URL=https://pub.flutter-io.cn
 ENV FLUTTER_STORAGE_BASE_URL=https://storage.flutter-io.cn
 
-# download Flutter SDK from Flutter Github repo
-RUN git clone https://github.com/flutter/flutter.git /usr/local/flutter
+# Descargar y extraer Flutter SDK
+RUN wget -q https://storage.googleapis.com/flutter_infra_release/releases/stable/linux/flutter_linux_3.7.0-stable.tar.xz && \
+    tar -xf flutter_linux_3.7.0-stable.tar.xz -C /usr/local && \
+    rm flutter_linux_3.7.0-stable.tar.xz
 
-# Set flutter environment path
-ENV PATH="/usr/local/flutter/bin:/usr/local/flutter/bin/cache/dart-sdk/bin:${PATH}"
+# Configurar Flutter como directorio seguro para git
+RUN git config --global --add safe.directory /usr/local/flutter
 
-# Run flutter doctor
-RUN flutter doctor
+# Ejecutar flutter doctor
+RUN /usr/local/flutter/bin/flutter doctor
 
-# Enable flutter web
-RUN flutter channel master
-RUN flutter upgrade
-RUN flutter config --enable-web
+# Habilitar soporte para Flutter web
+RUN /usr/local/flutter/bin/flutter channel master && \
+    /usr/local/flutter/bin/flutter upgrade && \
+    /usr/local/flutter/bin/flutter config --enable-web
 
-# Copy files to container and build
+# Copiar archivos y construir la aplicación
 RUN mkdir /app/
 COPY . /app/
 WORKDIR /app/
-RUN flutter build web
 
-# Record the exposed port
+# Construir aplicación web
+RUN /usr/local/flutter/bin/flutter build web
+
+# Exponer el puerto
 EXPOSE 9000
 
-# make server startup script executable and start the web server
+# Hacer el script ejecutable y lanzar el servidor
 RUN ["chmod", "+x", "/app/server/server.sh"]
 
-ENTRYPOINT [ "/app/server/server.sh"]
+ENTRYPOINT ["/app/server/server.sh"]

@@ -27,30 +27,28 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   static const _london = LatLng(-3.99313, -79.20422);
   static const _paris = LatLng(-4.032126227155394, -79.20267644603182);
   static const _dublin = LatLng(53.3498, -6.2603);
+    static const _loja = LatLng(-3.99313, -79.20422);
   final Facade _facade = Facade();
   ListSensorDTO? sensors;
   ListMetricDTO? metricLast;
   final List<Marker> _markers = [];
   final mapController = MapController();
   double _currentZoom = 12.0;
-   LatLng _selectedLocation = LatLng(-3.99313, -79.20422);
+  LatLng _selectedLocation = LatLng(-3.99313, -79.20422);
  
 
-    void _zoomIn() {
+  void _zoomIn() {
     setState(() {
       if (_currentZoom < 18.0) {
-        // Verificar el zoom máximo
         _currentZoom++;
         mapController.move(_selectedLocation, _currentZoom);
       }
     });
   }
 
-  // Función para disminuir el zoom
   void _zoomOut() {
     setState(() {
       if (_currentZoom > 5.0) {
-        // Verificar el zoom mínimo
         _currentZoom--;
         mapController.move(_selectedLocation, _currentZoom);
       }
@@ -72,7 +70,6 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
           sensors = sensorData;
           metricLast = metricLastData;
           _populateMarkers();
-          _centerMapOnMarkers(); // Center the map on markers after fetching
         });
         print("Metrcis fetched: $metricLast");
         print("Sensors fetched: $sensors");
@@ -147,19 +144,6 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     print("No sensors available or sensors data is null.");
   }
 }
-  void _centerMapOnMarkers() {
-    if (_markers.isNotEmpty) {
-      double totalLat = 0;
-      double totalLng = 0;
-      for (var marker in _markers) {
-        totalLat += marker.point.latitude;
-        totalLng += marker.point.longitude;
-      }
-      double centerLat = totalLat / _markers.length;
-      double centerLng = totalLng / _markers.length;
-      mapController.move(LatLng(centerLat, centerLng),15); 
-    }
-  }
 
   void _animatedMapMove(LatLng destLocation, double destZoom) {
     final camera = mapController.camera;
@@ -207,15 +191,15 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
               child: Row(
                 children: <Widget>[
                   MaterialButton(
-                    onPressed: () => _animatedMapMove(_london, 20.0),
+                    onPressed: () => _animatedMapMove(_loja, 15),
                     child: const Text('Loja'),
                   ),
                   MaterialButton(
-                    onPressed: () => _animatedMapMove(_paris, 20.0),
+                    onPressed: () => _animatedMapMove(_paris, 15),
                     child: const Text('Universidad Nacional de Loja'),
                   ),
                   MaterialButton(
-                    onPressed: () => _animatedMapMove(_dublin, 20.0),
+                    onPressed: () => _animatedMapMove(_dublin, 15),
                     child: const Text('Dublin'),
                   ),
                 ],
@@ -225,6 +209,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
               child: FlutterMap(
                 mapController: mapController,
                 options: const MapOptions(
+                  initialCenter: _loja,
                   initialZoom: 15,
                   maxZoom: 20,
                   minZoom: 3,

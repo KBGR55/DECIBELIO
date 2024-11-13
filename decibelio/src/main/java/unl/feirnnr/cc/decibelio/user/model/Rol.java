@@ -24,17 +24,17 @@ public class Rol {
     }
 
     @Column(nullable = false)
-    private Boolean estado = true;
+    private Boolean status = true;
 
-    public Rol(Long id, @NotNull String tipo, Boolean estado) {
+    public Rol(Long id, @NotNull String tipo, Boolean status) {
         this.id = id;
         this.tipo = tipo;
-        this.estado = estado;
+        this.status = status;
     }
 
     public Rol() {
     }
-    
+
     public Long getId() {
         return id;
     }
@@ -42,6 +42,7 @@ public class Rol {
     public void setId(Long id) {
         this.id = id;
     }
+
     public String getTipo() {
         return tipo;
     }
@@ -50,14 +51,21 @@ public class Rol {
         this.tipo = tipo;
     }
 
-    public Boolean getEstado() {
-        return estado;
+    public Boolean getStatus() {
+        return status;
     }
 
-    public void setEstado(Boolean estado) {
-        this.estado = estado;
+    public void setStatus(Boolean status) {
+        this.status = status;
     }
 
-    
+    @Override
+    public String toString() {
+        return "Rol{" +
+                "id=" + id +
+                ", tipo='" + tipo + '\'' +
+                ", status=" + status +
+                '}';
+    }
 
 }

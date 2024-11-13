@@ -2,7 +2,6 @@ import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
 import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
@@ -24,24 +23,20 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     with TickerProviderStateMixin {
 
   GlobalKey<ScaffoldState> mapScreenKey = GlobalKey<ScaffoldState>();
-  static const _london = LatLng(-3.99313, -79.20422);
   static const _paris = LatLng(-4.032126227155394, -79.20267644603182);
-  static const _dublin = LatLng(53.3498, -6.2603);
-    static const _loja = LatLng(-3.99313, -79.20422);
+  static const _loja = LatLng(-3.99313, -79.20422);
   final Facade _facade = Facade();
   ListSensorDTO? sensors;
   ListMetricDTO? metricLast;
   final List<Marker> _markers = [];
   final mapController = MapController();
   double _currentZoom = 12.0;
-  LatLng _selectedLocation = LatLng(-3.99313, -79.20422);
- 
 
   void _zoomIn() {
     setState(() {
       if (_currentZoom < 18.0) {
         _currentZoom++;
-        mapController.move(_selectedLocation, _currentZoom);
+        mapController.move(_loja, _currentZoom);
       }
     });
   }
@@ -50,7 +45,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     setState(() {
       if (_currentZoom > 5.0) {
         _currentZoom--;
-        mapController.move(_selectedLocation, _currentZoom);
+        mapController.move(_loja, _currentZoom);
       }
     });
   }
@@ -175,77 +170,69 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     controller.forward();
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        
-      ),
-      
-      body: Padding(
-        padding: const EdgeInsets.all(8),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Row(
-                children: <Widget>[
-                  MaterialButton(
-                    onPressed: () => _animatedMapMove(_loja, 15),
-                    child: const Text('Loja'),
-                  ),
-                  MaterialButton(
-                    onPressed: () => _animatedMapMove(_paris, 15),
-                    child: const Text('Universidad Nacional de Loja'),
-                  ),
-                  MaterialButton(
-                    onPressed: () => _animatedMapMove(_dublin, 15),
-                    child: const Text('Dublin'),
-                  ),
-                ],
-              ),
-            ),
-            Flexible(
-              child: FlutterMap(
-                mapController: mapController,
-                options: const MapOptions(
-                  initialCenter: _loja,
-                  initialZoom: 15,
-                  maxZoom: 20,
-                  minZoom: 3,
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    body: Padding(
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: <Widget>[
+                MaterialButton(
+                  onPressed: () => _animatedMapMove(_loja, 15),
+                  child: const Text('Loja'),
                 ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-                    tileProvider: CancellableNetworkTileProvider(),
-                  ),
-                  MarkerLayer(markers: _markers),
-                ],
-              ),
+                MaterialButton(
+                  onPressed: () => _animatedMapMove(_paris, 15),
+                  child: const Text('Universidad Nacional de Loja'),
+                ),
+              ],
             ),
-              Positioned(
-                    // Posicionar botones de zoom
-                    top: 10,
-                    right: 10,
-                    child: Column(
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.add),
-                          onPressed: _zoomIn,
-                        ),
-                        IconButton(
-                          icon: Icon(Icons.remove),
-                          onPressed: _zoomOut,
-                        ),
-                      ],
-                    ),
+          ),
+          Flexible(
+            child: Stack(
+              children: [
+                FlutterMap(
+                  mapController: mapController,
+                  options: MapOptions(
+                    initialCenter: _loja,
+                    initialZoom: 15.0,
+                    maxZoom: 20.0,
+                    minZoom: 3.0,
                   ),
-               
-          ],
-        ),
+                  children: [
+                    TileLayer(
+                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                    ),
+                    MarkerLayer(markers: _markers),
+                  ],
+                ),
+                Positioned(
+                  top: 10,
+                  right: 10,
+                  child: Column(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.add),
+                        onPressed: _zoomIn,
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.remove),
+                        onPressed: _zoomOut,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
 }
+
+    }

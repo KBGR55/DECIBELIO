@@ -10,10 +10,10 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.TableGenerator;
 
 @Entity
-@TableGenerator(name = "User RolGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "User Rol", initialValue = 1, allocationSize = 1)
+@TableGenerator(name = "UserRolGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "UserRol", initialValue = 1, allocationSize = 1)
 public class UserRol {
     @Id
-    @GeneratedValue(generator = "User RolGenerator", strategy = GenerationType.TABLE)
+    @GeneratedValue(generator = "UserRolGenerator", strategy = GenerationType.TABLE)
     private Long id;
 
     @ManyToOne
@@ -33,14 +33,14 @@ public class UserRol {
     }
 
     @Column(nullable = false)
-    private Boolean estado = true;
+    private Boolean status = true;
     
-    public Boolean getEstado() {
-        return estado;
+    public Boolean getStatus() {
+        return status;
     }
 
-    public void setEstado(Boolean estado) {
-        this.estado = estado;
+    public void setStatus(Boolean status) {
+        this.status = status;
     }
 
     public Long getId() {

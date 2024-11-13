@@ -24,28 +24,28 @@ public class User {
 
     @Email
     @NotBlank
-    private String correo;
+    private String email;
 
     @Column(nullable = false)
-    private Boolean estado = true;
+    private Boolean status = true;
 
     public User(){
 
     }
 
-    public User(@NotBlank String firstName, @NotBlank String lastName, @Email @NotBlank String correo) {
+    public User(@NotBlank String firstName, @NotBlank String lastName, @Email @NotBlank String email) {
         this.firstName = firstName;
         this.lastName = lastName;
-        this.correo = correo;
+        this.email = email;
     }
 
-    public User(Long id, @NotBlank String firstName, @NotBlank String lastName, @Email @NotBlank String correo,
-            Boolean estado) {
+    public User(Long id, @NotBlank String firstName, @NotBlank String lastName, @Email @NotBlank String email,
+            Boolean status) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.correo = correo;
-        this.estado = estado;
+        this.email = email;
+        this.status = status;
     }
 
     public Long getId() {
@@ -72,20 +72,20 @@ public class User {
         this.lastName = lastName;
     }
 
-    public String getCorreo() {
-        return correo;
+    public String getEmail() {
+        return email;
     }
 
-    public void setCorreo(String correo) {
-        this.correo = correo;
+    public void setEmail(String email) {
+        this.email = email;
     }
 
-    public Boolean getEstado() {
-        return estado;
+    public Boolean getsStatus() {
+        return status;
     }
 
-    public void setEstado(Boolean estado) {
-        this.estado = estado;
+    public void setStatus(Boolean status) {
+        this.status = status;
     }
  
 }

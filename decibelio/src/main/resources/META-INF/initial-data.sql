@@ -40,8 +40,8 @@ INSERT INTO public.range(id, value, timeframe_id, landuse_id) VALUES (14, 65.0, 
 UPDATE public.identitygenerator SET value=(SELECT MAX(id) FROM public.range) WHERE name LIKE 'Range';
 
 -- INICIACIÓN DE ROLES (UNA SOLA VEZ)
-INSERT INTO public.rol(id, tipo, status) VALUES (1, 'ADMINISTRADOR', true);
-INSERT INTO public.rol(id, tipo, status) VALUES (2, 'VISOR_GENERAL', true);
+INSERT INTO public.rol(id, type, status) VALUES (1, 'ADMINISTRADOR', true);
+INSERT INTO public.rol(id, type, status) VALUES (2, 'VISOR_GENERAL', true);
 
 -- ACTUALIZACIÓN DE ID de Roles
 UPDATE public.identitygenerator SET value=(SELECT MAX(id) FROM public.rol) WHERE name LIKE 'Rol';

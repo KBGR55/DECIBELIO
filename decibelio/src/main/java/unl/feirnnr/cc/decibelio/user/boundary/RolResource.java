@@ -43,7 +43,7 @@ public class RolResource {
         for (Rol rol: roles) {
             JsonObject rolJson = Json.createObjectBuilder()
                     .add("id", rol.getId())
-                    .add("tipo", rol.getTipo())
+                    .add("type", rol.getType())
                     .add("status", rol.getStatus())
                     .build();
             arrayBuilder.add(rolJson);
@@ -67,7 +67,7 @@ public class RolResource {
        for (Rol rol: roles) {
            JsonObject rolJson = Json.createObjectBuilder()
                    .add("id", rol.getId())
-                   .add("tipo", rol.getTipo())
+                   .add("type", rol.getType())
                    .add("status", rol.getStatus())
                    .build();
            arrayBuilder.add(rolJson);

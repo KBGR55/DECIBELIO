@@ -1,16 +1,17 @@
-package unl.feirnnr.cc.decibelio.common.rest;
+package unl.feirnnr.cc.decibelio.common.service;
 
-import jakarta.inject.Inject;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import unl.feirnnr.cc.decibelio.common.rest.RestResult;
+import unl.feirnnr.cc.decibelio.common.rest.RestResultStatus;
+
 import org.eclipse.microprofile.openapi.annotations.Operation;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponse;
 import org.eclipse.microprofile.openapi.annotations.responses.APIResponses;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.io.IOException;
 import java.net.URI;
@@ -29,9 +30,9 @@ import java.util.logging.Logger;
         @APIResponse(responseCode = "400", description = "Invalid input"),
         @APIResponse(responseCode = "404", description = "Not Found"),
 })
-public class GoogleAuthResource {
+public class GoogleAuth {
 
-    private static final Logger LOGGER = Logger.getLogger(GoogleAuthResource.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GoogleAuth.class.getName());
     private static final HttpClient CLIENT = HttpClient.newHttpClient();
 
     private final String clientId = System.getenv("CLIENT_ID");
@@ -98,6 +99,7 @@ public class GoogleAuthResource {
     }
 
     private Map<String, Object> extractUserInfo(JsonObject userInfo) {
+        System.out.println(userInfo);
         Map<String, Object> payload = new HashMap<>();
         payload.put("email", userInfo.get("emailAddresses").getAsJsonArray().get(0).getAsJsonObject().get("value").getAsString());
         payload.put("picture", userInfo.get("photos").getAsJsonArray().get(0).getAsJsonObject().get("url").getAsString());

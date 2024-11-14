@@ -17,18 +17,18 @@ public class Rol {
 
     @NotNull
     @Column(length = 20, nullable = false)
-    private String tipo;
+    private String type;
 
-    public Rol(@NotNull String tipo) {
-        this.tipo = tipo;
+    public Rol(@NotNull String type) {
+        this.type = type;
     }
 
     @Column(nullable = false)
     private Boolean status = true;
 
-    public Rol(Long id, @NotNull String tipo, Boolean status) {
+    public Rol(Long id, @NotNull String type, Boolean status) {
         this.id = id;
-        this.tipo = tipo;
+        this.type = type;
         this.status = status;
     }
 
@@ -43,12 +43,12 @@ public class Rol {
         this.id = id;
     }
 
-    public String getTipo() {
-        return tipo;
+    public String getType() {
+        return type;
     }
 
-    public void setTipo(String tipo) {
-        this.tipo = tipo;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public Boolean getStatus() {
@@ -63,7 +63,7 @@ public class Rol {
     public String toString() {
         return "Rol{" +
                 "id=" + id +
-                ", tipo='" + tipo + '\'' +
+                ", type='" + type + '\'' +
                 ", status=" + status +
                 '}';
     }

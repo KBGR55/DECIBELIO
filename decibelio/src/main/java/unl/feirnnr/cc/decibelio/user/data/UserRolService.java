@@ -4,6 +4,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.user.model.Rol;
 import unl.feirnnr.cc.decibelio.user.model.User;
@@ -23,13 +24,19 @@ public class UserRolService {
     @ConfigProperty(name = "defaulRol", defaultValue = "VISOR_GENERAL")
     private String defaulRol;
 
+    
+    public UserRol save(@NotNull UserRol userRol) {
+        return userRol.getId() == null ? crudService.create(userRol) : crudService.update(userRol);
+    }
+
     public User createUserWithDefaultRole(String firstName, String lastName, String email) {
         // Crear el nuevo usuario
         User user = new User(firstName, lastName, email);
         crudService.create(user);  // Usar CrudService para crear el usuario
+        System.out.println(user);
 
         // Buscar el rol "VISOR_GENERAL"
-        Rol rol = rolService.findByTipo(defaulRol);
+        Rol rol = rolService.findByType(defaulRol);
         if (rol == null) {
             throw new IllegalStateException("El rol por defecto 'VISOR_GENERAL' no se encuentra.");
         }

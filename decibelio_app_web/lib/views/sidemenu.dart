@@ -7,6 +7,7 @@ export 'package:decibelio_app_web/views/sidemenu/side_menu_item.dart';
 export 'package:decibelio_app_web/views/sidemenu/side_menu_expansion_item.dart';
 export 'package:decibelio_app_web/views/sidemenu/side_menu_style.dart';
 
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/views/map_page.dart';
 import 'package:decibelio_app_web/views/sensor_create.dart';
 import 'package:decibelio_app_web/views/sidemenu.dart';
@@ -40,6 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
+        backgroundColor: AdaptiveTheme.of(context).theme.canvasColor,
         centerTitle: true,
       ),
       body: Row(
@@ -56,6 +58,8 @@ class _MyHomePageState extends State<MyHomePage> {
               selectedColor: Colors.lightBlue,
               selectedTitleTextStyle: const TextStyle(color: Colors.white),
               selectedIconColor: Colors.white,
+              backgroundColor: AdaptiveTheme.of(context).theme.canvasColor,
+              unselectedTitleTextStyle: TextStyle(color: AdaptiveTheme.of(context).theme.cardColor),
               // decoration: BoxDecoration(
               //   borderRadius: BorderRadius.all(Radius.circular(10)),
               // ),
@@ -63,6 +67,27 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
             title: Column(
               children: [
+                Align(
+                  alignment: Alignment.centerRight, // Alineación a la izquierda
+                  child: Switch(
+                      value:
+                      AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light,
+                      activeThumbImage:
+                      const AssetImage('assets/images/sun-svgrepo-com.png'),
+                      inactiveThumbImage: const AssetImage(
+                          'assets/images/moon-stars-svgrepo-com.png'),
+                      activeColor: Colors.white,
+                      activeTrackColor: Colors.amber,
+                      inactiveThumbColor: Colors.black,
+                      inactiveTrackColor: Colors.white,
+                      onChanged: (bool value) {
+                        if (value) {
+                          AdaptiveTheme.of(context).setLight();
+                        } else {
+                          AdaptiveTheme.of(context).setDark();
+                        }
+                      }),
+                ),
                 ConstrainedBox(
                   constraints: const BoxConstraints(
                     maxHeight: 150,
@@ -216,21 +241,21 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: pageController,
               children: [
                 Container(
-                  color: Colors.white,
+                  color: AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
                   child: const Center(
                     child: AnimatedMapControllerPage(title: "Map Screen",
                         color: Colors.blueAccent),
                   ),
                 ),
                 Container(
-                  color: Colors.white,
+                  color: AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
                   child: const Center(
                     child: SubirDatoControllerPage(title: "Second Screen",
                       color: Colors.redAccent)
                   ),
                 ),
                 Container(
-                  color: Colors.white,
+                  color: AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
                   child: const Center(
                     child: SensorCreateControllerPage(title: "Thirst Screen",
                       color: Colors.greenAccent),

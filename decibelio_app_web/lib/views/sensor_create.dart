@@ -4,10 +4,11 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:geolocator/geolocator.dart';
 
 class SensorCreateControllerPage extends StatefulWidget {
-
-  const SensorCreateControllerPage({super.key, required this.title, required this.color});
+  const SensorCreateControllerPage(
+      {super.key, required this.title, required this.color});
 
   final String title;
   final Color color;
@@ -24,7 +25,7 @@ class _SensorCreateControllerPageState
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _externalIdController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  final MapController _mapController = MapController(); 
+  final MapController _mapController = MapController();
 
   String _selectedSensorType = 'SOUND_LEVEL_METER';
   String _selectedSensorStatus = 'ACTIVE';
@@ -33,6 +34,50 @@ class _SensorCreateControllerPageState
   // Coordenadas iniciales centradas en Loja, Ecuador
   LatLng _selectedLocation = LatLng(-3.99313, -79.20422);
   double _currentZoom = 12.0; // Agregar nivel de zoom actual
+  // Obtener ubicación actual del dispositivo
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // Verificar si el servicio está habilitado
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Por favor, habilita el servicio de ubicación')),
+      );
+      return;
+    }
+
+    // Solicitar permisos de ubicación
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permiso de ubicación denegado')),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text(
+                'Permiso de ubicación denegado permanentemente. No se puede acceder a la ubicación.')),
+      );
+      return;
+    }
+
+    // Obtener la ubicación actual
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    setState(() {
+      _selectedLocation = LatLng(position.latitude, position.longitude);
+      _mapController.move(_selectedLocation, _currentZoom);
+    });
+  }
 
   // Función para aumentar el zoom
   void _zoomIn() {
@@ -153,16 +198,16 @@ class _SensorCreateControllerPageState
               const Text('Ubicación del Sensor',
                   style: TextStyle(fontSize: 16)),
               const SizedBox(height: 8),
+
               Stack(
-                // Usar Stack para superponer los botones sobre el mapa
                 children: [
                   SizedBox(
                     height: 250,
                     child: FlutterMap(
                       mapController: _mapController,
                       options: MapOptions(
-                        initialCenter: _selectedLocation, // Cambiar a center
-                        initialZoom: _currentZoom, // Usar el zoom actual
+                        initialCenter: _selectedLocation,
+                        initialZoom: _currentZoom,
                         minZoom: 5.0,
                         maxZoom: 18.0,
                         onTap: (tapPosition, latlng) {
@@ -185,13 +230,10 @@ class _SensorCreateControllerPageState
                               width: 35,
                               height: 35,
                               point: _selectedLocation,
-                              child: GestureDetector(
-                                onTap: () {},
-                                child: SvgPicture.asset(
-                                  'assets/icons/map-marker-svgrepo-com.svg',
-                                  width: 35,
-                                  height: 35,
-                                ),
+                              child: SvgPicture.asset(
+                                'assets/icons/map-marker-svgrepo-com.svg',
+                                width: 35,
+                                height: 35,
                               ),
                             ),
                           ],
@@ -200,18 +242,47 @@ class _SensorCreateControllerPageState
                     ),
                   ),
                   Positioned(
-                    // Posicionar botones de zoom
                     top: 10,
                     right: 10,
                     child: Column(
                       children: [
                         IconButton(
-                          icon: Icon(Icons.add),
-                          onPressed: _zoomIn,
+                          icon: const Icon(
+                            Icons.add,
+                            size: 32.0,
+                            color: Colors.black,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (_currentZoom < 18.0) _currentZoom++;
+                              _mapController.move(
+                                  _selectedLocation, _currentZoom);
+                            });
+                          },
                         ),
                         IconButton(
-                          icon: Icon(Icons.remove),
-                          onPressed: _zoomOut,
+                          icon: const Icon(
+                            Icons.remove,
+                            size: 32.0,
+                            color: Colors.black,
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              if (_currentZoom > 5.0) _currentZoom--;
+                              _mapController.move(
+                                  _selectedLocation, _currentZoom);
+                            });
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.my_location,
+                            size: 32.0,
+                            color: Colors.black, // Cambiar color a negro
+                          ),
+                          onPressed: _getCurrentLocation,
+                          tooltip: 'Obtener mi ubicación',
                         ),
                       ],
                     ),

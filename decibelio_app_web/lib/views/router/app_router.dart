@@ -14,7 +14,7 @@ class AppRouter {
         );
       case '/second':
         return MaterialPageRoute(
-          builder: (_) => const SubirDatoControllerPage(
+          builder: (_) => SubirDatoControllerPage(
             title: "Upload Data",
             color: Colors.redAccent,
           ),

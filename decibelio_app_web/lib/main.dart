@@ -19,6 +19,7 @@ class MyApp extends StatelessWidget {
 
   final _routes = {
     '/dashboard': (context) => MainScreen()
+    
   };
   @override
   Widget build(BuildContext context) {
@@ -47,7 +48,7 @@ class MyApp extends StatelessWidget {
             create: (_) => NavigationBloc(),
             child: MaterialApp(
               debugShowCheckedModeBanner: false,
-              title: 'Decibelio App',
+              title: 'DECIBELIO',
               theme: theme,
               darkTheme: darkTheme,
               home: MultiProvider(

@@ -16,6 +16,10 @@ void main() {
 
 class MyApp extends StatelessWidget {
   final AppRouter _appRouter = AppRouter();
+
+  final _routes = {
+    '/dashboard': (context) => MainScreen()
+  };
   @override
   Widget build(BuildContext context) {
     return AdaptiveTheme(
@@ -25,7 +29,7 @@ class MyApp extends StatelessWidget {
           scaffoldBackgroundColor: Color(0xFF212332),
           textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
               .apply(bodyColor: Colors.white),
-          canvasColor: secondaryColor,
+          canvasColor: Color(0xFF1D1B20),
         ),
         light: ThemeData.light().copyWith(
           primaryColor: Color(0xB3D3D3D3),
@@ -35,7 +39,7 @@ class MyApp extends StatelessWidget {
           //scaffoldBackgroundColor: Colors.white,
           textTheme: GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
               .apply(bodyColor: Colors.black),
-          canvasColor: Colors.black54,
+          canvasColor: Color(0xFF0C2342),
         ),
         initial: AdaptiveThemeMode.dark,
         builder: (theme, darkTheme) {
@@ -53,14 +57,15 @@ class MyApp extends StatelessWidget {
                   ),
                 ],
                 child: MainScreen(),
-              ),  // Ahora HomeScreen es la pantalla inicial
+              ), // Ahora HomeScreen es la pantalla inicial
               //home:  MyHomePage(title: "Sensores"),
+              //initialRoute: '/second',
+              //routes: _routes,
               onGenerateRoute: _appRouter.onGenerateRoute,
             ),
           );
         });
   }
-  }
+}
 
-
-  /***/
+/***/

@@ -8,7 +8,7 @@ export 'package:decibelio_app_web/views/sidemenu/side_menu_expansion_item.dart';
 export 'package:decibelio_app_web/views/sidemenu/side_menu_style.dart';
 
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:decibelio_app_web/views/map_page.dart';
+import 'package:decibelio_app_web/views/dashboard/components/map.dart';
 import 'package:decibelio_app_web/views/sensor_create.dart';
 import 'package:decibelio_app_web/views/sidemenu.dart';
 import 'package:decibelio_app_web/views/subir_dato.dart';
@@ -59,7 +59,8 @@ class _MyHomePageState extends State<MyHomePage> {
               selectedTitleTextStyle: const TextStyle(color: Colors.white),
               selectedIconColor: Colors.white,
               backgroundColor: AdaptiveTheme.of(context).theme.canvasColor,
-              unselectedTitleTextStyle: TextStyle(color: AdaptiveTheme.of(context).theme.cardColor),
+              unselectedTitleTextStyle:
+                  TextStyle(color: AdaptiveTheme.of(context).theme.cardColor),
               // decoration: BoxDecoration(
               //   borderRadius: BorderRadius.all(Radius.circular(10)),
               // ),
@@ -70,10 +71,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 Align(
                   alignment: Alignment.centerRight, // Alineación a la izquierda
                   child: Switch(
-                      value:
-                      AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light,
+                      value: AdaptiveTheme.of(context).mode ==
+                          AdaptiveThemeMode.light,
                       activeThumbImage:
-                      const AssetImage('assets/images/sun-svgrepo-com.png'),
+                          const AssetImage('assets/images/sun-svgrepo-com.png'),
                       inactiveThumbImage: const AssetImage(
                           'assets/images/moon-stars-svgrepo-com.png'),
                       activeColor: Colors.white,
@@ -94,18 +95,16 @@ class _MyHomePageState extends State<MyHomePage> {
                     maxWidth: 150,
                   ),
                   child: ClipOval(
-                 child: SvgPicture.string(
-  '''
+                      child: SvgPicture.string(
+                    '''
   <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" fill="currentColor" class="bi bi-person-circle" viewBox="0 0 16 16">
     <path d="M11 6a3 3 0 1 1-6 0 3 3 0 0 1 6 0"/>
     <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
   </svg>
   ''',
-  width: 60,
-  height: 60,
-)
-
-                  ),
+                    width: 60,
+                    height: 60,
+                  )),
                 ),
                 const Divider(
                   indent: 8.0,
@@ -137,8 +136,8 @@ class _MyHomePageState extends State<MyHomePage> {
                 },
                 icon: const Icon(Icons.home),
                 //badgeContent: const Text(
-                  //'5',
-                  //style: TextStyle(color: Colors.white),
+                //'5',
+                //style: TextStyle(color: Colors.white),
                 //),
                 tooltipContent: "Mira los sensores dispersos en el mapa",
               ),
@@ -241,24 +240,25 @@ class _MyHomePageState extends State<MyHomePage> {
               controller: pageController,
               children: [
                 Container(
-                  color: AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
+                  color:
+                      AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
                   child: const Center(
-                    child: AnimatedMapControllerPage(title: "Map Screen",
-                        color: Colors.blueAccent),
+                    child: AnimatedMapControllerPage(),
                   ),
                 ),
                 Container(
-                  color: AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
+                  color:
+                      AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
                   child: const Center(
-                    child: SubirDatoControllerPage(title: "Second Screen",
-                      color: Colors.redAccent)
-                  ),
+                      child: SubirDatoControllerPage(
+                          title: "Second Screen", color: Colors.redAccent)),
                 ),
                 Container(
-                  color: AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
+                  color:
+                      AdaptiveTheme.of(context).theme.scaffoldBackgroundColor,
                   child: const Center(
-                    child: SensorCreateControllerPage(title: "Thirst Screen",
-                      color: Colors.greenAccent),
+                    child: SensorCreateControllerPage(
+                        title: "Thirst Screen", color: Colors.greenAccent),
                   ),
                 ),
                 /**Container(

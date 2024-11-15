@@ -1,8 +1,8 @@
+import 'package:decibelio_app_web/views/dashboard/components/map.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:decibelio_app_web/views/navigation/navigation_bloc.dart';
 import 'package:decibelio_app_web/views/subir_dato.dart';
-import 'package:decibelio_app_web/views/map_page.dart';
 import 'package:decibelio_app_web/views/sensor_create.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -48,14 +48,12 @@ class HomeScreen extends StatelessWidget {
               return SubirDatoControllerPage(title: "Second Screen",
                 color: Colors.redAccent);
             case '/map':
-              return AnimatedMapControllerPage(title: "Map Screen",
-                color: Colors.blueAccent);
+              return AnimatedMapControllerPage();
             case '/sensor_create':
               return SensorCreateControllerPage(title: "Thirst Screen",
                 color: Colors.greenAccent);
             default:
-              return AnimatedMapControllerPage(title: "Map Screen",
-                color: Colors.blueAccent);
+              return AnimatedMapControllerPage();
           }
         },
       ),

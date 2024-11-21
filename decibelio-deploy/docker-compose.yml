@@ -80,15 +80,11 @@ services:
 
   decibelio-webapp:
       container_name: decibelio-webapp
-      build:
-        context: ../decibelio_app_web  
-        dockerfile: Dockerfile
-      #environment:
-      #  PGADMIN_DEFAULT_EMAIL: "adminDB@postgres.org"
-      #  PGADMIN_DEFAULT_PASSWORD: "admin123"`
+      image: nginx:stable-alpine
+      volumes:
+        - decibelio-web-bind:/usr/share/nginx/html:ro
       ports:
-        #- ${PORT_WEBAPP_PUBLIC}:5432
-        - 9000:9000   
+        - 9000:80 
       
       depends_on:
         - decibelio-api
@@ -119,4 +115,11 @@ volumes:
     driver_opts:
       type: none
       device: ${LOCAL_DATA_DIR_BD}
+      o: bind
+  decibelio-web-bind:
+    name: decibelio-web-bind
+    driver: local
+    driver_opts:
+      type: none
+      device: ../decibelio_app_web/build/web
       o: bind

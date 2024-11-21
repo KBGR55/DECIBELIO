@@ -19,8 +19,8 @@ class MyApp extends StatelessWidget {
 
   final _routes = {
     '/dashboard': (context) => MainScreen()
-    
   };
+
   @override
   Widget build(BuildContext context) {
     return AdaptiveTheme(

@@ -1,4 +1,3 @@
-import 'package:decibelio_app_web/views/dashboard/components/map.dart';
 import 'package:decibelio_app_web/views/main/main_screen.dart';
 import 'package:decibelio_app_web/views/sensor_create.dart';
 import 'package:decibelio_app_web/views/subir_dato.dart';

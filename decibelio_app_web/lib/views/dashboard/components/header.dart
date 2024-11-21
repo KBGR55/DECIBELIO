@@ -1,7 +1,6 @@
 import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
 import 'package:decibelio_app_web/responsive.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 import '../../../constants.dart';

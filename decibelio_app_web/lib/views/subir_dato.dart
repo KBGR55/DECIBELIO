@@ -265,11 +265,6 @@ class _SubirDatoState extends State<SubirDatoControllerPage > {
     // Crear una URL para el Blob
     final url = html.Url.createObjectUrlFromBlob(blob);
 
-    // Crear un elemento de anclaje para la descarga
-    final anchor = html.AnchorElement(href: url)
-      ..setAttribute("download", "additional_info.json")
-      ..click();
-
     // Limpiar la URL del objeto
     html.Url.revokeObjectUrl(url);
   }

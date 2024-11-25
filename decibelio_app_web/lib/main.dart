@@ -1,7 +1,6 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
 import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
-import 'package:decibelio_app_web/views/dashboard/components/map_view.dart';
 import 'package:decibelio_app_web/views/main/main_screen.dart';
 //import 'package:decibelio_app_web/views/map_page.dart';
 import 'package:flutter/material.dart';
@@ -19,9 +18,9 @@ class MyApp extends StatelessWidget {
   final AppRouter _appRouter = AppRouter();
 
   final _routes = {
-    '/dashboard': (context) => MapView()
-    
+    '/dashboard': (context) => MainScreen()
   };
+
   @override
   Widget build(BuildContext context) {
     return AdaptiveTheme(
@@ -61,7 +60,7 @@ class MyApp extends StatelessWidget {
                 child: MainScreen(),
               ), // Ahora HomeScreen es la pantalla inicial
               //home:  MyHomePage(title: "Sensores"),
-              //initialRoute: '/dashboard',
+              //initialRoute: '/second',
               //routes: _routes,
               onGenerateRoute: _appRouter.onGenerateRoute,
             ),

@@ -2,9 +2,6 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:decibelio_app_web/views/subir_dato.dart';
-import 'package:decibelio_app_web/views/sensor_create.dart';
 
 class SideMenu extends StatelessWidget {
   const SideMenu({

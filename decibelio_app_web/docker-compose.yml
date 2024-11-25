@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+
+  decibelio-webapp:
+    container_name: decibelio-webapp
+    image: nginx:stable-alpine
+    volumes:
+      - decibelio-web-bind:/usr/share/nginx/html:ro
+    #environment:
+    #  PGADMIN_DEFAULT_EMAIL: "adminDB@postgres.org"
+    #  PGADMIN_DEFAULT_PASSWORD: "admin123"
+    ports:
+      #- ${PORT_WEBAPP_PUBLIC}:5432
+      - 5001:80      
+    
+    deploy:
+        resources:
+            limits:
+                #cpus: '0.50'
+                memory: 1024M
+            reservations:
+                #cpus: '0.25'
+                memory: 512M
+    networks:
+      decibelio-network_test:
+        ipv4_address: 172.22.0.3
+
+networks:
+  decibelio-network_test:
+    driver: bridge
+    #driver_opts:
+    #    parent: eth0
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.22.0.0/24
+
+volumes:
+  decibelio-web-bind:
+    name: decibelio-web-bind
+    driver: local
+    driver_opts:
+      type: none
+      device: ./build/web
+      o: bind

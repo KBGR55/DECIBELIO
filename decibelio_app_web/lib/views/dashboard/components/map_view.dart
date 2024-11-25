@@ -5,7 +5,8 @@ import 'package:flutter/material.dart';
 import '../../../constants.dart';
 
 class MapView extends StatelessWidget {
-  const MapView({
+
+  MapView({
     Key? key,
   }) : super(key: key);
 
@@ -17,10 +18,10 @@ class MapView extends StatelessWidget {
         color: AdaptiveTheme.of(context).theme.primaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
       ),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
+          const Text(
             "Mapa",
             style: TextStyle(
               fontSize: 18,

@@ -1,4 +1,5 @@
 import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
+import 'package:decibelio_app_web/views/dashboard/components/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -8,8 +9,8 @@ import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
 
 class AnimatedMapControllerPage extends StatefulWidget{
   static const String route = '/map_controller_animated';
-  const AnimatedMapControllerPage({super.key});
 
+  AnimatedMapControllerPage({Key? key}) : super(key: mapKey);
 
   @override
   AnimatedMapControllerPageState createState() =>
@@ -51,6 +52,10 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
   void initState() {
     super.initState();
     _fetchSensors();
+  }
+
+  void moveToSensor(LatLng location, double zoom) {
+    _animatedMapMove(location, zoom);
   }
 
   void _fetchSensors() async {

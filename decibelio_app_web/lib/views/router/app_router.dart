@@ -8,11 +8,11 @@ class AppRouter {
   Route? onGenerateRoute(RouteSettings settings) {
     final Object? key = settings.arguments;
     switch (settings.name) {
-      case '/dashboard':
+      case '/':
         return MaterialPageRoute(
           builder: (_) => MainScreen(),
         );
-      case '/second':
+      case '/dashboard':
         return MaterialPageRoute(
           builder: (_) => SubirDatoControllerPage(
             title: "Upload Data",

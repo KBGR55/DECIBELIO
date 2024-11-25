@@ -1,18 +1,62 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:decibelio_app_web/models/Metric.dart';
+import 'package:decibelio_app_web/models/SensorDTO.dart';
+import 'package:decibelio_app_web/services/facade/facade.dart';
+import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
+import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
+import 'package:decibelio_app_web/views/dashboard/components/chart_sensor.dart';
+import 'package:decibelio_app_web/views/dashboard/components/globals.dart';
+import 'package:decibelio_app_web/views/dashboard/components/map.dart';
 import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../constants.dart';
-import 'chart.dart';
 
-class SensorDetails extends StatelessWidget {
-  const SensorDetails({
-    Key? key,
-  }) : super(key: key);
+class SensorDetails extends StatefulWidget {
+  SensorDetails({Key? key}) : super(key: key);
+
+
+  @override
+  SensorDetailsState createState() => SensorDetailsState();
+}
+
+class SensorDetailsState extends State<SensorDetails> {
+
+  List<Metric> _metrics = [];
+  List<SensorDTO> _sensors = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadGraphics();
+  }
+
+  Future<void> _loadGraphics() async {
+    Facade facade = Facade();
+    ListMetricDTO metricLastData = await facade.listMetricLastDTO();
+    ListSensorDTO sensorData = await facade.listSensorDTO();
+
+    setState(() {
+      _metrics = metricLastData.data!;
+      _sensors = sensorData.data!;
+      _isLoading = false;
+    });
+  }
+
+  String? findSensor(String external) {
+    for (SensorDTO sensor in _sensors) {
+      if (sensor.externalId == external) {
+        return sensor.name.toString();
+      }
+    }
+    return null;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: const EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
         color: AdaptiveTheme.of(context).theme.primaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
@@ -20,19 +64,80 @@ class SensorDetails extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            "Detalle de sensores",
+          const Text(
+            "Últimas mediciones",
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
             ),
           ),
-          SizedBox(height: defaultPadding),
-          Chart(),
-          Chart(),
-          Chart(),
-          Chart(),
-          Chart(),
+          const SizedBox(height: defaultPadding),
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _metrics.isEmpty
+                  ? const Text("No hay datos disponibles")
+                  : Column(
+                      children: _metrics.map((metric) {
+                        String? label =
+                            findSensor(metric.sensorExternalId.toString());
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(label.toString()),
+                            Chart(
+                              range: metric.range.toString(),
+                              value:
+                                  double.parse(metric.value.toStringAsFixed(2)),
+                            ),
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(5),
+                                    side: const BorderSide(
+                                      color: Color(0XFF4CAE4C),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  elevation: 0,
+                                  backgroundColor: const Color(0xFF5CB85C),
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: defaultPadding,
+                                    vertical: 15,
+                                  ),
+                                ),
+                                onPressed: () {
+                                  // Encuentra la posición del sensor
+                                  /**SensorDTO? sensor = _sensors.firstWhere(
+                                        (s) => s.externalId == metric.sensorExternalId,
+                                  );*/
+                                  for (SensorDTO sensor in _sensors) {
+                                    if (sensor.externalId == metric.sensorExternalId) {
+                                      mapKey.currentState?.moveToSensor(
+                                        LatLng(sensor.latitude, sensor.longitude),
+                                        15.0, // Zoom deseado
+                                      );
+                                    }
+                                  }
+                                  /**if (sensor != null) {
+                                    // Llama al método del mapa
+                                    mapKey.currentState?.moveToSensor(
+                                      LatLng(sensor.latitude, sensor.longitude),
+                                      15.0, // Zoom deseado
+                                    );
+                                  }*/
+                                },
+                                child: const Text('Localizar Sensor'),
+                              )
+
+                            ),
+                            const SizedBox(height: 8)
+                          ],
+                        );
+                      }).toList(),
+                    ),
         ],
       ),
     );

@@ -28,7 +28,8 @@ jobs:
       - name: Construir con Maven
         run: |
           cd decibelio
-          ./mvnw liberty:dev
+          chmod +x mvnw
+          ./mvnw clean package
 
       # Copiar binarios
       - name: Copiar binarios

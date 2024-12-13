@@ -1,0 +1,57 @@
+name: build Jakarta-Decibelio-Karencita
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      issues: read
+      checks: write
+      pull-requests: write
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Construir con Maven
+        run: mvn clean package -B -Dmaven.test.skip
+
+      - name: Copiar binarios
+        run: |
+          mkdir candidate-binary
+          cp target/*.jar candidate-binary/
+
+      - name: Ejecutar pruebas con Maven
+        run: mvn test
+
+      - name: Copiar resultados de pruebas
+        run: |
+          mkdir test-results
+          cp target/*-reports/TEST-*.xml test-results/
+
+      - name: Subir binarios de la aplicación
+        uses: actions/upload-artifact@v3
+        with:
+          name: Application-Binary
+          path: candidate-binary
+
+      - name: Subir resultados de pruebas
+        uses: actions/upload-artifact@v3
+        with:
+          name: Test-Results
+          path: test-results
+
+      - name: Publicar Resultados de Pruebas
+        uses: EnricoMi/publish-unit-test-result-action@v2.0.0
+        if: always()
+        with:
+          junit_files: "test-results/**/*.xml"

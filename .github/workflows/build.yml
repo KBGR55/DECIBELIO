@@ -47,13 +47,12 @@ jobs:
           cd decibelio
           ./mvnw test
 
-      # Copiar resultados de pruebas
       - name: Copiar resultados de pruebas
         run: |
-          cd decibelio
-          mkdir -p test-results
-          cp target/surefire-reports/TEST-*.xml test-results/
-
+            cd decibelio
+            mkdir -p test-results
+            find target -name 'TEST-*.xml' -exec cp {} test-results/ \;
+  
       # Subir binarios de la aplicación
       - name: Subir binarios de la aplicación
         uses: actions/upload-artifact@v3

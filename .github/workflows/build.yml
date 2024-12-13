@@ -26,21 +26,20 @@ jobs:
 
       - name: Construir con Maven
         run: |
-            cd decibelio
-            chmod +x mvnw
-            ./mvnw clean package
-        
+          cd decibelio
+          chmod +x mvnw
+          ./mvnw clean package
+
       - name: Verificar contenido del directorio target
         run: |
-            cd decibelio
-            ls -la target
-        
+          cd decibelio
+          ls -la target
+
       - name: Copiar binarios
         run: |
-            cd decibelio
-            mkdir -p candidate-binary
-            cp target/*.jar candidate-binary/
-        
+          cd decibelio
+          mkdir -p candidate-binary
+          cp target/*.war candidate-binary/
 
       # Ejecutar pruebas con Maven
       - name: Ejecutar pruebas con Maven
@@ -53,7 +52,7 @@ jobs:
         run: |
           cd decibelio
           mkdir -p test-results
-          cp target/*-reports/TEST-*.xml test-results/
+          cp target/surefire-reports/TEST-*.xml test-results/
 
       # Subir binarios de la aplicación
       - name: Subir binarios de la aplicación

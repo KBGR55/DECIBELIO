@@ -30,3 +30,10 @@ jobs:
     name: SCA
     uses: ./.github/workflows/sca.yml
     secrets: inherit
+    
+  #Análisis y Uso de Licencias.
+  license-compliance:
+    needs: build
+    name: License Compliance
+    uses: ./.github/workflows/license-compliance.yml
+    secrets: inherit

@@ -18,7 +18,10 @@ class AppRouter {
           ),
         );
       case '/dashboard':
+
         return MaterialPageRoute(
+          builder: (_) => SubirDatoControllerPage(
+            title: "Upload Data",
           builder: (_) => MainScreen(
             title: "Dashboard",
             color: Colors.redAccent,

@@ -37,7 +37,8 @@ jobs:
       - name: Run Static Code Analysis (SCA)
         id: scan_java
         run: |
-          # Add command to run the Java SCA tool, for example:
+          # Navigate to the directory containing the pom.xml
+          cd decibelio  # Assuming 'decibelio' is the folder where pom.xml is located
           mvn clean install
 
       - name: Print JSON analysis report

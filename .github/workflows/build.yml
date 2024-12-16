@@ -73,3 +73,48 @@ jobs:
         if: always()
         with:
           junit_files: "decibelio/test-results/**/*.xml"
+
+      # Configurar Flutter
+      - name: Configurar Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.3'
+
+      # Instalar dependencias de Flutter
+      - name: Instalar dependencias de Flutter
+        run: |
+          cd decibelio_app_web
+          flutter pub get
+
+      # Construir aplicación Flutter para la web
+      - name: Construir aplicación Flutter (Web)
+        run: |
+          cd decibelio_app_web
+          flutter build web
+
+      # Ejecutar pruebas de Flutter
+      - name: Ejecutar pruebas con Flutter
+        run: |
+          cd decibelio_app_web
+          flutter test
+
+      # Copiar resultados de las pruebas de Flutter
+      - name: Copiar resultados de pruebas de Flutter
+        run: |
+          cd decibelio_app_web
+          mkdir -p test-results
+          find test -name 'test_*.dart' -exec cp {} decibelio_app_web/test-results/ \;
+
+      # Subir resultados de pruebas de Flutter
+      - name: Subir resultados de pruebas de Flutter
+        uses: actions/upload-artifact@v3
+        with:
+          name: Flutter-Test-Results
+          path: decibelio_app_web/test-results
+
+      # Publicar resultados de pruebas de Flutter
+      - name: Publicar Resultados de Pruebas de Flutter
+        uses: EnricoMi/publish-unit-test-result-action@v2.0.0
+        if: always()
+        with:
+          junit_files: "decibelio_app_web/test-results/**/*.xml"

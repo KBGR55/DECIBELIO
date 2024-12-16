@@ -24,3 +24,9 @@ jobs:
     uses: ./.github/workflows/build.yml
     secrets: inherit  # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idsecretsinherit
 
+  #Análisis de dependencias
+  sca:
+    needs: build
+    name: SCA
+    uses: ./.github/workflows/sca.yml
+    secrets: inherit

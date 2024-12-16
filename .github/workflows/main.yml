@@ -1,4 +1,4 @@
-name: Main Decibelio CI/CD Actions
+name: 01 - Main CI / CD Pipeline
 
 on:
   push:

@@ -1,3 +1,4 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
 import 'package:decibelio_app_web/responsive.dart';
 import 'package:flutter/material.dart';
@@ -17,8 +18,7 @@ class Header extends StatelessWidget {
         if (!Responsive.isDesktop(context))
           IconButton(
             icon: Icon(Icons.menu),
-            color: Theme.of(context).scaffoldBackgroundColor,
-            onPressed: context.read<MenuAppController>().controlMenu,
+            onPressed: () => context.read<MenuAppController>().controlMenu(context),
           ),
         if (!Responsive.isMobile(context))
           Text(
@@ -28,7 +28,28 @@ class Header extends StatelessWidget {
         if (!Responsive.isMobile(context))
           Spacer(flex: Responsive.isDesktop(context) ? 2 : 1),
         Expanded(child: SearchField()),
-        ProfileCard()
+        ProfileCard(),
+        Align(
+          alignment: Alignment.centerRight, // Alineación a la izquierda
+          child: Switch(
+              value:
+              AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light,
+              activeThumbImage:
+              new AssetImage('assets/images/sun-svgrepo-com.png'),
+              inactiveThumbImage: new AssetImage(
+                  'assets/images/moon-stars-svgrepo-com.png'),
+              activeColor: Colors.white,
+              activeTrackColor: Colors.amber,
+              inactiveThumbColor: Colors.black,
+              inactiveTrackColor: Colors.white,
+              onChanged: (bool value) {
+                if (value) {
+                  AdaptiveTheme.of(context).setLight();
+                } else {
+                  AdaptiveTheme.of(context).setDark();
+                }
+              }),
+        ),
       ],
     );
   }

@@ -107,18 +107,18 @@ List<PieChartSectionData> showingSections(int touchedIndex, double value) {
   ];
 
   const List<String> sectionTitles = [
-    "Muy silencioso",
-    "Muy silencioso",
-    "Silencioso",
-    "Silencioso",
-    "Poco ruidoso",
-    "Poco ruidoso",
-    "Ruidoso",
-    "Muy ruidoso",
-    "Muy ruidoso",
-    "Excesivamente ruidoso",
-    "Excesivamente ruidoso",
-    "Excesivamente ruidoso",
+    "Muy silencioso\n< 10dB",
+    "Muy silencioso\n< 20dB",
+    "Silencioso\n< 30dB",
+    "Silencioso\n< 40dB",
+    "Poco ruidoso\n< 50dB",
+    "Poco ruidoso\n< 60dB",
+    "Ruidoso\n< 70dB",
+    "Muy ruidoso\n< 80dB",
+    "Muy ruidoso\n< 90dB",
+    "Excesivamente ruidoso\n< 100dB",
+    "Excesivamente ruidoso\n< 110dB",
+    "Excesivamente ruidoso\n< 120dB",
   ];
 
   const shadows = [Shadow(color: Colors.black, blurRadius: 2)];

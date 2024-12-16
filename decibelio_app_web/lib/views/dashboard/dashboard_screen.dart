@@ -18,7 +18,7 @@ class DashboardScreen extends StatelessWidget {
         child: Column(
           children: [
             Header(),
-            Align(
+            /**Align(
               alignment: Alignment.centerRight, // Alineación a la izquierda
               child: Switch(
                   value:
@@ -38,7 +38,7 @@ class DashboardScreen extends StatelessWidget {
                       AdaptiveTheme.of(context).setDark();
                     }
                   }),
-            ),
+            ),*/
             SizedBox(height: defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,

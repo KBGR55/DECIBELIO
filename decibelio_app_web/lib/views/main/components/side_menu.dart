@@ -1,7 +1,11 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
+import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
+import 'package:decibelio_app_web/views/dashboard/dashboard_screen.dart';
+import 'package:decibelio_app_web/views/upload_data/upload_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
 class SideMenu extends StatelessWidget {
   const SideMenu({
@@ -58,23 +62,24 @@ class SideMenu extends StatelessWidget {
             title: "Dashboard",
             svgSrc: "assets/icons/menu_dashboard.svg",
             press: () {
-              Navigator.pushNamed(context, '/dashboard');
+              //Navigator.pushNamed(context, '/dashboard');
+              Navigator.pushReplacementNamed(context, '/dashboard');
             },
           ),
           DrawerListTile(
             title: "Subir datos",
             svgSrc: "assets/icons/menu_tran.svg",
             press: () {
-              Navigator.pushNamed(context, '/second');
+              Navigator.pushReplacementNamed(context, '/upload_data');
             },
           ),
           DrawerListTile(
             title: "Crear sensor",
             svgSrc: "assets/icons/menu_task.svg",
             press: () {
-              Navigator.pushNamed(context, '/third');
+              Navigator.pushReplacementNamed(context, '/create_sensor');
             },
-          ),  DrawerListTile(
+          ),  /*DrawerListTile(
             title: "Documents",
             svgSrc: "assets/icons/menu_doc.svg",
             press: () {},
@@ -98,7 +103,7 @@ class SideMenu extends StatelessWidget {
             title: "Settings",
             svgSrc: "assets/icons/menu_setting.svg",
             press: () {},
-          ),
+          ),*/
         ],
       ),
     );

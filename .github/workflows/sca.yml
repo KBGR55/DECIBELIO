@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17  # Use Java 17 instead of Java 11
           cache: maven
 
       - name: Install SCA tool (CRDA)
@@ -37,8 +37,7 @@ jobs:
       - name: Run Static Code Analysis (SCA)
         id: scan_java
         run: |
-          # Navigate to the directory containing the pom.xml
-          cd decibelio  # Assuming 'decibelio' is the folder where pom.xml is located
+          cd decibelio  # Navigate to the directory containing the pom.xml
           mvn clean install
 
       - name: Print JSON analysis report

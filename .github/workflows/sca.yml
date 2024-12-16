@@ -9,29 +9,24 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-20.04" ] # Puede incluir "macos-latest", "windows-latest", o "ubuntu-20.04"
-        project_type: [ "jakarta", "flutter" ] # Definir dos tipos de proyectos: Jakarta y Flutter
+        os: [ "ubuntu-20.04" ]
+        manifest_file: [ "pom.xml" ]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
         shell: bash
-    name: SCA Project Analysis
-
+    name: SCA Java project
     steps:
-      # Checkout del código fuente
       - name: Checkout action
         uses: actions/checkout@v3
 
-      # Configurar Java (solo para proyectos Jakarta)
-      - name: Setup Java (Jakarta)
-        if: ${{ matrix.project_type == 'jakarta' }}
+      - name: Setup Java
         uses: actions/setup-java@v2
         with:
           distribution: temurin
           java-version: 11
           cache: maven
 
-      # Instalar herramientas de SCA (CRDA) 
       - name: Install SCA tool (CRDA)
         uses: redhat-actions/openshift-tools-installer@v1
         with:
@@ -39,37 +34,22 @@ jobs:
           github_pat: ${{ github.token }}
           crda: "latest"
 
-      # Ejecutar SCA para Jakarta (proyecto Java) con CRDA
-      - name: Run SCA for Jakarta (Java)
-        if: ${{ matrix.project_type == 'jakarta' }}
-        id: scan
+      - name: Run Static Code Analysis (SCA)
+        id: scan_java
         run: |
-          cd decibelio
-          ./mvnw clean install # Realiza el análisis SCA en el proyecto Jakarta
+          # Add command to run the Java SCA tool, for example:
+          mvn clean install
 
-      # Ejecutar SCA para Flutter
-      - name: Run SCA for Flutter
-        if: ${{ matrix.project_type == 'flutter' }}
-        id: scan
-        run: |
-          cd decibelio_app_web
-          flutter pub get
-          flutter analyze # Ejecuta el análisis SCA en el proyecto Flutter
-
-      # Imprimir el informe JSON del análisis (para Jakarta o Flutter)
       - name: Print JSON analysis report
-        if: ${{ always() && steps.scan.outputs.crda_report_json }}
-        run: cat ${{ steps.scan.outputs.crda_report_json }}
+        if: ${{ always() && steps.scan_java.outputs.crda_report_json }}
+        run: cat ${{ steps.scan_java.outputs.crda_report_json }}
 
-      # Imprimir el informe SARIF del análisis (para Jakarta o Flutter)
       - name: Print SARIF analysis report
-        if: ${{ always() && steps.scan.outputs.crda_report_sarif }}
-        run: cat ${{ steps.scan.outputs.crda_report_sarif }}
+        if: ${{ always() && steps.scan_java.outputs.crda_report_sarif }}
+        run: cat ${{ steps.scan_java.outputs.crda_report_sarif }}
 
-      # Imprimir el enlace del informe
       - name: Print Report Link
-        run: echo ${{ steps.scan.outputs.report_link }}
+        run: echo ${{ steps.scan_java.outputs.report_link }}
 
-      # Imprimir el nombre del artefacto
       - name: Print Artifact Name
-        run: echo ${{ steps.scan.outputs.artifact_name }}
+        run: echo ${{ steps.scan_java.outputs.artifact_name }}

@@ -38,13 +38,15 @@ jobs:
           channel: 'stable'
 
       - name: Install Flutter Dependencies
+        working-directory: decibelio_app_web
         if: ${{ matrix.language == 'flutter' }}
         run: flutter pub get
 
       - name: Run Flutter License Check
+        working-directory: decibelio_app_web
         if: ${{ matrix.language == 'flutter' }}
         run: flutter pub run license_checker
-
+        
       # Publicar resultados
       - name: Publish License Check Results
         if: always()

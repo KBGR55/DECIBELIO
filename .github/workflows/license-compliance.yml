@@ -1,0 +1,59 @@
+name: 05 License Compliance
+
+on:
+    workflow_dispatch:
+    workflow_call:
+
+jobs:
+    license-finder:
+        runs-on: ubuntu-latest
+        strategy:
+          fail-fast: false
+          matrix:
+            language: [java, flutter]
+
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            # Java License Compliance
+            - name: Run License Finder for Java
+              if: ${{ matrix.language == 'java' }}
+              uses: jmservera/license-finder-action@main
+              with:
+                permitted-licenses: |
+                  MIT, Apache-2.0
+                approved-dependencies:  | 
+                  junit,junit-jupiter
+              env:
+                JAVA_HOME: /opt/hostedtoolcache/Java_17/...
+
+            # Flutter License Compliance
+            - name: Setup Flutter
+              if: ${{ matrix.language == 'flutter' }}
+              uses: subosito/flutter-action@v2
+              with:
+                flutter-version: stable
+
+            - name: Install Flutter Dependencies
+              if: ${{ matrix.language == 'flutter' }}
+              run: flutter pub get
+
+            - name: Run Flutter License Check
+              if: ${{ matrix.language == 'flutter' }}
+              run: flutter pub run license_checker
+              
+            # Publish Results
+            - name: Publish License Check Results
+              if: always()
+              uses: EnricoMi/publish-unit-test-result-action@v2.2.0
+              with:
+                junit_files: "license_finder_report.xml"
+                check_name: "License Compliance Check"
+
+            - name: 'Upload Dependency Review Report'
+              if: always()
+              uses: actions/upload-artifact@v3
+              with:
+                name: license-finder-report
+                path: ${{ github.workspace }}/license_finder_report.xml

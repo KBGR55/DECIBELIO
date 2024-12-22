@@ -42,13 +42,13 @@ dependencies:
 dev_dependencies:
   build_runner: ^2.4.0
   build_web_compilers: ^4.0.4
-  license_checker: ^1.2.0
+  license_checker: ^1.1.0
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
 
 dependency_overrides:
-  tar: ^0.6.0
+  tar: ^0.5.6 
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

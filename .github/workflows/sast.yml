@@ -63,13 +63,13 @@ jobs:
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{ matrix.language }}"
-
+          
       - name: Docker Cleanup and Run
         run: |
-          docker rm demoApp || true
-          docker build -t decibelio-image .  # Build the Docker image first
-          docker run -d -p 8080:8080 --name demoApp decibelio-image
-        # Ensure 'decibelio-image' is the correct image name for your app
+          # Ensure any existing container is removed
+          docker-compose --env-file .docker-env -f decibelio/docker-compose.yml down || true
+          # Run the docker-compose to start the services
+          docker-compose --env-file .docker-env -f decibelio/docker-compose.yml up -d
 
   spotbugs:
     name: SAST SpotBugs

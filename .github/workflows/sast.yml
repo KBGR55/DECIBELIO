@@ -68,12 +68,19 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y docker-compose
 
+
       - name: Docker Cleanup and Run
+        env:
+          POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
+          DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
+          LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
         run: |
           # Ensure any existing container is removed
-          docker-compose --env-file .docker-env -f decibelio/docker-compose.yml down || true
-          # Run the docker-compose to start the services
-          docker-compose --env-file .docker-env -f decibelio/docker-compose.yml up -d
+          docker-compose --env-file <(env) -f decibelio/docker-compose.yml down || true
+          docker-compose --env-file <(env) -f decibelio/docker-compose.yml up -d
 
   spotbugs:
     name: SAST SpotBugs

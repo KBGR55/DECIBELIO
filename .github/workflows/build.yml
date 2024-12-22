@@ -1,4 +1,4 @@
-name: Build Jakarta-Decibelio-Karencita
+name: build Jakarta-Decibelio-Karencita
 
 on:
   workflow_dispatch:
@@ -14,8 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Checkout del repositorio
-      - name: Checkout del Repositorio
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       # Configurar JDK 17
       - name: Configurar JDK 17
@@ -26,7 +25,7 @@ jobs:
           cache: maven
 
       # Construir y ejecutar pruebas con Maven
-      - name: Construir y Ejecutar Pruebas (Backend)
+      - name: Construir y ejecutar pruebas con Maven
         run: |
           cd decibelio
           chmod +x mvnw
@@ -34,12 +33,20 @@ jobs:
         env:
           MAVEN_OPTS: "-Xmx1024m"
 
+      # Copiar resultados de pruebas de Maven
+      - name: Copiar resultados de pruebas de Maven
+        run: |
+          cd decibelio
+          mkdir -p test-results
+          find target -name 'TEST-*.xml' -exec cp {} test-results/ \;
+          ls -la test-results  # Verificar los archivos copiados
+
       # Publicar resultados de pruebas de Maven
-      - name: Publicar Resultados de Pruebas (Maven)
-        uses: EnricoMi/publish-unit-test-result-action@v2.0.0
+      - name: Publicar Resultados de Pruebas de Maven
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          junit_files: "decibelio/target/surefire-reports/*.xml"
+          junit_files: "decibelio/test-results/**/*.xml"
 
       # Configurar Flutter
       - name: Configurar Flutter
@@ -48,25 +55,50 @@ jobs:
           flutter-version: '3.24.3'
           channel: 'stable'
 
-      # Instalar dependencias y construir Flutter
-      - name: Construir Aplicación (Frontend)
+      # Instalar dependencias de Flutter
+      - name: Instalar dependencias de Flutter
         run: |
           cd decibelio_app_web
           flutter pub get
+
+      # Construir aplicación Flutter para la web
+      - name: Construir aplicación Flutter (Web)
+        run: |
+          cd decibelio_app_web
           flutter build web
 
+      # Copiar resultados de pruebas de Flutter
+      - name: Copiar resultados de pruebas de Flutter
+        run: |
+          cd decibelio_app_web
+          mkdir -p test-results
+          find build -name 'test-*.xml' -exec cp {} test-results/ \;
+          ls -la test-results  # Verificar los archivos copiados
+
       # Publicar resultados de pruebas de Flutter
-      - name: Publicar Resultados de Pruebas (Flutter)
-        uses: EnricoMi/publish-unit-test-result-action@v2.0.0
+      - name: Publicar Resultados de Pruebas de Flutter
+        uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          junit_files: "decibelio_app_web/build/**/*.xml"
+          junit_files: "decibelio_app_web/test-results/**/*.xml"
 
-      # Subir artefactos
-      - name: Subir Artefactos
+      # Subir binarios de la aplicación
+      - name: Subir binarios de la aplicación
         uses: actions/upload-artifact@v3
         with:
           name: Application-Binary
-          path: |
-            decibelio/target/*.war
-            decibelio_app_web/build/web
+          path: decibelio/target/*.war
+
+      # Subir resultados de pruebas de Maven
+      - name: Subir resultados de pruebas de Maven
+        uses: actions/upload-artifact@v3
+        with:
+          name: Maven-Test-Results
+          path: decibelio/test-results
+
+      # Subir resultados de pruebas de Flutter
+      - name: Subir resultados de pruebas de Flutter
+        uses: actions/upload-artifact@v3
+        with:
+          name: Flutter-Test-Results
+          path: decibelio_app_web/test-results

@@ -3,7 +3,6 @@ name: 04 SAST
 on:
   workflow_dispatch:
   workflow_call:
-
 jobs:
   SAST-CodeQL:
     name: Build and SAST CodeQL
@@ -27,15 +26,17 @@ jobs:
         with:
           languages: ${{ matrix.language }}
 
-      - name: Set up JDK 11
+      - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
+          java-version: '17'
           distribution: 'temurin'
           cache: maven
 
       - name: Build with Maven
-        run: mvn clean package -B -Dmaven.test.skip
+        run: |
+          cd decibelio 
+          mvn clean package -B -Dmaven.test.skip
 
       - name: Cache build
         id: cache-build
@@ -62,11 +63,24 @@ jobs:
         with:
           category: "/language:${{ matrix.language }}"
 
-      - name: Docker Cleanup and Run
+      - name: Set up Docker Compose
         run: |
-          docker rm demoApp || true
-          docker run -d -p 8080:8080 --name demoApp myapp-image
-        # Asegúrate de reemplazar 'myapp-image' con el nombre correcto de la imagen
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+
+      - name: Docker Cleanup and Run
+        env:
+          POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
+          DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
+          LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
+          CLIENT_ID: ${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
+          REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
+        run: |
+          # Ensure any existing container is removed
+          docker-compose --env-file <(env) -f decibelio/docker-compose.yml down || true
+          docker-compose --env-file <(env) -f decibelio/docker-compose.yml up -d
 
   spotbugs:
     name: SAST SpotBugs

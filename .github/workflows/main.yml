@@ -30,6 +30,13 @@ jobs:
     name: SCA
     uses: ./.github/workflows/sca.yml
     secrets: inherit
+
+  #Análisis de código Estático
+  sast:
+    needs: build
+    name: SAST
+    uses: ./.github/workflows/sast.yml
+    secrets: inherit
     
   #Análisis y Uso de Licencias.
   license-compliance:

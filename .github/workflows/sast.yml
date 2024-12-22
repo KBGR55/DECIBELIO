@@ -3,7 +3,6 @@ name: 04 SAST
 on:
   workflow_dispatch:
   workflow_call:
-
 jobs:
   SAST-CodeQL:
     name: Build and SAST CodeQL
@@ -63,7 +62,12 @@ jobs:
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{ matrix.language }}"
-          
+
+      - name: Set up Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
       - name: Docker Cleanup and Run
         run: |
           # Ensure any existing container is removed

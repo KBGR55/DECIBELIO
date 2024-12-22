@@ -83,8 +83,10 @@ jobs:
         run: |
           docker-compose --env-file .env -f decibelio/docker-compose.yml down || true
           docker-compose --env-file .env -f decibelio/docker-compose.yml up -d
+      
       - name: Clean up .env file
         run: rm -f .env
+
   spotbugs:
     name: SAST SpotBugs
     needs: [SAST-CodeQL]

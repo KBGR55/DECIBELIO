@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [java, flutter]
+        language: [java]  # Solo Java ahora
 
     steps:
       # Checkout del repositorio
@@ -29,24 +29,6 @@ jobs:
         env:
           JAVA_HOME: /opt/hostedtoolcache/Java_17_x64
 
-      # Configuración para Flutter
-      - name: Setup Flutter
-        if: ${{ matrix.language == 'flutter' }}
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.24.3' # Especifica la versión exacta que estás usando
-          channel: 'stable'
-
-      - name: Install Flutter Dependencies
-        working-directory: decibelio_app_web
-        if: ${{ matrix.language == 'flutter' }}
-        run: flutter pub get
-
-      - name: Run Flutter License Check
-        working-directory: decibelio_app_web
-        if: ${{ matrix.language == 'flutter' }}
-        run: flutter pub run license_checker
-        
       # Publicar resultados
       - name: Publish License Check Results
         if: always()

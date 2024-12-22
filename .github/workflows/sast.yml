@@ -69,18 +69,21 @@ jobs:
           sudo apt-get install -y docker-compose
 
 
-      - name: Docker Cleanup and Run
-        env:
-          POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
-          DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
-          LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-          REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
+     - name: Create .env file for Docker
         run: |
-          # Ensure any existing container is removed
-          docker-compose --env-file <(env) -f decibelio/docker-compose.yml down || true
-          docker-compose --env-file <(env) -f decibelio/docker-compose.yml up -d
+          cat <<EOF > .env
+          POSTGRES_VERSION=${{ secrets.POSTGRES_VERSION }}
+          DB_PORT_PUBLIC=${{ secrets.DB_PORT_PUBLIC }}
+          LOCAL_DATA_DIR_BD=${{ secrets.LOCAL_DATA_DIR_BD }}
+          CLIENT_ID=${{ secrets.CLIENT_ID }}
+          CLIENT_SECRET=${{ secrets.CLIENT_SECRET }}
+          REDIRECT_URI=${{ secrets.REDIRECT_URI }}
+          EOF
+
+      - name: Ensure any existing container is removed
+        run: |
+          docker-compose --env-file .env -f decibelio/docker-compose.yml down || true
+          docker-compose --env-file .env -f decibelio/docker-compose.yml up -d
 
   spotbugs:
     name: SAST SpotBugs
@@ -114,3 +117,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2.1.28
         with:
           sarif_file: ${{github.workspace}}/results.sarif
+          
+      - name: Clean up .env file
+        run: rm -f .env
+

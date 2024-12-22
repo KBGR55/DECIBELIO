@@ -84,7 +84,8 @@ jobs:
         run: |
           docker-compose --env-file .env -f decibelio/docker-compose.yml down || true
           docker-compose --env-file .env -f decibelio/docker-compose.yml up -d
-
+      - name: Clean up .env file
+        run: rm -f .env
   spotbugs:
     name: SAST SpotBugs
     needs: [SAST-CodeQL]
@@ -117,7 +118,3 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2.1.28
         with:
           sarif_file: ${{github.workspace}}/results.sarif
-          
-      - name: Clean up .env file
-        run: rm -f .env
-

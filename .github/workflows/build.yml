@@ -39,6 +39,7 @@ jobs:
           cd decibelio
           mkdir -p test-results
           find target -name 'TEST-*.xml' -exec cp {} test-results/ \;
+          ls -la test-results  # Verificar los archivos copiados
 
       # Publicar resultados de pruebas de Maven
       - name: Publicar Resultados de Pruebas de Maven
@@ -72,6 +73,7 @@ jobs:
           cd decibelio_app_web
           mkdir -p test-results
           find build -name 'test-*.xml' -exec cp {} test-results/ \;
+          ls -la test-results  # Verificar los archivos copiados
 
       # Publicar resultados de pruebas de Flutter
       - name: Publicar Resultados de Pruebas de Flutter

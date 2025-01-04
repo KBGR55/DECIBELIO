@@ -34,9 +34,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Build Java project with Maven
         run: |
-          cd decibelio 
+          cd decibelio
           mvn clean package -B -Dmaven.test.skip
 
       - name: Cache build
@@ -106,14 +106,26 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Set up JDK 17
+      - name: Set up JDK 17 for Java
         uses: actions/setup-java@v3
         with:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Analyze with SonarQube
+      - name: Analyze Java project with SonarQube
         uses: SonarSource/sonarqube-scan-action@v2.0.1
+        with:
+          projectBaseDir: ./decibelio
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: Analyze Flutter project with SonarQube
+        run: |
+          cd decibelio_app_web
+          flutter pub get
+          sonar-scanner \
+            -Dsonar.projectKey=decibelio_flutter \
+            -Dsonar.sources=lib \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}

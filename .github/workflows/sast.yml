@@ -117,11 +117,13 @@ jobs:
         with:
           projectBaseDir: ./decibelio
           args: >
-           -Dsonar.organization=my-org
-           -Dsonar.projectKey=my-Java-web-app
+            -Dsonar.organization=my-org
+            -Dsonar.projectKey=my-Java-web-app
+            -Dsonar.java.binaries=./decibelio/target/classes
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+          SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
 
 
       - name: Analyze Flutter project with SonarQube

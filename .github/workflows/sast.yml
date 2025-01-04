@@ -118,7 +118,7 @@ jobs:
           projectBaseDir: ./decibelio
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
       - name: Analyze Flutter project with SonarQube
         run: |
@@ -127,5 +127,5 @@ jobs:
           sonar-scanner \
             -Dsonar.projectKey=decibelio_flutter \
             -Dsonar.sources=lib \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.host.url=${{ vars.SONAR_HOST_URL }} \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}

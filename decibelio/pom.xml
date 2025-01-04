@@ -36,12 +36,6 @@
             <scope>provided</scope>
             <type>pom</type>
         </dependency>
-        <!--<dependency>
-        <groupId>jakarta.platform</groupId>
-        <artifactId>jakarta.jakartaee-web-api</artifactId>
-        <version>10.0.0</version>
-        <scope>provided</scope><type>pom</type>
-        </dependency>-->
         <dependency>
             <groupId>org.eclipse.microprofile</groupId>
             <artifactId>microprofile</artifactId>
@@ -105,32 +99,18 @@
                 <artifactId>liberty-maven-plugin</artifactId>
 
                 <configuration>
-                    <!--
-                    <include>runnable</include>
-                    <serverName>${final.name}</serverName>
-                    <bootstrapProperties>
-                        <project.name>${final.name}</project.name>
-                        <jwt.issuer>https://server.example.com</jwt.issuer>
-                        <app.context.root>/</app.context.root>
-                    </bootstrapProperties>
-                    -->
                     <copyDependencies>
                         <dependencyGroup>
                             <!--Funcionando con docker-compose-->
                             <location>lib/global</location>
-
-                            <!--<location>${project.build.directory}/liberty/wlp/${shared.jdbc.dir}</location>-->
-                            <dependency>
+                        <dependency>
                                 <groupId>org.postgresql</groupId>
                                 <artifactId>postgresql</artifactId>
                                 <version>42.4.2</version>
                             </dependency>
                         </dependencyGroup>
-
                     </copyDependencies>
-
                 </configuration>
-
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

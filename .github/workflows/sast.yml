@@ -117,6 +117,9 @@ jobs:
       - name: Build Java project
         run: mvn clean install -f ./decibelio/pom.xml
 
+      - name: List target directory contents
+        run: ls -R ./decibelio/target
+
       - name: Analyze Java project with SonarQube
         uses: SonarSource/sonarqube-scan-action@v2.0.1
         with:

@@ -89,7 +89,6 @@ jobs:
           -Dsonar.sources=.
           -Dsonar.sourceEncoding=UTF-8
           -Dsonar.java.binaries=decibelio/target/classes
-          -Dsonar.java.libraries=~/.m2/repository
           -Dsonar.c.file.suffixes=-
           -Dsonar.cpp.file.suffixes=-
           -Dsonar.objc.file.suffixes=-

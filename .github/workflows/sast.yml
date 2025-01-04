@@ -112,6 +112,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Build Java project
+        run: ./mvnw clean install -f ./decibelio/pom.xml
+
       - name: Analyze Java project with SonarQube
         uses: SonarSource/sonarqube-scan-action@v2.0.1
         with:
@@ -124,7 +127,6 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
           SONAR_PROJECT_KEY: ${{ vars.SONAR_PROJECT_KEY }}
-
 
       - name: Analyze Flutter project with SonarQube
         run: |

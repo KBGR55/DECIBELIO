@@ -88,7 +88,14 @@ jobs:
           -Dsonar.projectVersion=1.0
           -Dsonar.sources=.
           -Dsonar.sourceEncoding=UTF-8
+          -Dsonar.coverage.exclusions=**/* 
           -Dsonar.java.binaries=decibelio/target/classes
           -Dsonar.c.file.suffixes=-
           -Dsonar.cpp.file.suffixes=-
           -Dsonar.objc.file.suffixes=-
+   
+    - name: Upload SonarCloud Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: sonarcloud-report
+        path: .scannerwork

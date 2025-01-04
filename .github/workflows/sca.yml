@@ -58,23 +58,38 @@ jobs:
     name: SonarQube
     runs-on: ubuntu-latest
     steps:
-      # Paso 1: Clonar el repositorio
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0 # Deshabilitar clones superficiales para mejorar la relevancia del análisis
+    # Paso 1: Clonar el repositorio
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Deshabilitar clones superficiales para mejorar la relevancia del análisis
 
-      # Paso 2: Ejecutar análisis SonarQube
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token para obtener información del Pull Request
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Token para autenticación con SonarQube
-        with:
-          args: >
-            -Dsonar.projectKey=KBGR55_DECIBELIO
-            -Dsonar.organization=kbgr55
-            -Dsonar.projectName=DECIBELIO
-            -Dsonar.projectVersion=1.0
-            -Dsonar.sources=.
-            -Dsonar.sourceEncoding=UTF-8
+    # Paso 2: Configurar Java
+    - name: Setup Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: temurin
+        java-version: 17
+        cache: maven
+
+    # Paso 3: Compilar el proyecto
+    - name: Build project
+      run: |
+        cd decibelio 
+        mvn clean install
+
+    # Paso 4: Ejecutar análisis SonarQube
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token para obtener información del Pull Request
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Token para autenticación con SonarQube
+      with:
+        args: >
+          -Dsonar.projectKey=KBGR55_DECIBELIO
+          -Dsonar.organization=kbgr55
+          -Dsonar.projectName=DECIBELIO
+          -Dsonar.projectVersion=1.0
+          -Dsonar.sources=.
+          -Dsonar.sourceEncoding=UTF-8
+          -Dsonar.java.binaries=decibelio/target/classes

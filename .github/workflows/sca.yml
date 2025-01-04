@@ -58,13 +58,11 @@ jobs:
     name: SonarQube
     runs-on: ubuntu-latest
     steps:
-    # Paso 1: Clonar el repositorio
     - name: Checkout Repository
       uses: actions/checkout@v4
       with:
-        fetch-depth: 0 # Deshabilitar clones superficiales para mejorar la relevancia del análisis
+        fetch-depth: 0 
 
-    # Paso 2: Configurar Java
     - name: Setup Java
       uses: actions/setup-java@v2
       with:
@@ -72,18 +70,16 @@ jobs:
         java-version: 17
         cache: maven
 
-    # Paso 3: Compilar el proyecto
     - name: Build project
       run: |
         cd decibelio 
         mvn clean install
 
-    # Paso 4: Ejecutar análisis SonarQube
     - name: SonarQube Scan
       uses: SonarSource/sonarqube-scan-action@v4
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # Token para obtener información del Pull Request
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Token para autenticación con SonarQube
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
       with:
         args: >
           -Dsonar.projectKey=KBGR55_DECIBELIO
@@ -93,6 +89,7 @@ jobs:
           -Dsonar.sources=.
           -Dsonar.sourceEncoding=UTF-8
           -Dsonar.java.binaries=decibelio/target/classes
+          -Dsonar.java.libraries=~/.m2/repository
           -Dsonar.c.file.suffixes=-
           -Dsonar.cpp.file.suffixes=-
           -Dsonar.objc.file.suffixes=-

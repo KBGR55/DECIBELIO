@@ -116,9 +116,13 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v2.0.1
         with:
           projectBaseDir: ./decibelio
+          args: >
+           -Dsonar.organization=my-org
+           -Dsonar.projectKey=my-Java-web-app
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+
 
       - name: Analyze Flutter project with SonarQube
         run: |

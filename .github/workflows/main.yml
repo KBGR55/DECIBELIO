@@ -7,7 +7,6 @@ on:
       - '**/*.txt'
   workflow_dispatch:
 
-
 # Otorgamos los permisos globalmente
 permissions:
   contents: read

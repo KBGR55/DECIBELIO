@@ -56,8 +56,8 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: target
-          path: ${{ github.workspace }}/target
+          name: decibelio-build
+          path: ./decibelio/target/decibelio
 
       - name: CodeQL Analysis
         uses: github/codeql-action/analyze@v2
@@ -81,7 +81,7 @@ jobs:
         uses: jmservera/spotbugs-github-action@v0.1.0-alpha
         with:
           packages: com.example.-
-          target: ./target
+          target: ./decibelio/target/decibelio/WEB-INF/classes
           dependenciesPath: ~/.m2
           basePath: src/main/java
 
@@ -96,6 +96,7 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2.1.28
         with:
           sarif_file: ${{github.workspace}}/results.sarif
+
   sonarqube:
     name: Analyze with SonarQube
     needs: [SAST-CodeQL]
@@ -127,7 +128,11 @@ jobs:
           args: >
             -Dsonar.organization=my-org
             -Dsonar.projectKey=DECIBELIO_KEY
-            -Dsonar.java.binaries=./decibelio/target/classes
+            -Dsonar.java.binaries=./decibelio/target/decibelio/WEB-INF/classes
+            -Dsonar.sources=./decibelio/src/main/java
+            -Dsonar.tests=./decibelio/src/test/java
+            -Dsonar.java.libraries=./decibelio/target/decibelio/WEB-INF/lib
+
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}

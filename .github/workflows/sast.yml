@@ -96,7 +96,6 @@ jobs:
         uses: github/codeql-action/upload-sarif@v2.1.28
         with:
           sarif_file: ${{github.workspace}}/results.sarif
-
   sonarqube:
     name: Analyze with SonarQube
     needs: [SAST-CodeQL]
@@ -112,8 +111,11 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Install Maven
+        run: sudo apt-get install -y maven
+
       - name: Build Java project
-        run: ./mvnw clean install -f ./decibelio/pom.xml
+        run: mvn clean install -f ./decibelio/pom.xml
 
       - name: Analyze Java project with SonarQube
         uses: SonarSource/sonarqube-scan-action@v2.0.1
@@ -121,7 +123,7 @@ jobs:
           projectBaseDir: ./decibelio
           args: >
             -Dsonar.organization=my-org
-            -Dsonar.projectKey=my-Java-web-app
+            -Dsonar.projectKey=DECIBELIO_KEY
             -Dsonar.java.binaries=./decibelio/target/classes
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -135,5 +137,4 @@ jobs:
           sonar-scanner \
             -Dsonar.projectKey=decibelio_flutter \
             -Dsonar.sources=lib \
-            -Dsonar.host.url=${{ vars.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+            -Dsonar.host.url=${{ vars.SONAR_HOST_URL }}

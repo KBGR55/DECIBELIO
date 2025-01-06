@@ -59,6 +59,7 @@ jobs:
           run: |
             cd decibelio
             ./mvnw clean install
+            ./mvnw liberty:package
             docker-compose -f docker-compose.yml up -d --build
         - name: Deploy Decibelio in production
           env:

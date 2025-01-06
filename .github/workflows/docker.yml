@@ -29,9 +29,13 @@ jobs:
 
       # Levanta servicios en la carpeta "decibelio" usando docker-compose
       - name: Start services in decibelio
+        env:
+          POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
+          DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
+          LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
         run: |
           cd decibelio
-          docker-compose --env-file .docker-env -f docker-compose.yml up -d
+          docker-compose -f docker-compose.yml up -d
 
       # Cambia a la carpeta "decibelio-deploy" y construye/despliega
       - name: Deploy Decibelio in production

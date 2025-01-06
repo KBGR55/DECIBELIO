@@ -47,6 +47,10 @@ jobs:
               type=ref,event=tag
               type=ref,event=branch
               type=schedule,pattern=main
+        - name: Install Docker Compose
+          run: |
+            sudo apt-get update
+            sudo apt-get install -y docker-compose
         - name: Build Decibelio with Maven
           run: |
             cd decibelio

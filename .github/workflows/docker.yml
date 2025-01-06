@@ -58,9 +58,18 @@ jobs:
             LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
           run: |
             cd decibelio
+            ./mvnw liberty:dev 
             docker-compose -f docker-compose.yml up -d --build
         - name: Deploy Decibelio in production
+          env:
+            POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
+            DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
+            LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
+            POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+            POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+            PGADMIN_DEFAULT_EMAIL: ${{ secrets.PGADMIN_DEFAULT_EMAIL }}
+            PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
           run: |
             cd decibelio-deploy
             sudo docker-compose --env-file .env -f docker-compose.yml up --build -d
-            

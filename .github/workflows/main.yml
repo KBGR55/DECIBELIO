@@ -43,7 +43,7 @@ jobs:
     name: License Compliance
     uses: ./.github/workflows/license-compliance.yml
     secrets: inherit
-    
+
   #Creación de Docker
   docker:
     needs: build

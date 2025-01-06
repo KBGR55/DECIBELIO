@@ -43,3 +43,19 @@ jobs:
     name: License Compliance
     uses: ./.github/workflows/license-compliance.yml
     secrets: inherit
+    
+  #Creación de Docker
+  docker:
+    needs: build
+    name: Build docker image
+    uses: ./.github/workflows/docker.yml
+    secrets: inherit
+
+  #Análisis de código Dinámico
+  dast:
+    needs: [build,docker]
+    name: DAST Scan
+    uses: ./.github/workflows/dast.yml
+    secrets: inherit
+    with:
+      image-tag: ${{ needs.docker.outputs.image-tag }}

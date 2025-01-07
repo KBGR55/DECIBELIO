@@ -1,4 +1,4 @@
-name: Build and Deploy with Docker Compose
+name: 06 Build docker image
 
 on:
     workflow_dispatch:
@@ -10,7 +10,7 @@ on:
 
 env:
     REGISTRY: ghcr.io
-    IMAGE_NAME: ${ { github.repository }}
+    IMAGE_NAME: ${{ github.repository }}
 
 jobs:
     docker:
@@ -20,7 +20,7 @@ jobs:
         permissions:
             contents: read
             packages: write
-
+        
         steps:
         - uses: actions/checkout@v3
         - name: Download application binary
@@ -39,6 +39,7 @@ jobs:
           uses: docker/metadata-action@v4.1.0
           with:
             images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+            # make sure scheduled also uses main as tag label of the image (default is nightly which will fail in containerscanner) EVENT=BRANCH and SCHEDULE MUST BE LAST to work
             tags: |
               type=semver,pattern={{version}}
               type=semver,pattern={{major}}.{{minor}}
@@ -47,30 +48,11 @@ jobs:
               type=ref,event=tag
               type=ref,event=branch
               type=schedule,pattern=main
-        - name: Install Docker Compose
-          run: |
-            sudo apt-get update
-            sudo apt-get install -y docker-compose
-        - name: Build and start services with Docker Compose
-          env:
-            POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
-            DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
-            LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
-          run: |
-            cd decibelio
-            ./mvnw clean install
-            ./mvnw liberty:package
-            docker-compose -f docker-compose.yml up -d --build
-        - name: Deploy Decibelio in production
-          env:
-            POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
-            DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
-            LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
-            POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-            POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-            POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
-            PGADMIN_DEFAULT_EMAIL: ${{ secrets.PGADMIN_DEFAULT_EMAIL }}
-            PGADMIN_DEFAULT_PASSWORD: ${{ secrets.PGADMIN_DEFAULT_PASSWORD }}
-          run: |
-            cd decibelio-deploy
-            sudo docker-compose --env-file .env -f docker-compose.yml up --build -d
+        - name: Build and push Docker image
+          uses: docker/build-push-action@v3.2.0
+          with:
+            context: ../decibelio
+            dockerfile: Dockerfile
+            push: true
+            tags: ${{ steps.meta.outputs.tags }}
+            labels: ${{ steps.meta.outputs.labels }}

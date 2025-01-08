@@ -56,8 +56,8 @@
                 password="${db.password}"
                 -->
         <properties.postgresql
-                serverName="${db.server.name}"
-                portNumber="${db.port.number}"
+                serverName="decibelio-db"
+                portNumber="5432"
                 databaseName="decibeliodb"
                 user="postgres"
                 password="admin@987"

@@ -16,9 +16,7 @@ on:
         required: true
 
 env:
-  # used for docker
   REGISTRY: ghcr.io
-  IMAGE_TAG: ${{ github.event.inputs['image-tag'] }}  # Simplified for correct input retrieval
 
 jobs:
   dast-scan:
@@ -32,18 +30,29 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Validate IMAGE_TAG input
+        run: |
+          if [ -z "${{ github.event.inputs.image-tag }}" ]; then
+            echo "Error: IMAGE_TAG input is empty."
+            exit 1
+          fi
+          echo "IMAGE_TAG=${{ github.event.inputs.image-tag }}" >> $GITHUB_ENV
+
       - name: Start demo app container
-        run: docker rm demoApp || true && docker run -d -p 8080:8080 --name demoApp ${{ env.IMAGE_TAG }}
+        run: |
+          docker rm demoApp || true
+          docker run -d -p 8080:8080 --name demoApp ${{ env.REGISTRY }}/${{ github.event.inputs.image-tag }}
 
       - name: Wait for container to start
-        run: timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w ''%{http_code}'' localhost:8080)" != "200" ]]; do sleep 5; done' || false
+        run: |
+          echo "Waiting for container to be ready..."
+          timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" localhost:8080)" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 300 seconds."; exit 1; }
 
       - name: Test container
         run: curl -s localhost:8080/echo?msg=Hello%20World!
 
       - name: ZAP Full Scan
         uses: zaproxy/action-full-scan@v0.11.0
-            
         with:
           docker_name: 'owasp/zap2docker-stable'
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -51,12 +60,10 @@ jobs:
           cmd_options: '-a -j -l WARN -z "-addoninstallall"'
           allow_issue_writing: false
 
-      # - name: Upload HTML report
-      #   uses: actions/upload-artifact@v3
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
         with:
-          name: DAST_Report.html
+          name: DAST_Report
           path: report_html.html
 
       - name: Stop and clean up Docker container

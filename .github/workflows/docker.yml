@@ -60,3 +60,10 @@ jobs:
             push: true
             tags: ${{ steps.meta.outputs.tags }}
             labels: ${{ steps.meta.outputs.labels }}
+            build-args: |
+             DRIVER_JDBC_DIR=/config/
+             DB_SERVER_NAME=decibelio-db
+             DB_PORT_NUMBER=5432
+             DB_NAME=decibeliodb
+             DB_USER=postgres
+             DB_PASSWORD=admin@987

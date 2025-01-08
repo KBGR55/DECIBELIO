@@ -20,6 +20,7 @@
         <driver.jdbc.dir>${server.config.dir}/lib/global</driver.jdbc.dir>
         <db.server.name>localhost</db.server.name>
         <db.port.number>5433</db.port.number>
+        
 
         <liberty.bootstrap.driver.jdbc.dir>${driver.jdbc.dir}</liberty.bootstrap.driver.jdbc.dir>
         <liberty.bootstrap.db.server.name>${db.server.name}</liberty.bootstrap.db.server.name>

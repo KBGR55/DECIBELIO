@@ -56,14 +56,13 @@
                 password="${db.password}"
                 -->
         <properties.postgresql
-                serverName="decibelio-db"
-                portNumber="5432"
+                serverName="${db.server.name}"
+                portNumber="${db.port.number}"
                 databaseName="decibeliodb"
                 user="postgres"
                 password="admin@987"
         />
     </dataSource>
-    <!--portNumber=""${db.port.number}"-->
     <!-- Postgres Library Configuration -->
     <library id="postgresJDBCLib">
         <fileset dir="${driver.jdbc.dir}" includes="postgresql*.jar"/>

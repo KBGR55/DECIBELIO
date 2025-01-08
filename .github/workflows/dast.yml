@@ -17,6 +17,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
+  APP_PORT: 9080
 
 jobs:
   dast-scan:
@@ -41,22 +42,22 @@ jobs:
       - name: Start demo app container
         run: |
           docker rm demoApp || true
-          docker run -d -p 8080:8080 --name demoApp ${{ inputs.image-tag }}
+          docker run -d -p ${{ env.APP_PORT }}:9080 --name demoApp ${{ inputs.image-tag }}
 
       - name: Wait for container to start
         run: |
-          echo "Waiting for container to be ready..."
-          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" localhost:8080)" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 600 seconds."; docker logs demoApp; exit 1; }
+          echo "Waiting for container to be ready on port ${{ env.APP_PORT }}..."
+          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" localhost:${{ env.APP_PORT }})" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 600 seconds."; docker logs demoApp; exit 1; }
 
       - name: Test container
-        run: curl -s localhost:8080/echo?msg=Hello%20World!
+        run: curl -s localhost:${{ env.APP_PORT }}/health
 
       - name: ZAP Full Scan
         uses: zaproxy/action-full-scan@v0.11.0
         with:
           docker_name: 'owasp/zap2docker-stable'
           token: ${{ secrets.GITHUB_TOKEN }}
-          target: 'http://localhost:8080'
+          target: 'http://localhost:${{ env.APP_PORT }}'
           cmd_options: '-a -j -l WARN -z "-addoninstallall"'
           allow_issue_writing: false
 

@@ -46,7 +46,7 @@ jobs:
       - name: Wait for container to start
         run: |
           echo "Waiting for container to be ready..."
-          timeout 300 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" localhost:8080)" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 300 seconds."; exit 1; }
+          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" localhost:8080)" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 600 seconds."; docker logs demoApp; exit 1; }
 
       - name: Test container
         run: curl -s localhost:8080/echo?msg=Hello%20World!

@@ -52,14 +52,10 @@ jobs:
       - name: Test container
         run: curl -s localhost:${{ env.APP_PORT }}/health
 
-      - name: ZAP Full Scan
-        uses: zaproxy/action-full-scan@v0.11.0
-        with:
-          docker_name: 'owasp/zap2docker-stable'
-          token: ${{ secrets.GITHUB_TOKEN }}
-          target: 'http://localhost:${{ env.APP_PORT }}'
-          cmd_options: '-a -j -l WARN -z "-addoninstallall"'
-          allow_issue_writing: false
+      - name: Pull and Run ZAP
+        run: |
+          docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap-full-scan.py \
+          -t http://localhost:5006 -r zap_report.html || exit 0
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4

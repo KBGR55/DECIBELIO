@@ -41,7 +41,7 @@ jobs:
       - name: Start demo app container
         run: |
           docker rm demoApp || true
-          docker run -d -p 8080:8080 --name demoApp ${{ env.REGISTRY }}/${{ inputs.image-tag }}
+          docker run -d -p 8080:8080 --name demoApp ${{ inputs.image-tag }}
 
       - name: Wait for container to start
         run: |

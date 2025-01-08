@@ -7,8 +7,7 @@
         <jta-data-source>jdbc/decibelioJPA_DS</jta-data-source>
         <properties>
             <!-- Generación del esquema de base de datos (puede ser 'create', 'update', 'drop-and-create') -->
-            <property name="jakarta.persistence.schema-generation.database.action"
-                      value="update"/>
+            <property name="jakarta.persistence.schema-generation.database.action" value="create-or-extend-tables"/>
             
             <property name="jakarta.persistence.sql-load-script-source"
                       value="META-INF/initial-data.sql" />

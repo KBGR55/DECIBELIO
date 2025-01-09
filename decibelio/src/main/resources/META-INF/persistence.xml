@@ -5,22 +5,18 @@
              version="3.0">
     <persistence-unit name="decibelioPU" transaction-type="JTA">
         <jta-data-source>jdbc/decibelioJPA_DS</jta-data-source>
-
         <properties>
-            <property name="jakarta.persistence.schema-generation.database.action"
-                      value="drop-and-create"/>
-            <!--
-            <property name="jakarta.persistence.schema-generation.scripts.action"
-                      value="create"/>
-            <property name="jakarta.persistence.schema-generation.scripts.create-target"
-                      value="createDDL.ddl"/>
-            -->
-             <property name="jakarta.persistence.sql-load-script-source"
+            <!-- Generación del esquema de base de datos (puede ser 'create', 'update', 'drop-and-create') -->
+            <property name="jakarta.persistence.schema-generation.database.action" value="create-or-extend-tables"/>
+            
+            <property name="jakarta.persistence.sql-load-script-source"
                       value="META-INF/initial-data.sql" />
 
             <property name="eclipselink.logging.level.sql" value="FINE" />
             <property name="eclipselink.logging.parameters" value="true" />
             <property name="hibernate.show_sql" value="true" />
+
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
         </properties>
     </persistence-unit>
 </persistence>

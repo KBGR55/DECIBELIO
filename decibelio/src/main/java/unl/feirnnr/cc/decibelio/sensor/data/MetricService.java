@@ -1,5 +1,6 @@
 package unl.feirnnr.cc.decibelio.sensor.data;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,6 +65,29 @@ public class MetricService {
         parameters.put("activeStatus", SensorStatus.ACTIVE);
     
         return crudService.findWithQuery(query, parameters);
-    }    
+    }  
+      
+    public List<Metric> findMetricsBySensorAndDateRangeWithInterval(
+        @NotNull String sensorExternalId,
+        @NotNull LocalDate startDate,
+        @NotNull LocalDate endDate,
+        @NotNull Integer intervalMinutes) {
+
+    String query = "SELECT m FROM Metric m " +
+                   "WHERE m.sensorExternalId = :sensorExternalId " +
+                   "AND m.date BETWEEN :startDate AND :endDate " +
+                   "AND MOD(EXTRACT(MINUTE FROM m.time), :intervalMinutes) = 0 " + 
+                   "ORDER BY m.date ASC, m.time ASC";
+
+    Map<String, Object> parameters = new HashMap<>();
+    parameters.put("sensorExternalId", sensorExternalId);
+    parameters.put("startDate", startDate);
+    parameters.put("endDate", endDate);
+    parameters.put("intervalMinutes", intervalMinutes); 
+
+
+    return crudService.findWithQuery(query, parameters);
+}
+
 
 }

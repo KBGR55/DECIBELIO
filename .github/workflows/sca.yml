@@ -9,8 +9,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ "ubuntu-20.04" ]
-        manifest_file: [ "pom.xml" ]
+        os: ["ubuntu-20.04"]
+        manifest_file: ["pom.xml"]
     runs-on: ${{ matrix.os }}
     defaults:
       run:
@@ -24,7 +24,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: temurin
-          java-version: 17  # Use Java 17 instead of Java 11
+          java-version: 17
           cache: maven
 
       - name: Install SCA tool (CRDA)
@@ -37,7 +37,7 @@ jobs:
       - name: Run Static Code Analysis (SCA)
         id: scan_java
         run: |
-          cd decibelio  # Navigate to the directory containing the pom.xml
+          cd decibelio  # Navegar al directorio con el archivo pom.xml
           mvn clean install
 
       - name: Print JSON analysis report
@@ -53,3 +53,49 @@ jobs:
 
       - name: Print Artifact Name
         run: echo ${{ steps.scan_java.outputs.artifact_name }}
+
+  sonarqube:
+    name: SonarQube
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 
+
+    - name: Setup Java
+      uses: actions/setup-java@v2
+      with:
+        distribution: temurin
+        java-version: 17
+        cache: maven
+
+    - name: Build project
+      run: |
+        cd decibelio 
+        mvn clean install
+
+    - name: SonarQube Scan
+      uses: SonarSource/sonarqube-scan-action@v4
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+      with:
+        args: >
+          -Dsonar.projectKey=KBGR55_DECIBELIO
+          -Dsonar.organization=kbgr55
+          -Dsonar.projectName=DECIBELIO
+          -Dsonar.projectVersion=1.0
+          -Dsonar.sources=.
+          -Dsonar.sourceEncoding=UTF-8
+          -Dsonar.coverage.exclusions=**/* 
+          -Dsonar.java.binaries=decibelio/target/classes
+          -Dsonar.c.file.suffixes=-
+          -Dsonar.cpp.file.suffixes=-
+          -Dsonar.objc.file.suffixes=-
+   
+    - name: Upload SonarCloud Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: sonarcloud-report
+        path: .scannerwork

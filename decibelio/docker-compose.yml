@@ -13,8 +13,6 @@ services:
       - ${DB_PORT_PUBLIC}:5432
     volumes:
       - decibelio-db-data:/var/lib/postgresql/data
-      #- ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
-    #net: ${NETWORK}
     networks:
       decibelio-network:
         ipv4_address: 172.21.0.252
@@ -59,9 +57,6 @@ services:
       - DB_NAME=decibeliodb
       - DB_USER=postgres
       - DB_PASSWORD=admin@987
-      #SPRING_DATASOURCE_USERNAME: postgres decibelio
-      #SPRING_DATASOURCE_PASSWORD: admin@987 decibelio_22#
-      #SERVER_PORT: 4000
     ports:
       - "9080:9080"
       - "9443:9443"

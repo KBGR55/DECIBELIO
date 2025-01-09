@@ -3,6 +3,7 @@ name: 04 SAST
 on:
   workflow_dispatch:
   workflow_call:
+
 jobs:
   SAST-CodeQL:
     name: Build and SAST CodeQL
@@ -33,9 +34,9 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Build Java project with Maven
         run: |
-          cd decibelio 
+          cd decibelio
           mvn clean package -B -Dmaven.test.skip
 
       - name: Cache build
@@ -55,32 +56,13 @@ jobs:
       - name: Upload Artifact
         uses: actions/upload-artifact@v3
         with:
-          name: target
-          path: ${{ github.workspace }}/target
+          name: decibelio-build
+          path: ./decibelio/target/decibelio
 
       - name: CodeQL Analysis
         uses: github/codeql-action/analyze@v2
         with:
           category: "/language:${{ matrix.language }}"
-
-      - name: Set up Docker Compose
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y docker-compose
-
-
-      - name: Docker Cleanup and Run
-        env:
-          POSTGRES_VERSION: ${{ secrets.POSTGRES_VERSION }}
-          DB_PORT_PUBLIC: ${{ secrets.DB_PORT_PUBLIC }}
-          LOCAL_DATA_DIR_BD: ${{ secrets.LOCAL_DATA_DIR_BD }}
-          CLIENT_ID: ${{ secrets.CLIENT_ID }}
-          CLIENT_SECRET: ${{ secrets.CLIENT_SECRET }}
-          REDIRECT_URI: ${{ secrets.REDIRECT_URI }}
-        run: |
-          # Ensure any existing container is removed
-          docker-compose --env-file <(env) -f decibelio/docker-compose.yml down || true
-          docker-compose --env-file <(env) -f decibelio/docker-compose.yml up -d
 
   spotbugs:
     name: SAST SpotBugs
@@ -99,7 +81,7 @@ jobs:
         uses: jmservera/spotbugs-github-action@v0.1.0-alpha
         with:
           packages: com.example.-
-          target: ./target
+          target: ./decibelio/target/decibelio/WEB-INF/classes
           dependenciesPath: ~/.m2
           basePath: src/main/java
 

@@ -1,4 +1,4 @@
-name: build Jakarta-Decibelio-Karencita
+name:  02 Build pipeline
 
 on:
   workflow_dispatch:

@@ -63,7 +63,6 @@
                 password="admin@987"
         />
     </dataSource>
-    <!--portNumber=""${db.port.number}"-->
     <!-- Postgres Library Configuration -->
     <library id="postgresJDBCLib">
         <fileset dir="${driver.jdbc.dir}" includes="postgresql*.jar"/>

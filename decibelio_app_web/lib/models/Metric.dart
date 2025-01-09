@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:decibelio_app_web/models/GeoLocation.dart';
 
 class Metric {

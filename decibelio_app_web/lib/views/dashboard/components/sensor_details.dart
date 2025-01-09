@@ -6,7 +6,6 @@ import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
 import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
 import 'package:decibelio_app_web/views/dashboard/components/chart_sensor.dart';
 import 'package:decibelio_app_web/views/dashboard/components/globals.dart';
-import 'package:decibelio_app_web/views/dashboard/components/map.dart';
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 
@@ -38,8 +37,8 @@ class SensorDetailsState extends State<SensorDetails> {
     ListSensorDTO sensorData = await facade.listSensorDTO();
 
     setState(() {
-      _metrics = metricLastData.data!;
-      _sensors = sensorData.data!;
+      _metrics = metricLastData.data;
+      _sensors = sensorData.data;
       _isLoading = false;
     });
   }

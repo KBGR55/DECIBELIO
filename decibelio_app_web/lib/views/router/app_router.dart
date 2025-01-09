@@ -1,14 +1,10 @@
-import 'package:decibelio_app_web/views/dashboard/dashboard_screen.dart';
 import 'package:decibelio_app_web/views/main/main_screen.dart';
-import 'package:decibelio_app_web/views/sensor_create/components/sensor_create.dart';
 import 'package:decibelio_app_web/views/sensor_create/sensor_screen.dart';
-import 'package:decibelio_app_web/views/upload_data/components/upload_data.dart';
 import 'package:decibelio_app_web/views/upload_data/upload_screen.dart';
 import 'package:flutter/material.dart';
 
 class AppRouter {
   Route? onGenerateRoute(RouteSettings settings) {
-    final Object? key = settings.arguments;
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(

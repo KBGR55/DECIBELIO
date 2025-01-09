@@ -1,9 +1,7 @@
-import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
 import 'package:decibelio_app_web/responsive.dart';
 import 'package:decibelio_app_web/views/main/components/side_menu.dart';
 import 'package:decibelio_app_web/views/upload_data/components/upload_data.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 
 class UploadScreen extends StatelessWidget {
   final String title;

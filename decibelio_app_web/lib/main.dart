@@ -1,13 +1,8 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:decibelio_app_web/constants.dart';
 import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
-import 'package:decibelio_app_web/views/dashboard/dashboard_screen.dart';
 import 'package:decibelio_app_web/views/main/main_screen.dart';
-import 'package:decibelio_app_web/views/sensor_create/components/sensor_create.dart';
 import 'package:decibelio_app_web/views/sensor_create/sensor_screen.dart';
-import 'package:decibelio_app_web/views/upload_data/components/upload_data.dart';
 import 'package:decibelio_app_web/views/upload_data/upload_screen.dart';
-//import 'package:decibelio_app_web/views/map_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:decibelio_app_web/views/navigation/navigation_bloc.dart';

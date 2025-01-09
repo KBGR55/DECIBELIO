@@ -1,4 +1,3 @@
-import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/responsive.dart';
 import 'package:decibelio_app_web/views/dashboard/components/map_view.dart';
 import 'package:decibelio_app_web/views/dashboard/components/sensor_details.dart';

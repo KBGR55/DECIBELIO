@@ -20,7 +20,7 @@ public class RestResult implements Serializable {
         this.payload = payload;
     }
 
-    public RestResult(RestResultStatus status, String message, Class type, Object payload) {
+    public RestResult(RestResultStatus status, String message, Class<?> type, Object payload) {
         this.status = status.name();
         this.message = message;
         this.type = type.getSimpleName();

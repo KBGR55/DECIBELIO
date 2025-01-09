@@ -1,6 +1,7 @@
 package unl.feirnnr.cc.decibelio.sensor.boundary;
 
 import jakarta.inject.Inject;
+import jakarta.json.JsonObject;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 import jakarta.ws.rs.*;
@@ -17,6 +18,7 @@ import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
 import unl.feirnnr.cc.decibelio.sensor.model.Metric;
 
 import java.io.InputStream;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -33,7 +35,7 @@ public class MetricsResource {
 
     @Inject
     DecibelioFacade decibelioFacade;
-    
+
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Get all metrics")
@@ -43,7 +45,8 @@ public class MetricsResource {
     })
     public Response getAllMetrics() {
         List<Metric> metrics = decibelioFacade.findAllMetrics();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully", Metric.class, metrics);
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully", Metric.class,
+                metrics);
         return Response.ok(result).build();
     }
 
@@ -57,7 +60,8 @@ public class MetricsResource {
     })
     public Response getAllMetricsFind() {
         List<Metric> metrics = decibelioFacade.findLastMetricOfActiveSensors();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully", Metric.class, metrics);
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully", Metric.class,
+                metrics);
         return Response.ok(result).build();
     }
 
@@ -75,7 +79,8 @@ public class MetricsResource {
             Part filePart = request.getPart("file");
             if (filePart == null) {
                 LOGGER.severe("No file part found in the request");
-                RestResult result = new RestResult(RestResultStatus.FAILURE, "File part is missing", "FileUpload", null);
+                RestResult result = new RestResult(RestResultStatus.FAILURE, "File part is missing", "FileUpload",
+                        null);
                 return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
             }
 
@@ -83,7 +88,8 @@ public class MetricsResource {
             InputStream uploadedInputStream = filePart.getInputStream();
             if (uploadedInputStream == null) {
                 LOGGER.severe("Input stream is null");
-                RestResult result = new RestResult(RestResultStatus.FAILURE, "Error retrieving input stream", "FileUpload", null);
+                RestResult result = new RestResult(RestResultStatus.FAILURE, "Error retrieving input stream",
+                        "FileUpload", null);
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
             }
 
@@ -91,11 +97,13 @@ public class MetricsResource {
             List<String> errors = decibelioFacade.loadMetricFileCSV(uploadedInputStream);
 
             if (errors.isEmpty()) {
-                RestResult result = new RestResult(RestResultStatus.SUCCESS, "File uploaded and processed successfully", "FileUpload", errors);
+                RestResult result = new RestResult(RestResultStatus.SUCCESS, "File uploaded and processed successfully",
+                        "FileUpload", errors);
                 return Response.ok(result).build();
             } else {
                 String errorMessage = String.join("\n", errors);
-                RestResult result = new RestResult(RestResultStatus.FAILURE, "Errors occurred while processing the file:\n" + errorMessage, "FileUpload", errors);
+                RestResult result = new RestResult(RestResultStatus.FAILURE,
+                        "Errors occurred while processing the file:\n" + errorMessage, "FileUpload", errors);
                 return Response.status(Response.Status.BAD_REQUEST).entity(result).build();
             }
         } catch (Exception e) {
@@ -104,4 +112,54 @@ public class MetricsResource {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
         }
     }
+
+    @POST
+    @Path("/sensor")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get metrics for a sensor within a date range")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successful operation"),
+            @APIResponse(responseCode = "400", description = "Invalid input"),
+            @APIResponse(responseCode = "404", description = "Metrics not found"),
+    })
+    public Response getMetricsBySensorAndDateRange(JsonObject json, @Context UriInfo uriInfo) {
+        try {
+            String sensorExternalId = json.getString("sensorExternalId");
+            String startDate = json.containsKey("startDate") ? json.getString("startDate") : null;
+            String endDate = json.containsKey("endDate") ? json.getString("endDate") : null;
+            Integer intervalMinutes = json.containsKey("intervalMinutes") ? json.getInt("intervalMinutes") : 30; 
+    
+            LocalDateTime now = LocalDateTime.now();
+    
+            LocalDateTime start = (startDate == null)
+                    ? now.withHour(7).withMinute(0).withSecond(0).withNano(0) 
+                    : LocalDateTime.parse(startDate);
+    
+            LocalDateTime end = (endDate == null)
+                    ? now 
+                    : LocalDateTime.parse(endDate);
+    
+            LOGGER.info(String.format("Fetching metrics for sensor: %s from %s to %s with interval of %d minutes", 
+                    sensorExternalId, start, end, intervalMinutes));
+    
+            List<Metric> metrics = decibelioFacade.findMetricsBySensorAndDateRangeWithInterval(sensorExternalId,
+                    start.toLocalDate(), end.toLocalDate(), intervalMinutes);
+    
+            if (metrics.isEmpty()) {
+                RestResult result = new RestResult(RestResultStatus.SUCCESS,
+                        "No metrics found for the specified criteria", Metric.class, metrics);
+                return Response.status(Response.Status.NOT_FOUND).entity(result).build();
+            }
+    
+            RestResult result = new RestResult(RestResultStatus.SUCCESS, "Metrics retrieved successfully", Metric.class,
+                    metrics);
+            return Response.ok(result).build();
+        } catch (Exception e) {
+            LOGGER.log(Level.SEVERE, "Error fetching metrics", e);
+            RestResult result = new RestResult(RestResultStatus.FAILURE, "Error fetching metrics", "Metrics", null);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
+        }
+    }
+    
 }

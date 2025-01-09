@@ -70,7 +70,7 @@ public class DecibelioFacade {
         return sensorService.findAllActive();
     }
 
-    public LandUse findByLandUseId(@NotNull Long id){
+    public LandUse findByLandUseId(@NotNull Long id) {
         return landUseService.findById(id);
     }
 
@@ -285,9 +285,33 @@ public class DecibelioFacade {
         return rangeService.findByLandUseAndTimeFrame(landUseId, timeFrameId);
     }
 
-
     public List<Metric> findLastMetricOfActiveSensors() {
         return metricService.findLastMetricOfActiveSensors();
-    }    
+    }
+
+    /**
+     * Encuentra métricas de un sensor dentro de un rango de fechas con un intervalo
+     * de minutos configurable.
+     *
+     * @param sensorExternalId el ID externo del sensor
+     * @param startDate        la fecha de inicio del rango
+     * @param endDate          la fecha de fin del rango
+     * @param intervalMinutes  el intervalo en minutos (por ejemplo: 10, 20, 30,
+     *                         etc.)
+     * @return una lista de métricas que cumplen con los criterios
+     */
+    public List<Metric> findMetricsBySensorAndDateRangeWithInterval(
+            @NotNull String sensorExternalId,
+            @NotNull LocalDate startDate,
+            @NotNull LocalDate endDate,
+            @NotNull Integer intervalMinutes) {
+
+        LOGGER.log(Level.INFO, "Finding metrics for sensor: {0}, from {1} to {2} with interval of {3} minutes",
+                new Object[] { sensorExternalId, startDate, endDate, intervalMinutes });
+
+        // Llamar al servicio con el nuevo parámetro
+        return metricService.findMetricsBySensorAndDateRangeWithInterval(sensorExternalId, startDate, endDate,
+                intervalMinutes);
+    }
 
 }

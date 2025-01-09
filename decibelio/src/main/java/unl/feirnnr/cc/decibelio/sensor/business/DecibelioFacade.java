@@ -115,9 +115,7 @@ public class DecibelioFacade {
                 Metric savedMetric = metricService.save(metric);
                 savedMetrics.add(savedMetric);
             } catch (Exception e) {
-                LOGGER.severe("Error saving metric: " + e.getMessage());
-                // You may want to rethrow the exception to ensure the transaction rolls back
-                throw e;
+                LOGGER.severe("Error saving metric with ID: " + metric.getId() + ": " + e.getMessage());
             }
         }
         return savedMetrics;

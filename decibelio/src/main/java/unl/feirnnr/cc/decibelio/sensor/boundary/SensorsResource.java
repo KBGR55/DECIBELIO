@@ -61,6 +61,10 @@ import unl.feirnnr.cc.decibelio.sensor.model.TerritorialReference;
 public class SensorsResource {
 
     static final Logger LOGGER = Logger.getLogger(SensorsResource.class.getSimpleName());
+    private static final String SENSOR_TYPE = "sensorType";
+    private static final String LATITUDE_TYPE = "latitude";
+    private static final String LONGITUDE_TYPE = "longitude";
+
 
     @Inject
     DecibelioFacade decibelioFacade;
@@ -94,8 +98,8 @@ public class SensorsResource {
                                 @SchemaProperty(name = "name", type = SchemaType.STRING, description = "Name of the sensor"),
                                 @SchemaProperty(name = "sensorStatus", type = SchemaType.STRING, description = "Status of the sensor"),
                                 @SchemaProperty(name = "sensorType", type = SchemaType.STRING, description = "Type of the sensor"),
-                                @SchemaProperty(name = "latitude", type = SchemaType.NUMBER, format = "double", description = "Latitude of the sensor location"),
-                                @SchemaProperty(name = "longitude", type = SchemaType.NUMBER, format = "double", description = "Longitude of the sensor location"),
+                                @SchemaProperty(name = LATITUDE_TYPE, type = SchemaType.NUMBER, format = "double", description = "Latitude of the sensor location"),
+                                @SchemaProperty(name = LONGITUDE_TYPE, type = SchemaType.NUMBER, format = "double", description = "Longitude of the sensor location"),
                                 @SchemaProperty(name = "externalID", type = SchemaType.STRING, description = "External ID of the sensor"),
                                 @SchemaProperty(name = "landUseID", type = SchemaType.INTEGER, format = "int64", description = "ID of the land use")
                         }
@@ -107,16 +111,15 @@ public class SensorsResource {
         Sensor sensor = new Sensor();
         sensor.setName(json.getString("name"));
     sensor.setSensorStatus(SensorStatus.valueOf(json.getString("sensorStatus")));
-    sensor.setSensorType(SensorType.valueOf(json.getString("sensorType")));
+    sensor.setSensorType(SensorType.valueOf(json.getString(SENSOR_TYPE)));
 
     GeoLocation geoLocation = new GeoLocation();
-    geoLocation.setLatitude(((float)json.getJsonNumber("latitude").doubleValue()));
-    geoLocation.setLongitude(((float)json.getJsonNumber("longitude").doubleValue()));
+    geoLocation.setLatitude(((float)json.getJsonNumber(LATITUDE_TYPE).doubleValue()));
+    geoLocation.setLongitude(((float)json.getJsonNumber(LONGITUDE_TYPE).doubleValue()));
     sensor.setGeoLocation(geoLocation);
 
     sensor.setExternalId(json.getString("externalId"));
 
-    //LandUse landUse = decibelioFacade.findByLandUseId((json.getJsonNumber("landUseID").longValue()));
     Long landUseId = json.getJsonNumber("landUseID").longValue();
     LandUse landUse = decibelioFacade.findByLandUseId(landUseId);
     if (landUse == null) {
@@ -228,9 +231,9 @@ public class SensorsResource {
                     .add("id", sensor.getId())
                     .add("name", sensor.getName())
                     .add("externalID", sensor.getExternalId())
-                    .add("latitude", ((float)sensor.getGeoLocation().getLatitude()))
-                    .add("longitude", ((float)sensor.getGeoLocation().getLongitude()))
-                    .add("sensorType", sensor.getSensorType().name())
+                    .add(LATITUDE_TYPE, ((float)sensor.getGeoLocation().getLatitude()))
+                    .add(LONGITUDE_TYPE, ((float)sensor.getGeoLocation().getLongitude()))
+                    .add(SENSOR_TYPE, sensor.getSensorType().name())
                     .add("landUseName", sensor.getLandUse().getName())
                     .build();
             arrayBuilder.add(sensorJson);
@@ -238,7 +241,6 @@ public class SensorsResource {
 
         JsonArray sensorArray = arrayBuilder.build();
         RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of active Sensors", Sensor.class.getSimpleName(), sensorArray);
-        //return Response.ok(sensorArray).build();
         return Response.ok().entity(result).build();
     }
 
@@ -258,9 +260,9 @@ public class SensorsResource {
                     .add("id", sensor.getId())
                     .add("name", sensor.getName())
                     .add("externalID", sensor.getExternalId())
-                    .add("latitude", ((float)sensor.getGeoLocation().getLatitude()))
-                    .add("longitude", ((float)sensor.getGeoLocation().getLongitude()))
-                    .add("sensorType", sensor.getSensorType().name())
+                    .add(LATITUDE_TYPE, ((float)sensor.getGeoLocation().getLatitude()))
+                    .add(LONGITUDE_TYPE, ((float)sensor.getGeoLocation().getLongitude()))
+                    .add(SENSOR_TYPE, sensor.getSensorType().name())
                     .add("sensorStatus", sensor.getSensorStatus().toString())
                     .add("landUseName", sensor.getLandUse().getName())
                     .build();
@@ -269,7 +271,6 @@ public class SensorsResource {
 
         JsonArray sensorArray = arrayBuilder.build();
         RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of all Sensors", Sensor.class.getSimpleName(), sensorArray);
-        //return Response.ok(sensorArray).build();
         return Response.ok().entity(result).build();
     }
 
@@ -294,7 +295,6 @@ public class SensorsResource {
 
         JsonArray landUseArray = arrayBuilder.build();
         RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of all landuse", LandUse.class.getSimpleName(), landUseArray);
-        //return Response.ok(sensorArray).build();
         return Response.ok().entity(result).build();
     }
 }

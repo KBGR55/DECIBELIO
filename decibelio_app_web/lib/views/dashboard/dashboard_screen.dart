@@ -1,4 +1,5 @@
 import 'package:decibelio_app_web/responsive.dart';
+import 'package:decibelio_app_web/views/dashboard/components/chart_intervals.dart';
 import 'package:decibelio_app_web/views/dashboard/components/map_view.dart';
 import 'package:decibelio_app_web/views/dashboard/components/sensor_details.dart';
 import 'package:flutter/material.dart';
@@ -49,10 +50,18 @@ class DashboardScreen extends StatelessWidget {
                       MapView(),
                       SizedBox(height: defaultPadding),
                       // Asegúrate de que RecentFiles esté habilitado para evitar problemas
-                      const NoiseLevelTable(),
+                      //const NoiseLevelTable(),
+                      SoundChartView(),
                       if (Responsive.isMobile(context))
                         SizedBox(height: defaultPadding),
-                      if (Responsive.isMobile(context)) SensorDetails(),
+                      if (Responsive.isMobile(context))
+                        Column(
+                            children: [
+                              SensorDetails(),
+                              const SizedBox(height: 16),
+                              const NoiseLevelTable(),
+                            ]
+                        )
                     ],
                   ),
                 ),
@@ -62,7 +71,13 @@ class DashboardScreen extends StatelessWidget {
                 if (!Responsive.isMobile(context))
                   Expanded(
                     flex: 2,
-                    child: SensorDetails(),
+                    child: Column(
+                      children: [
+                        SensorDetails(),
+                        const SizedBox(height: 16),
+                        const NoiseLevelTable(),
+                      ],
+                    ),
                   ),
               ],
             ),

@@ -17,12 +17,13 @@ class conexion  {
     final uri = Uri.parse(url);
     try{
       final response = await http.post(uri, headers: _header, body: jsonEncode(data));
-      log(response.body);
-      log(response.statusCode.toString());
-      if(response.statusCode != 201){
-        return _responseJson('FAILURE', response.body, "No data",'No data');
-      }else{
+      log("Respuesta response.code: "+response.statusCode.toString());
+      log("Respuesta response.body: "+response.body);
+
+      if(response.statusCode == 200){
         return _responseJson('SUCCESS', response.body, "Ok",'No data');
+      }else{
+        return _responseJson('FAILURE', response.body, "No data",'No data');
       }
     }catch(e){
       Map<dynamic, dynamic> mapa = {"payload": e.toString()};

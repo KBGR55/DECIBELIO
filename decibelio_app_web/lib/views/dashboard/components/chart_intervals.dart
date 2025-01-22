@@ -1,6 +1,11 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:decibelio_app_web/models/SensorDTO.dart';
+import 'package:decibelio_app_web/services/conexion.dart';
+import 'package:decibelio_app_web/services/facade/facade.dart';
+import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:intl/intl.dart';
 
 class SoundChartView extends StatefulWidget {
   const SoundChartView({super.key});
@@ -10,6 +15,8 @@ class SoundChartView extends StatefulWidget {
 }
 
 class _SoundChartView extends State<SoundChartView> {
+  //eliminar
+  conexion _conn = new conexion();
 
   String? selectedSensor;
   DateTime? startDate;
@@ -17,6 +24,8 @@ class _SoundChartView extends State<SoundChartView> {
   List<String> sensorNames = [];
   String? selectedText; // Texto seleccionado
   int? selectedNumericValue; // Valor numérico seleccionado
+
+  List<SensorDTO> _sensors = [];
 
   final Map<String, int> valuesMins = {
     "60 minutos": 60,
@@ -34,11 +43,71 @@ class _SoundChartView extends State<SoundChartView> {
   }
 
   Future<void> loadSensorNames() async {
+    Facade facade = Facade();
+    ListSensorDTO sensorData = await facade.listSensorDTO();
+
     // Simulación de una llamada a un servicio o backend
-    await Future.delayed(Duration(seconds: 1)); // Simular retardo de red
+    await Future.delayed(Duration(seconds: 1));
+    // Simular retardo de red
     setState(() {
-      sensorNames = ["Sensor 1", "Sensor 2", "Sensor 3", "Sensor 4"]; // Aquí coloca los nombres reales
+      //sensorNames = sensorData.data.map((sensor) => sensor.name).toList(); // Aquí coloca los nombres reales
+      _sensors = sensorData.data;
     });
+  }
+
+  Future<void> obtenerMetricasPorIntervalo() async {
+    // Crear el cuerpo de la solicitud
+    Map<String, dynamic> data = {
+      "sensorExternalId": selectedSensor.toString(),
+      "startDate": DateFormat("yyyy-MM-ddTHH:mm:ss")
+          .format(startDate!), // Formato: "YYYY-MM-DDTHH:mm:ss"
+      "endDate": DateFormat("yyyy-MM-ddTHH:mm:ss")
+          .format(endDate!), // Formato: "YYYY-MM-DDTHH:mm:ss"
+      "intervalMinutes": selectedNumericValue,
+    };
+
+    try {
+      final respuesta =
+          await _conn.solicitudPost('metrics/sensor', data, "NO");
+   //  print("Respuesta completa: ${respuesta.toString()}");
+      print("Estado de la respuesta: ${respuesta.status}");
+
+      if (respuesta.status == "SUCCESS") {
+        print("Datos procesados correctamente.");
+        dynamic metricas = respuesta.payload;
+        print("Métricas obtenidas: $metricas");
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              title: Row(
+                children: const [
+                  Icon(Icons.check_circle, color: Colors.blue, size: 30),
+                  SizedBox(width: 10),
+                  Text('Métricas obtenidas correctamente'),
+                ],
+              ),
+            );
+          },
+        );
+      }
+      else {
+        print("Error en la respuesta: ${respuesta.message}");
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Error al obtener métricas: ${respuesta.message}"),
+          ),
+        );
+      }
+    } catch (e) {
+      print("Excepción capturada: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error al realizar la solicitud: $e")),
+      );
+    }
   }
 
   void applyFilter() {
@@ -48,6 +117,8 @@ class _SoundChartView extends State<SoundChartView> {
     print("Fecha de inicio: $startDate");
     print("Fecha de fin: $endDate");
     print("selectedNumericValue: $selectedNumericValue");
+
+    obtenerMetricasPorIntervalo();
     // Aquí puedes implementar la lógica de carga de datos para la gráfica
   }
 
@@ -94,26 +165,31 @@ class _SoundChartView extends State<SoundChartView> {
                   children: [
                     // Dropdown para seleccionar el sensor
                     Expanded(
-                      child: DropdownButtonFormField<String>(
-                        decoration: InputDecoration(
-                          labelText: "Sensores",
-                          prefixIcon: Icon(Icons.sensors),
-                          border: OutlineInputBorder(),
-                        ),
-                        value: selectedSensor,
-                        items: sensorNames.map((sensor) {
-                          return DropdownMenuItem<String>(
-                            value: sensor,
-                            child: Text(sensor),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedSensor = value;
-                          });
-                        },
+                        child: DropdownButtonFormField<String>(
+                      decoration: InputDecoration(
+                        labelText: "Sensores",
+                        prefixIcon: Icon(Icons.sensors),
+                        border: OutlineInputBorder(),
                       ),
-                    ),
+                      value:
+                          selectedSensor, // Aquí seleccionamos el externalID actual.
+                      items: _sensors.map((sensor) {
+                        return DropdownMenuItem<String>(
+                          value: sensor
+                              .externalId, // Asigna el externalID como valor.
+                          child: Text(sensor
+                              .name), // Muestra el nombre del sensor en la lista.
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedSensor =
+                              value; // Actualiza el externalID seleccionado.
+                        });
+                        print(
+                            "Sensor seleccionado (externalID): $selectedSensor");
+                      },
+                    )),
                     SizedBox(width: 16),
                     // Campo para seleccionar la fecha de inicio
                     Expanded(
@@ -192,7 +268,8 @@ class _SoundChartView extends State<SoundChartView> {
                         onChanged: (value) {
                           setState(() {
                             selectedText = value;
-                            selectedNumericValue = valuesMins[value]; // Obtener el valor numérico asociado
+                            selectedNumericValue = valuesMins[
+                                value]; // Obtener el valor numérico asociado
                           });
                         },
                       ),
@@ -279,7 +356,7 @@ class _SoundChartView extends State<SoundChartView> {
           ),
           const SizedBox(height: 16),
           const Text(
-              "Descripción: Cualquier cosa",
+            "Descripción: Cualquier cosa",
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 16),

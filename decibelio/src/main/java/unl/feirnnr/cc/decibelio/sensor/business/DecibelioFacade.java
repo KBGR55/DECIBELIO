@@ -307,7 +307,6 @@ public class DecibelioFacade {
         LOGGER.log(Level.INFO, "Finding metrics for sensor: {0}, from {1} to {2} with interval of {3} minutes",
                 new Object[] { sensorExternalId, startDate, endDate, intervalMinutes });
 
-        // Llamar al servicio con el nuevo parámetro
         return metricService.findMetricsBySensorAndDateRangeWithInterval(sensorExternalId, startDate, endDate,
                 intervalMinutes);
     }

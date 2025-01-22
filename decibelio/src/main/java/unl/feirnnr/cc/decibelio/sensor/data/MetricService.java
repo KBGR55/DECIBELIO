@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import jakarta.annotation.Nullable;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityNotFoundException;
@@ -57,37 +58,39 @@ public class MetricService {
 
     public List<Metric> findLastMetricOfActiveSensors() {
         String query = "SELECT m FROM Metric m " +
-                       "WHERE m.date = (SELECT MAX(m2.date) FROM Metric m2 WHERE m2.sensorExternalId = m.sensorExternalId) " +
-                       "AND m.id = (SELECT MAX(m3.id) FROM Metric m3 WHERE m3.sensorExternalId = m.sensorExternalId AND m3.date = m.date) " +
-                       "AND EXISTS (SELECT s FROM Sensor s WHERE s.externalId = m.sensorExternalId AND s.sensorStatus = :activeStatus)";
-    
+                "WHERE m.date = (SELECT MAX(m2.date) FROM Metric m2 WHERE m2.sensorExternalId = m.sensorExternalId) " +
+                "AND m.id = (SELECT MAX(m3.id) FROM Metric m3 WHERE m3.sensorExternalId = m.sensorExternalId AND m3.date = m.date) "
+                +
+                "AND EXISTS (SELECT s FROM Sensor s WHERE s.externalId = m.sensorExternalId AND s.sensorStatus = :activeStatus)";
+
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("activeStatus", SensorStatus.ACTIVE);
-    
+
         return crudService.findWithQuery(query, parameters);
-    }  
-      
+    }
+
     public List<Metric> findMetricsBySensorAndDateRangeWithInterval(
-        @NotNull String sensorExternalId,
-        @NotNull LocalDate startDate,
-        @NotNull LocalDate endDate,
-        @NotNull Integer intervalMinutes) {
+            @Nullable String sensorExternalId,
+            @NotNull LocalDate startDate,
+            @NotNull LocalDate endDate,
+            @NotNull Integer intervalMinutes) {
 
-    String query = "SELECT m FROM Metric m " +
-                   "WHERE m.sensorExternalId = :sensorExternalId " +
-                   "AND m.date BETWEEN :startDate AND :endDate " +
-                   "AND MOD(EXTRACT(MINUTE FROM m.time), :intervalMinutes) = 0 " + 
-                   "ORDER BY m.date ASC, m.time ASC";
+        StringBuilder queryBuilder = new StringBuilder(
+                "SELECT m FROM Metric m WHERE m.date BETWEEN :startDate AND :endDate " +
+                        "AND MOD(EXTRACT(MINUTE FROM m.time), :intervalMinutes) = 0 ");
+        Map<String, Object> parameters = new HashMap<>();
 
-    Map<String, Object> parameters = new HashMap<>();
-    parameters.put("sensorExternalId", sensorExternalId);
-    parameters.put("startDate", startDate);
-    parameters.put("endDate", endDate);
-    parameters.put("intervalMinutes", intervalMinutes); 
+        if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
+            queryBuilder.append("AND m.sensorExternalId = :sensorExternalId ");
+            parameters.put("sensorExternalId", sensorExternalId);
+        }
+        queryBuilder.append("ORDER BY m.date ASC, m.time ASC");
+        String query = queryBuilder.toString();
+        parameters.put("startDate", startDate);
+        parameters.put("endDate", endDate);
+        parameters.put("intervalMinutes", intervalMinutes);
 
-
-    return crudService.findWithQuery(query, parameters);
-}
-
+        return crudService.findWithQuery(query, parameters);
+    }
 
 }

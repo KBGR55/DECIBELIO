@@ -57,9 +57,9 @@ class DashboardScreen extends StatelessWidget {
                       if (Responsive.isMobile(context))
                         Column(
                             children: [
-                              SensorDetails(),
-                              const SizedBox(height: 16),
                               const NoiseLevelTable(),
+                              const SizedBox(height: 16),
+                              SensorDetails(),
                             ]
                         )
                     ],
@@ -73,9 +73,9 @@ class DashboardScreen extends StatelessWidget {
                     flex: 2,
                     child: Column(
                       children: [
-                        SensorDetails(),
-                        const SizedBox(height: 16),
                         const NoiseLevelTable(),
+                        const SizedBox(height: 16),
+                        SensorDetails(),
                       ],
                     ),
                   ),

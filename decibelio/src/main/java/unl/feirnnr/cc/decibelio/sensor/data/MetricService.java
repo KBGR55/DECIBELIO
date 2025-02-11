@@ -93,4 +93,29 @@ public class MetricService {
         return crudService.findWithQuery(query, parameters);
     }
 
+     /**
+     * Encuentra las métricas máximas por día y noche para una fecha dada.
+     * @param date Fecha a consultar
+     * @return Lista de métricas máximas agrupadas por día y noche
+     */
+    public List<Metric> findMaxMetricsByDayAndNight(@NotNull LocalDate date) {
+        String query = "SELECT m FROM Metric m WHERE m.id IN (" +
+                       "    SELECT m1.id FROM Metric m1 WHERE m1.date = :date AND " +
+                       "    EXTRACT(HOUR FROM m1.time) BETWEEN 7 AND 20 AND " +
+                       "    m1.value = (SELECT MAX(m2.value) FROM Metric m2 WHERE m2.sensorExternalId = m1.sensorExternalId " +
+                       "               AND m2.date = :date AND EXTRACT(HOUR FROM m2.time) BETWEEN 7 AND 20) " +
+                       ") " +
+                       "OR m.id IN (" +
+                       "    SELECT m3.id FROM Metric m3 WHERE m3.date = :date AND " +
+                       "    (EXTRACT(HOUR FROM m3.time) BETWEEN 21 AND 23 OR EXTRACT(HOUR FROM m3.time) BETWEEN 0 AND 6) AND " +
+                       "    m3.value = (SELECT MAX(m4.value) FROM Metric m4 WHERE m4.sensorExternalId = m3.sensorExternalId " +
+                       "               AND m4.date = :date AND (EXTRACT(HOUR FROM m4.time) BETWEEN 21 AND 23 OR EXTRACT(HOUR FROM m4.time) BETWEEN 0 AND 6)) " +
+                       ")";
+        
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("date", date);
+        
+        return crudService.findWithQuery(query, parameters);
+    }    
+    
 }

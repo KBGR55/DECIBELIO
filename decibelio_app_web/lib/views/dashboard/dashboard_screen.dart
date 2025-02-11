@@ -9,6 +9,14 @@ import 'components/header.dart';
 import 'components/max_levels_table.dart';
 
 class DashboardScreen extends StatelessWidget {
+
+  Map<String, dynamic> data = {
+    "sensorExternalId": "ADC32BXF",
+    "startDate": "2025-01-07T00:00:00.000", // Formato: "YYYY-MM-DDTHH:mm:ss"
+    "endDate": "2025-01-09T00:00:00.000", // Formato: "YYYY-MM-DDTHH:mm:ss"
+    "intervalMinutes": 30,
+  };
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -17,28 +25,7 @@ class DashboardScreen extends StatelessWidget {
         padding: EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            Header(),
-            /**Align(
-              alignment: Alignment.centerRight, // Alineación a la izquierda
-              child: Switch(
-                  value:
-                  AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light,
-                  activeThumbImage:
-                  new AssetImage('assets/images/sun-svgrepo-com.png'),
-                  inactiveThumbImage: new AssetImage(
-                      'assets/images/moon-stars-svgrepo-com.png'),
-                  activeColor: Colors.white,
-                  activeTrackColor: Colors.amber,
-                  inactiveThumbColor: Colors.black,
-                  inactiveTrackColor: Colors.white,
-                  onChanged: (bool value) {
-                    if (value) {
-                      AdaptiveTheme.of(context).setLight();
-                    } else {
-                      AdaptiveTheme.of(context).setDark();
-                    }
-                  }),
-            ),*/
+            const Header(),
             SizedBox(height: defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,6 +35,9 @@ class DashboardScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       MapView(),
+                      //LineChartSample12(sensorData: data),
+                      const SizedBox(height: 16),
+                      const NoiseLevelTable(),
                       SizedBox(height: defaultPadding),
                       // Asegúrate de que RecentFiles esté habilitado para evitar problemas
                       //const NoiseLevelTable(),
@@ -57,8 +47,8 @@ class DashboardScreen extends StatelessWidget {
                       if (Responsive.isMobile(context))
                         Column(
                             children: [
-                              const NoiseLevelTable(),
-                              const SizedBox(height: 16),
+                              //const NoiseLevelTable(),
+                              //const SizedBox(height: 16),
                               SensorDetails(),
                             ]
                         )
@@ -73,8 +63,8 @@ class DashboardScreen extends StatelessWidget {
                     flex: 2,
                     child: Column(
                       children: [
-                        const NoiseLevelTable(),
-                        const SizedBox(height: 16),
+                        //const NoiseLevelTable(),
+                        //const SizedBox(height: 16),
                         SensorDetails(),
                       ],
                     ),

@@ -43,10 +43,10 @@ class SensorDetailsState extends State<SensorDetails> {
     });
   }
 
-  String? findSensor(String external) {
+  SensorDTO? findSensor(String external) {
     for (SensorDTO sensor in _sensors) {
       if (sensor.externalId == external) {
-        return sensor.name.toString();
+        return sensor;
       }
     }
     return null;
@@ -77,12 +77,14 @@ class SensorDetailsState extends State<SensorDetails> {
                   ? const Text("No hay datos disponibles")
                   : Column(
                       children: _metrics.map((metric) {
-                        String? label =
+                        SensorDTO? sensor =
                             findSensor(metric.sensorExternalId.toString());
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(label.toString()),
+                            Text(sensor!.name.toString()),
+                            Text("Tipo: ${sensor!.sensorType}"),
+                            Text("Nivel de Ruido: ${metric.range}"),
                             Chart(
                               range: metric.range.toString(),
                               value:

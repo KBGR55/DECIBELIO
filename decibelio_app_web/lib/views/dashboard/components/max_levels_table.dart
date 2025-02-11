@@ -16,7 +16,7 @@ class NoiseLevelTable extends StatelessWidget {
       ),
       child: ExpandableButton(
         titleExpanded: 'Mostrar menos', // Texto cuando está expandido
-        titleCollapsed: 'Mostrar más', // Texto cuando está colapsado
+        titleCollapsed: 'Mostrar Niveles de Ruido Permitidos', // Texto cuando está colapsado
         expandedContent: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

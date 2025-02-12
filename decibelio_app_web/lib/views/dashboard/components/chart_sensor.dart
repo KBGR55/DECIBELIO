@@ -42,11 +42,11 @@ class ChartState extends State<Chart> {
               ),
               sectionsSpace: 0,
               centerSpaceRadius: 70,
-              startDegreeOffset: -90,
+              startDegreeOffset: 90,
               sections: showingSections(touchedIndex, widget.value),
             ),
-            swapAnimationDuration: const Duration(milliseconds: 200), // Optional
-            swapAnimationCurve: Curves.linear,
+            duration: const Duration(milliseconds: 200), // Optional
+            curve: Curves.linear,
           ),
           Positioned.fill(
             child: Column(

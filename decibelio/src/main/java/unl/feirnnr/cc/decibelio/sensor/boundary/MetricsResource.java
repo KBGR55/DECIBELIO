@@ -124,7 +124,7 @@ public class MetricsResource {
                 }
         }
 
-        @GET
+        @POST
         @Path("/sensor")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
@@ -213,5 +213,56 @@ public class MetricsResource {
                         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
                 }
         }
+        
+        @GET
+        @Path("/max")
+        @Produces(MediaType.APPLICATION_JSON)
+        @Operation(summary = "Get metrics by day or night")
+        @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successful operation"),
+            @APIResponse(responseCode = "404", description = "Error: Not found")
+        })
+        public Response getMetricsByDayOrNight() {
+            List<Metric> metrics = decibelioFacade.findMetricsByDayOrNight();
+        
+            Map<String, List<Metric>> groupedMetrics = metrics.stream()
+                    .collect(Collectors.groupingBy(Metric::getSensorExternalId));
+        
+            List<Map<String, Object>> responsePayload = new ArrayList<>();
+            for (Map.Entry<String, List<Metric>> entry : groupedMetrics.entrySet()) {
+                String sensorId = entry.getKey();
+                List<Metric> sensorMetrics = entry.getValue();
 
+                Metric firstMetric = sensorMetrics.get(0);
+                Map<String, Object> geoLocation = new HashMap<>();
+                geoLocation.put("latitude", firstMetric.getGeoLocation().getLatitude());
+                geoLocation.put("longitude", firstMetric.getGeoLocation().getLongitude());
+        
+                Map<String, Object> sensor = new HashMap<>();
+                sensor.put("sensorExternalId", sensorId);
+                sensor.put("geoLocation", geoLocation);
+        
+                List<Map<String, Object>> metricsList = new ArrayList<>();
+                for (Metric metric : sensorMetrics) {
+                    Map<String, Object> metricData = new HashMap<>();
+                    metricData.put("date", metric.getDate());
+                    metricData.put("id", metric.getId());
+                    metricData.put("range", metric.getRange());
+                    metricData.put("time", metric.getTime());
+                    metricData.put("max", metric.getValue());
+                    metricsList.add(metricData);
+                }
+                sensor.put("metrics", metricsList);
+                responsePayload.add(sensor);
+            }
+            
+            RestResult result = new RestResult(
+                    RestResultStatus.SUCCESS,
+                    "Metrics retrieved successfully",
+                    Metric.class,
+                    responsePayload
+            );
+            return Response.ok(result).build();
+        }
+        
 }

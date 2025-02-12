@@ -1,3 +1,4 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
 import 'package:flutter/material.dart';
 
@@ -30,10 +31,10 @@ class _ExpandableButtonState extends State<ExpandableButton> {
           ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(5),
-              side: BorderSide(color: Colors.white70, width: 1)),
+              side: BorderSide(color: AdaptiveTheme.of(context).theme.cardColor, width: 1)),
           elevation: 0,
           backgroundColor: Colors.transparent,
-          foregroundColor: Colors.white,
+          foregroundColor: AdaptiveTheme.of(context).theme.cardColor,
           padding: EdgeInsets.symmetric(horizontal: defaultPadding, vertical: 20)),
           
           onPressed: () {

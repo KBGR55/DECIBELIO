@@ -311,4 +311,8 @@ public class DecibelioFacade {
                 intervalMinutes);
     }
 
+    public List<Metric> findMetricsByDayOrNight() {
+        LocalDate today = LocalDate.now();
+        return metricService.findMaxMetricsByDayAndNight(today);
+    }
 }

@@ -18,7 +18,7 @@ class conexion  {
     try{
       final response = await http.post(uri, headers: _header, body: jsonEncode(data));
       log("Respuesta response.code: "+response.statusCode.toString());
-      log("Respuesta response.body: "+response.body);
+      //log("Respuesta response.body: "+response.body);
 
       if(response.statusCode == 200){
         return _responseJson('SUCCESS', response.body, "Ok",'No data');

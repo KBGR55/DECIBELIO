@@ -49384,7 +49384,7 @@ s=p}while(true)switch(s){case 0:A.ab9("conexion:Solicitud en Post")
 h=t.N
 m=A.ax(["Content-Type","application/json"],h,h)
 if(c!=="NO")m=A.ax(["Content-Type","applicaion/json","x-api-token",c],h,h)
-l=A.h3("http://decibelio-api:9080/decibelio/api/"+a,0,null)
+l=A.h3("http://172.21.0.2:9080/decibelio/api/"+a,0,null)
 p=4
 h=m
 s=7
@@ -49424,7 +49424,7 @@ var $async$vP=A.I(function(c,d){if(c===1){o=d
 s=p}while(true)switch(s){case 0:g=t.N
 f=A.ax(["Content-Type","application/json"],g,g)
 if(b!=="NO")f=A.ax(["Content-Type","applicaion/json","x-api-token",b],g,g)
-i="http://decibelio-api:9080/decibelio/api/"+a
+i="http://172.21.0.2:9080/decibelio/api/"+a
 m=A.h3(i,0,null)
 A.ab9(i)
 p=4
@@ -50406,7 +50406,7 @@ CT(){var s=0,r=A.M(t.H),q=1,p,o=[],n=this,m,l,k,j,i,h
 var $async$CT=A.I(function(a,b){if(a===1){p=b
 s=q}while(true)switch(s){case 0:if(n.c!=null)n.W(new A.aL4(n))
 q=3
-m=new A.aij("http://decibelio-api:9080/decibelio/api/metrics/upload")
+m=new A.aij("http://172.21.0.2:9080/decibelio/api/metrics/upload")
 j=n.f
 j.toString
 s=6

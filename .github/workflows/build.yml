@@ -82,23 +82,20 @@ jobs:
         with:
           junit_files: "decibelio_app_web/test-results/**/*.xml"
 
-      # Subir binarios de la aplicación
       - name: Subir binarios de la aplicación
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Application-Binary
           path: decibelio/target/*.war
-
-      # Subir resultados de pruebas de Maven
+  
       - name: Subir resultados de pruebas de Maven
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Maven-Test-Results
           path: decibelio/test-results
-
-      # Subir resultados de pruebas de Flutter
+  
       - name: Subir resultados de pruebas de Flutter
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Flutter-Test-Results
-          path: decibelio_app_web/test-results
+          path: decibelio_app_web/test

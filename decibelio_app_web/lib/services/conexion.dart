@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:decibelio_app_web/models/RespuestaGenerica.dart';
 class conexion  {
   final String NAME = "conexion";
-  final String URL_BASE = "http://localhost:9080/decibelio/api/";
+  final String URL_BASE = "http://decibelio-api:9080/decibelio/api/";
   static String NO_TOKEN = "NO";
 
   Future<RespuestaGenerica> solicitudPost(String dir_recurso, Map<dynamic, dynamic> data,String token) async{

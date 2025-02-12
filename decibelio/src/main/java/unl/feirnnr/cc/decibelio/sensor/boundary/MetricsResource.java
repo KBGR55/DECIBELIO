@@ -18,9 +18,7 @@ import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
 import unl.feirnnr.cc.decibelio.sensor.model.Metric;
 
 import java.io.InputStream;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -126,7 +124,7 @@ public class MetricsResource {
                 }
         }
 
-        @GET
+        @POST
         @Path("/sensor")
         @Consumes(MediaType.APPLICATION_JSON)
         @Produces(MediaType.APPLICATION_JSON)
@@ -215,6 +213,7 @@ public class MetricsResource {
                         return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
                 }
         }
+        
         @GET
         @Path("/max")
         @Produces(MediaType.APPLICATION_JSON)

@@ -49384,7 +49384,7 @@ s=p}while(true)switch(s){case 0:A.ab9("conexion:Solicitud en Post")
 h=t.N
 m=A.ax(["Content-Type","application/json"],h,h)
 if(c!=="NO")m=A.ax(["Content-Type","applicaion/json","x-api-token",c],h,h)
-l=A.h3("http://localhost:9080/decibelio/api/"+a,0,null)
+l=A.h3("http://decibelio-api:9080/decibelio/api/"+a,0,null)
 p=4
 h=m
 s=7
@@ -49424,7 +49424,7 @@ var $async$vP=A.I(function(c,d){if(c===1){o=d
 s=p}while(true)switch(s){case 0:g=t.N
 f=A.ax(["Content-Type","application/json"],g,g)
 if(b!=="NO")f=A.ax(["Content-Type","applicaion/json","x-api-token",b],g,g)
-i="http://localhost:9080/decibelio/api/"+a
+i="http://decibelio-api:9080/decibelio/api/"+a
 m=A.h3(i,0,null)
 A.ab9(i)
 p=4

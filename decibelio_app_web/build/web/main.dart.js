@@ -8465,7 +8465,7 @@ _.b=b
 _.c=c
 _.d=d},
 amN:function amN(a){this.a=a},
-aij:function aij(){},
+aij:function aij(a){this.a=a},
 aik:function aik(a,b){this.a=a
 this.b=b},
 ail:function ail(a){this.a=a},
@@ -49545,27 +49545,27 @@ this.a.gff(0).push(s)},
 $S:15}
 A.aij.prototype={
 PB(a){return this.aJ_(a)},
-aJ_(a){var s=0,r=A.M(t.gx),q,p,o,n,m,l,k
+aJ_(a){var s=0,r=A.M(t.gx),q,p=this,o,n,m,l,k,j
 var $async$PB=A.I(function(b,c){if(b===1)return A.J(c,r)
-while(true)switch(s){case 0:try{p=A.b9u()
-l=a.name
-l.toString
-J.b6d(p,"file",a,l)
-l=new XMLHttpRequest()
-l.toString
-o=l
-J.b6w(o,"POST","http://localhost:9080/decibelio/api/metrics/upload")
-n=new A.b_(new A.a8($.a7,t.G9),t.oq)
-l=t._p
-A.Lz(o,"load",new A.aik(o,n),!1,l)
-A.Lz(o,"error",new A.ail(n),!1,l)
-J.b6C(o,p)
-l=n.a
-q=l
+while(true)switch(s){case 0:try{o=A.b9u()
+k=a.name
+k.toString
+J.b6d(o,"file",a,k)
+k=new XMLHttpRequest()
+k.toString
+n=k
+J.b6w(n,"POST",p.a)
+m=new A.b_(new A.a8($.a7,t.G9),t.oq)
+k=t._p
+A.Lz(n,"load",new A.aik(n,m),!1,k)
+A.Lz(n,"error",new A.ail(m),!1,k)
+J.b6C(n,o)
+k=m.a
+q=k
 s=1
-break}catch(j){m=A.ad(j)
-l=A.cP(new A.jx("FAILURE","Exception during file upload: "+A.k(m),"UploadException",null),t.gx)
-q=l
+break}catch(i){l=A.ad(i)
+k=A.cP(new A.jx("FAILURE","Exception during file upload: "+A.k(l),"UploadException",null),t.gx)
+q=k
 s=1
 break}case 1:return A.K(q,r)}})
 return A.L($async$PB,r)}}
@@ -50406,7 +50406,7 @@ CT(){var s=0,r=A.M(t.H),q=1,p,o=[],n=this,m,l,k,j,i,h
 var $async$CT=A.I(function(a,b){if(a===1){p=b
 s=q}while(true)switch(s){case 0:if(n.c!=null)n.W(new A.aL4(n))
 q=3
-m=new A.aij()
+m=new A.aij("http://decibelio-api:9080/decibelio/api/metrics/upload")
 j=n.f
 j.toString
 s=6

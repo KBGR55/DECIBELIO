@@ -68,7 +68,7 @@ services:
       image: nginx:stable-alpine
       volumes:
         - decibelio-web-bind:/usr/share/nginx/html:ro
-        - ../decibelio_app_web/nginx.conf:/etc/nginx/nginx.conf:ro
+        - decibelio-web-config-bind:/etc/nginx/nginx.conf:ro
       ports:
         - 80:80 
       
@@ -108,4 +108,11 @@ volumes:
     driver_opts:
       type: none
       device: ../decibelio_app_web/build/web
+      o: bind
+  decibelio-web-config-bind:
+    name: decibelio-web-config-bind
+    driver: local
+    driver_opts:
+      type: none
+      device: ../decibelio_app_web/nginx.conf
       o: bind

@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:decibelio_app_web/models/RespuestaGenerica.dart';
 class conexion  {
   final String NAME = "conexion";
-  static final String URL_BASE = "http://localhost/openapi/";
+  static final String URL_BASE = "https://computacion.unl.edu.ec/decibelio/api/";
   static String NO_TOKEN = "NO";
 
   Future<RespuestaGenerica> solicitudPost(String dir_recurso, Map<dynamic, dynamic> data,String token) async{

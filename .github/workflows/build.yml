@@ -1,4 +1,4 @@
-name:  02 Build pipeline
+name: 02 Build pipeline
 
 on:
   workflow_dispatch:
@@ -39,7 +39,7 @@ jobs:
           cd decibelio
           mkdir -p test-results
           find target -name 'TEST-*.xml' -exec cp {} test-results/ \;
-          ls -la test-results  # Verificar los archivos copiados
+          ls -la test-results
 
       # Publicar resultados de pruebas de Maven
       - name: Publicar Resultados de Pruebas de Maven
@@ -54,18 +54,28 @@ jobs:
         with:
           flutter-version: '3.24.3'
           channel: 'stable'
+          cache: true
 
-      # Instalar dependencias de Flutter
-      - name: Instalar dependencias de Flutter
+      # Limpiar y actualizar dependencias de Flutter
+      - name: Limpiar y actualizar dependencias de Flutter
         run: |
           cd decibelio_app_web
+          flutter clean
           flutter pub get
+          flutter pub upgrade --major-versions
+
+      # Verificar dependencias en Flutter
+      - name: Verificar dependencias en Flutter
+        run: |
+          cd decibelio_app_web
+          flutter analyze
+          flutter doctor
 
       # Construir aplicación Flutter para la web
       - name: Construir aplicación Flutter (Web)
         run: |
           cd decibelio_app_web
-          flutter build web
+          flutter build web --release --no-sound-null-safety
 
       # Copiar resultados de pruebas de Flutter
       - name: Copiar resultados de pruebas de Flutter
@@ -73,7 +83,7 @@ jobs:
           cd decibelio_app_web
           mkdir -p test-results
           find build -name 'test-*.xml' -exec cp {} test-results/ \;
-          ls -la test-results  # Verificar los archivos copiados
+          ls -la test-results
 
       # Publicar resultados de pruebas de Flutter
       - name: Publicar Resultados de Pruebas de Flutter
@@ -87,13 +97,13 @@ jobs:
         with:
           name: Application-Binary
           path: decibelio/target/*.war
-  
+
       - name: Subir resultados de pruebas de Maven
         uses: actions/upload-artifact@v4
         with:
           name: Maven-Test-Results
           path: decibelio/test-results
-  
+
       - name: Subir resultados de pruebas de Flutter
         uses: actions/upload-artifact@v4
         with:

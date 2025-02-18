@@ -4,7 +4,6 @@ services:
   decibelio-db:
     image: postgres:${POSTGRES_VERSION}
     restart: unless-stopped
-    container_name: decibelio-db-container
     environment:
       POSTGRES_DB: decibeliodb
       POSTGRES_USER: postgres
@@ -33,13 +32,12 @@ services:
 #      - 8080:8080
 
   decibelio-api:
-    container_name: decibelio-api-container
     build:
       context: ../decibelio
       dockerfile: Dockerfile
     image: decibelio-api:latest
+    restart: unless-stopped
     environment:
-      #- NAMESPACE=
       - DRIVER_JDBC_DIR=/config/
       - DB_SERVER_NAME=decibelio-db
       - DB_PORT_NUMBER=5432
@@ -59,13 +57,14 @@ services:
         reservations:
           #cpus: '0.25'
           memory: 512M
+      replicas: 2
     networks:
       decibelio-network:
         ipv4_address: 172.21.0.2
 
   decibelio-webapp:
-      container_name: decibelio-webapp
       image: nginx:stable-alpine
+      restart: unless-stopped
       volumes:
         - decibelio-web-bind:/usr/share/nginx/html:ro
         - ../decibelio_app_web/nginx.conf:/etc/nginx/nginx.conf:ro
@@ -77,10 +76,8 @@ services:
       deploy:
           resources:
               limits:
-                  #cpus: '0.50'
                   memory: 1024M
               reservations:
-                  #cpus: '0.25'
                   memory: 512M
       networks:
         decibelio-network:

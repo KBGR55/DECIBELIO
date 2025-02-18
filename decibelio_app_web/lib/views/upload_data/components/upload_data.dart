@@ -164,10 +164,6 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
     if (result != null) {
       final bytes = result.files.single.bytes;
       final name = result.files.single.name;
-
-      print('Archivo seleccionado: $name');
-      print('Bytes del archivo: ${bytes?.length}');
-
       if (bytes != null) {
         setState(() {
           _fileName = name;
@@ -190,11 +186,7 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
     final name = await controller.getFilename(event);
     final mime = await controller.getFileMIME(event);
     final bytes = await controller.getFileData(event);
-
-    print('Archivo arrastrado: $name');
-    print('MIME type: $mime');
-    print('Bytes del archivo: ${bytes.length}');
-
+    
     setState(() {
       _fileName = name;
       _file = html.File([bytes], name, {'type': mime});

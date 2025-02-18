@@ -67,8 +67,6 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
           metricLast = metricLastData;
           _populateMarkers();
         });
-        print("Metrcis fetched: $metricLast");
-        print("Sensors fetched: $sensors");
       } else {
         print("Failed to fetch sensors: ${sensorData.message}");
       }

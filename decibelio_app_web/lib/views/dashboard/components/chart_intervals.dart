@@ -191,8 +191,7 @@ class _SoundChartView extends State<SoundChartView> {
                           selectedSensor =
                               value; // Actualiza el externalID seleccionado.
                         });
-                        //print("Sensor seleccionado (externalID): $selectedSensor");
-                      },
+                        },
                     )),
                     const SizedBox(width: 16),
                     // Campo para seleccionar la fecha de inicio
@@ -574,8 +573,7 @@ class _SoundChartView extends State<SoundChartView> {
             child: ElevatedButton.icon(
               onPressed: () {
                 // Lógica para exportar datos
-                //print("Exportando datos...");
-              },
+                 },
               icon: const Icon(Icons.download),
               label: const Text("Exportar datos (.xls)"),
             ),

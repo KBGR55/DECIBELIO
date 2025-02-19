@@ -8,21 +8,21 @@ class AppRouter {
     switch (settings.name) {
       case '/':
         return MaterialPageRoute(
-          builder: (_) => MainScreen(
+          builder: (_) => const MainScreen(
             title: "Dashboard",
             color: Colors.redAccent,
           ),
         );
       case '/dashboard':
         return MaterialPageRoute(
-          builder: (_) => MainScreen(
+          builder: (_) => const MainScreen(
             title: "Dashboard",
             color: Colors.redAccent,
           ),
         );
       case '/upload_data':
         return MaterialPageRoute(
-          builder: (_) => UploadScreen(title: "upload", color: Colors.white70),
+          builder: (_) => const UploadScreen(title: "upload", color: Colors.white70),
         );
       case '/create_sensor':
         return MaterialPageRoute(

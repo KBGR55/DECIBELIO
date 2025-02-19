@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ "java" ]
+        language: ["java"]
 
     steps:
       - name: Checkout repository
@@ -30,8 +30,8 @@ jobs:
       - name: Set up JDK 17
         uses: actions/setup-java@v3
         with:
-          java-version: '17'
-          distribution: 'temurin'
+          java-version: "17"
+          distribution: "temurin"
           cache: maven
 
       - name: Build Java project with Maven
@@ -54,7 +54,7 @@ jobs:
           key: ${{ runner.os }}-m2
 
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: decibelio-build
           path: ./decibelio/target/decibelio
@@ -86,7 +86,7 @@ jobs:
           basePath: src/main/java
 
       - name: Upload Spotbugs report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: spotbugs-sarif
           path: ${{github.workspace}}/results.sarif

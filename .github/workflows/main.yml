@@ -7,7 +7,6 @@ on:
       - '**/*.txt'
   workflow_dispatch:
 
-# Otorgamos los permisos globalmente
 permissions:
   contents: read
   issues: read
@@ -21,37 +20,32 @@ jobs:
   build:
     name: Build
     uses: ./.github/workflows/build.yml
-    secrets: inherit  # https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#jobsjob_idsecretsinherit
+    secrets: inherit  
 
-  #Análisis de dependencias
   sca:
     needs: build
     name: SCA
     uses: ./.github/workflows/sca.yml
     secrets: inherit
 
-  #Análisis de código Estático
   sast:
     needs: build
     name: SAST
     uses: ./.github/workflows/sast.yml
     secrets: inherit
-    
-  #Análisis y Uso de Licencias.
+
   license-compliance:
     needs: build
     name: License Compliance
     uses: ./.github/workflows/license-compliance.yml
     secrets: inherit
 
-  #Creación de Docker
   docker:
     needs: build
     name: Build docker image
     uses: ./.github/workflows/docker.yml
     secrets: inherit
 
-  #Análisis de código Dinámico
   dast:
     needs: [build,docker]
     name: DAST Scan
@@ -59,3 +53,15 @@ jobs:
     secrets: inherit
     with:
       image-tag: ${{ needs.docker.outputs.image-tag }}
+
+  test-ssh:
+    needs: docker
+    name: Test SSH Connection
+    uses: ./.github/workflows/test-ssh.yml
+    secrets: inherit
+
+  deploy:
+    needs: test-ssh
+    name: Deploy to Server
+    uses: ./.github/workflows/deploy.yml
+    secrets: inherit

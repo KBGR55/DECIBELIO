@@ -8,8 +8,8 @@ import '../../../constants.dart';
 
 class Header extends StatelessWidget {
   const Header({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +17,7 @@ class Header extends StatelessWidget {
       children: [
         if (!Responsive.isDesktop(context))
           IconButton(
-            icon: Icon(Icons.menu),
+            icon: const Icon(Icons.menu),
             onPressed: () => context.read<MenuAppController>().controlMenu(context),
           ),
         if (!Responsive.isMobile(context))
@@ -27,16 +27,16 @@ class Header extends StatelessWidget {
           ),
         if (!Responsive.isMobile(context))
           Spacer(flex: Responsive.isDesktop(context) ? 2 : 1),
-        Expanded(child: SearchField()),
-        ProfileCard(),
+        const Expanded(child: SearchField()),
+        const ProfileCard(),
         Align(
           alignment: Alignment.centerRight, // Alineación a la izquierda
           child: Switch(
               value:
               AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light,
               activeThumbImage:
-              new AssetImage('assets/images/sun-svgrepo-com.png'),
-              inactiveThumbImage: new AssetImage(
+              const AssetImage('assets/images/sun-svgrepo-com.png'),
+              inactiveThumbImage: const AssetImage(
                   'assets/images/moon-stars-svgrepo-com.png'),
               activeColor: Colors.white,
               activeTrackColor: Colors.amber,
@@ -57,8 +57,8 @@ class Header extends StatelessWidget {
 
 class ProfileCard extends StatelessWidget {
   const ProfileCard({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -69,9 +69,9 @@ class ProfileCard extends StatelessWidget {
           height: 85,
         ),
         if (!Responsive.isMobile(context))
-          Padding(
+          const Padding(
             padding:
-            const EdgeInsets.symmetric(horizontal: defaultPadding / 2),
+            EdgeInsets.symmetric(horizontal: defaultPadding / 2),
             child: Text("Carrera de Computación"),
           ),
       ],
@@ -81,8 +81,8 @@ class ProfileCard extends StatelessWidget {
 
 class SearchField extends StatelessWidget {
   const SearchField({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {

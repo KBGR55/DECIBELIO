@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:decibelio_app_web/services/conexion.dart';
-import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
-import 'package:decibelio_app_web/services/facade/list/ListMetrics.dart';
-import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
+import 'package:decibelio_app_web/services/facade/list/list_metric_dto.dart';
+import 'package:decibelio_app_web/services/facade/list/list_metrics.dart';
+import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 
 class Facade {
-  conexion _conn = new conexion();
+  final Conexion _conn = Conexion();
   Future<ListSensorDTO> listSensorDTO() async {
     var response = await _conn.solicitudGet('sensors/active', "NO");
     return _responseSensor(
@@ -25,6 +25,7 @@ Future<ListMetricDTO> listMetricLastDTO() async {
       if (mapa.containsKey("payload")) {
         
         List datos = jsonDecode(jsonEncode(mapa["payload"]));
+    
         sesion = ListMetricDTO.fromMap(datos, mapa["status"].toString());
       } else {
         List myList = List.empty();
@@ -66,13 +67,13 @@ Future<ListMetricDTO> listMetricLastDTO() async {
       // Acceder al primer elemento de "payload" y extraer "metrics"
       if (datos.isNotEmpty && datos[0].containsKey("metrics")) {
         List metrics = datos[0]["metrics"];
-  
+     
         // Puedes convertirlo directamente a tu modelo si es necesario
         sesion = ListMetrics.fromMap(metrics, mapa["status"].toString());
       } else {
         List myList = List.empty();
         sesion = ListMetrics.fromMap(myList, mapa["status"].toString());
-       }
+      }
     }
     return sesion;
   }

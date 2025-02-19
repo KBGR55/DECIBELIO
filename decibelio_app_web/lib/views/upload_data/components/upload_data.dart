@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_dropzone/flutter_dropzone.dart';
 import 'package:decibelio_app_web/services/file_upload_service.dart';
-import 'package:decibelio_app_web/models/RespuestaGenerica.dart';
+import 'package:decibelio_app_web/models/respuesta_generica.dart';
 
 class SubirDatoControllerPage extends StatefulWidget {
   const SubirDatoControllerPage(
@@ -16,10 +16,10 @@ class SubirDatoControllerPage extends StatefulWidget {
   final Color color;
 
   @override
-  _SubirDatoState createState() => _SubirDatoState();
+  SubirDatoState createState() => SubirDatoState();
 }
 
-class _SubirDatoState extends State<SubirDatoControllerPage> {
+class SubirDatoState extends State<SubirDatoControllerPage> {
   GlobalKey<ScaffoldState> sensorDataScreenKey = GlobalKey<ScaffoldState>();
   String? _fileName;
   html.File? _file;
@@ -33,12 +33,12 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
     return SafeArea(
       child: SingleChildScrollView(
           primary: false,
-          padding: EdgeInsets.all(defaultPadding),
+          padding: const EdgeInsets.all(defaultPadding),
           child: Column(
             children: [
-              Header(),
+              const Header(),
               AlertDialog(
-                title: Text("Ingresar archivo con medidas de sensores"),
+                title: const Text("Ingresar archivo con medidas de sensores"),
                 content: SingleChildScrollView(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
@@ -56,26 +56,26 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
                             DropzoneView(
                               onCreated: (controller) =>
                                   this.controller = controller,
-                              onDrop: _handleFileDrop,
+                              onDropFile: _handleFileDrop,
                             ),
                             if (_fileName == null)
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.cloud_upload,
+                                  const Icon(Icons.cloud_upload,
                                       size: 50, color: Colors.black38),
-                                  SizedBox(height: 10),
-                                  Text("Arrastra y suelta archivos aquí",
+                                  const SizedBox(height: 10),
+                                  const Text("Arrastra y suelta archivos aquí",
                                       style: TextStyle(color: Colors.black38)),
-                                  Text("o",
+                                  const Text("o",
                                       style: TextStyle(color: Colors.black38)),
-                                  SizedBox(height: 10),
+                                  const SizedBox(height: 10),
                                   ElevatedButton(
                                     style: ElevatedButton.styleFrom(
                                       foregroundColor: Colors.black54,
                                     ),
-                                    child: Text("Subir archivo"),
                                     onPressed: _pickFile,
+                                    child: const Text("Subir archivo"),
                                   ),
                                 ],
                               )
@@ -83,12 +83,12 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
                               Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.insert_drive_file,
+                                  const Icon(Icons.insert_drive_file,
                                       size: 50, color: Colors.blue),
-                                  SizedBox(height: 10),
+                                  const SizedBox(height: 10),
                                   Text(_fileName!,
-                                      style: TextStyle(color: Colors.blue)),
-                                  SizedBox(height: 10),
+                                      style: const TextStyle(color: Colors.blue)),
+                                  const SizedBox(height: 10),
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
                                     children: [
@@ -96,15 +96,15 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
                                         style: ElevatedButton.styleFrom(
                                           foregroundColor: Colors.blue,
                                         ),
-                                        child: Text("Cambiar archivo"),
                                         onPressed: _pickFile,
+                                        child: const Text("Cambiar archivo"),
                                       ),
-                                      SizedBox(width: 10),
+                                      const SizedBox(width: 10),
                                       ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           foregroundColor: Colors.red,
                                         ),
-                                        child: Text("Limpiar"),
+                                        child: const Text("Limpiar"),
                                         onPressed: () {
                                           setState(() {
                                             _fileName = null;
@@ -119,26 +119,26 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
                           ],
                         ),
                       ),
-                      SizedBox(height: 20),
-                      if (_isUploading) CircularProgressIndicator(),
+                      const SizedBox(height: 20),
+                      if (_isUploading) const CircularProgressIndicator(),
                       if (_uploadStatus.isNotEmpty)
                         if (_payload != null)
                           ElevatedButton(
                             style: ElevatedButton.styleFrom(
                               foregroundColor: Colors.red,
                             ),
-                            child: Text('ERROR: Descargar información'),
+                            child: const Text('ERROR: Descargar información'),
                             onPressed: () => _downloadAdditionalInfo(_payload),
                           ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         style: ElevatedButton.styleFrom(
                           foregroundColor: Colors.blue,
                         ),
-                        child: Text("Subir"),
                         onPressed: _file != null && !_isUploading
                             ? () => _showConfirmationDialog(context)
                             : null,
+                        child: const Text("Subir"),
                       ),
                     ],
                   ),
@@ -148,7 +148,7 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.blueGrey,
                     ),
-                    child: Text("Cerrar"),
+                    child: const Text("Cerrar"),
                     onPressed: () => Navigator.of(context).pop(),
                   ),
                 ],
@@ -164,6 +164,7 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
     if (result != null) {
       final bytes = result.files.single.bytes;
       final name = result.files.single.name;
+
       if (bytes != null) {
         setState(() {
           _fileName = name;
@@ -176,7 +177,7 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
               });
         });
       } else {
-        print('Error: No se pudieron obtener los bytes del archivo');
+        debugPrint('Error: No se pudieron obtener los bytes del archivo');
       }
     }
   }
@@ -186,7 +187,7 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
     final name = await controller.getFilename(event);
     final mime = await controller.getFileMIME(event);
     final bytes = await controller.getFileData(event);
-    
+
     setState(() {
       _fileName = name;
       _file = html.File([bytes], name, {'type': mime});
@@ -199,15 +200,15 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Confirmación"),
-          content: Text("¿Estás seguro de que quieres subir este archivo?"),
+          title: const Text("Confirmación"),
+          content: const Text("¿Estás seguro de que quieres subir este archivo?"),
           actions: [
             TextButton(
-              child: Text("Cancelar"),
+              child: const Text("Cancelar"),
               onPressed: () => Navigator.of(context).pop(),
             ),
             TextButton(
-              child: Text("Aceptar"),
+              child: const Text("Aceptar"),
               onPressed: () {
                 Navigator.of(context).pop();
                 _uploadFile();
@@ -220,57 +221,53 @@ class _SubirDatoState extends State<SubirDatoControllerPage> {
   }
 
   /// Sube el archivo al servidor utilizando el servicio FileUploadService.
-  void _uploadFile() async {
-    if (mounted) {
-      setState(() {
-        _isUploading = true;
-        _uploadStatus = 'Subiendo archivo...';
-      });
-    }
+void _uploadFile() async {
+  if (!mounted) return; 
 
-    try {
-      final fileUploadService = FileUploadService();
-      RespuestaGenerica respuesta = await fileUploadService.uploadFile(_file!);
+  setState(() {
+    _isUploading = true;
+    _uploadStatus = 'Subiendo archivo...';
+  });
 
-      if (mounted) {
-        setState(() {
-          _uploadStatus = '${respuesta.status}: ${respuesta.message}';
-          if (respuesta.status == 'SUCCESS') {
-            // Limpiar el archivo cargado
-            _fileName = null;
-            _file = null;
+  try {
+    final fileUploadService = FileUploadService();
+    RespuestaGenerica respuesta = await fileUploadService.uploadFile(_file!);
 
-            // Mostrar un mensaje de éxito
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Archivo cargado con éxito')),
-            );
+    if (!mounted) return; 
+    setState(() {
+      _uploadStatus = '${respuesta.status}: ${respuesta.message}';
+      if (respuesta.status == 'SUCCESS') {
+        _fileName = null;
+        _file = null;
 
-            // Cerrar el diálogo después de un breve retraso
-            Future.delayed(Duration(seconds: 1), () {
-              Navigator.of(context).pop();
-            });
-          } else {
-            // Manejar fallo y almacenar el payload
-            print('Error details: ${respuesta.type}');
-            _payload =
-                respuesta.payload; // Almacenar el payload en caso de error
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Archivo cargado con éxito')),
+        );
+
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            Navigator.of(context).pop();
           }
         });
+      } else {
+        debugPrint('Error details: ${respuesta.type}');
+        _payload = respuesta.payload;
       }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _uploadStatus = 'Error inesperado: $e';
-        });
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isUploading = false;
-        });
-      }
+    });
+  } catch (e) {
+    if (mounted) {
+      setState(() {
+        _uploadStatus = 'Error inesperado: $e';
+      });
+    }
+  } finally {
+    if (mounted) {
+      setState(() {
+        _isUploading = false;
+      });
     }
   }
+}
 
   /// Descarga información adicional como un archivo JSON.
   void _downloadAdditionalInfo(dynamic payload) {

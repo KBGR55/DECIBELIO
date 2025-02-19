@@ -10,23 +10,18 @@ import 'components/max_levels_table.dart';
 
 class DashboardScreen extends StatelessWidget {
 
-  Map<String, dynamic> data = {
-    "sensorExternalId": "ADC32BXF",
-    "startDate": "2025-01-07T00:00:00.000", // Formato: "YYYY-MM-DDTHH:mm:ss"
-    "endDate": "2025-01-09T00:00:00.000", // Formato: "YYYY-MM-DDTHH:mm:ss"
-    "intervalMinutes": 30,
-  };
+  const DashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: const EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
             const Header(),
-            SizedBox(height: defaultPadding),
+            const SizedBox(height: defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -34,18 +29,18 @@ class DashboardScreen extends StatelessWidget {
                   flex: 5,
                   child: Column(
                     children: [
-                      MapView(),
+                      const MapView(),
                       //LineChartSample12(sensorData: data),
                       const SizedBox(height: 16),
                       const NoiseLevelTable(),
-                      SizedBox(height: defaultPadding),
+                      const SizedBox(height: defaultPadding),
                       // Asegúrate de que RecentFiles esté habilitado para evitar problemas
                       //const NoiseLevelTable(),
-                      SoundChartView(),
+                      const SoundChartView(),
                       if (Responsive.isMobile(context))
-                        SizedBox(height: defaultPadding),
+                        const SizedBox(height: defaultPadding),
                       if (Responsive.isMobile(context))
-                        Column(
+                        const Column(
                             children: [
                               //const NoiseLevelTable(),
                               //const SizedBox(height: 16),
@@ -56,10 +51,10 @@ class DashboardScreen extends StatelessWidget {
                   ),
                 ),
                 if (!Responsive.isMobile(context))
-                  SizedBox(width: defaultPadding),
+                  const SizedBox(width: defaultPadding),
                 // On Mobile means if the screen is less than 850 we don't want to show it
                 if (!Responsive.isMobile(context))
-                  Expanded(
+                  const Expanded(
                     flex: 2,
                     child: Column(
                       children: [

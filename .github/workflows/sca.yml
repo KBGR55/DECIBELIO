@@ -58,44 +58,44 @@ jobs:
     name: SonarQube
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0 
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Setup Java
-      uses: actions/setup-java@v2
-      with:
-        distribution: temurin
-        java-version: 17
-        cache: maven
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
 
-    - name: Build project
-      run: |
-        cd decibelio 
-        mvn clean install
+      - name: Build project
+        run: |
+          cd decibelio 
+          mvn clean install
 
-    - name: SonarQube Scan
-      uses: SonarSource/sonarqube-scan-action@v4
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
-      with:
-        args: >
-          -Dsonar.projectKey=KBGR55_DECIBELIO
-          -Dsonar.organization=kbgr55
-          -Dsonar.projectName=DECIBELIO
-          -Dsonar.projectVersion=1.0
-          -Dsonar.sources=.
-          -Dsonar.sourceEncoding=UTF-8
-          -Dsonar.coverage.exclusions=**/* 
-          -Dsonar.java.binaries=decibelio/target/classes
-          -Dsonar.c.file.suffixes=-
-          -Dsonar.cpp.file.suffixes=-
-          -Dsonar.objc.file.suffixes=-
-   
-    - name: Upload SonarCloud Artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: sonarcloud-report
-        path: .scannerwork
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        with:
+          args: >
+            -Dsonar.projectKey=KBGR55_DECIBELIO
+            -Dsonar.organization=kbgr55
+            -Dsonar.projectName=DECIBELIO
+            -Dsonar.projectVersion=1.0
+            -Dsonar.sources=.
+            -Dsonar.sourceEncoding=UTF-8
+            -Dsonar.coverage.exclusions=**/* 
+            -Dsonar.java.binaries=decibelio/target/classes
+            -Dsonar.c.file.suffixes=-
+            -Dsonar.cpp.file.suffixes=-
+            -Dsonar.objc.file.suffixes=-
+
+      - name: Upload SonarCloud Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sonarcloud-report
+          path: .scannerwork

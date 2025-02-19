@@ -1,13 +1,3 @@
-import 'package:decibelio_app_web/models/GeoLocation.dart';
-
-/**
- * "date": "2025-01-07",
-    "range": "ALTO",
-    "id": 8719,
-    "time": "00:00:00",
-    "value": 48.0
- */
-
 class Metrics {
   final String date; // Debería ser LocalDate en Java, pero se puede usar String aquí
   final String time;

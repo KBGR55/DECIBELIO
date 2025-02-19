@@ -1,11 +1,11 @@
 import 'dart:html' as html;
 import 'dart:async';
 import 'dart:convert';
-import 'package:decibelio_app_web/models/RespuestaGenerica.dart';
+import 'package:decibelio_app_web/models/respuesta_generica.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 
 class FileUploadService {
-  final String URL_BASE = conexion.URL_BASE+"metrics/upload";
+  final String urlBase = "${Conexion.urlBase}metrics/upload";
 
   // Método para subir un archivo al servidor
   Future<RespuestaGenerica> uploadFile(html.File file) async {
@@ -16,7 +16,7 @@ class FileUploadService {
 
       // Crear una solicitud HTTP
       var request = html.HttpRequest();
-      request.open('POST', URL_BASE);
+      request.open('POST', urlBase);
 
       // Crear un completer para manejar la respuesta asíncrona
       var completer = Completer<RespuestaGenerica>();
@@ -33,8 +33,7 @@ class FileUploadService {
           completer.completeError(RespuestaGenerica(
               status: 'FAILURE',
               message: 'Error parsing server response: $e',
-              type: 'ParseError'
-          ));
+              type: 'ParseError'));
         }
       });
 
@@ -44,8 +43,7 @@ class FileUploadService {
         completer.completeError(RespuestaGenerica(
             status: 'FAILURE',
             message: 'Error uploading file: Network error',
-            type: 'NetworkError'
-        ));
+            type: 'NetworkError'));
       });
 
       // Enviar la solicitud con el FormData
@@ -58,8 +56,7 @@ class FileUploadService {
       return Future.value(RespuestaGenerica(
           status: 'FAILURE',
           message: 'Exception during file upload: $e',
-          type: 'UploadException'
-      ));
+          type: 'UploadException'));
     }
   }
 }

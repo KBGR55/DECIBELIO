@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:decibelio_app_web/models/SensorDTO.dart';
+import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
-import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
+import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 import 'package:decibelio_app_web/views/dashboard/components/presentation_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -18,7 +18,7 @@ class SoundChartView extends StatefulWidget {
 
 class _SoundChartView extends State<SoundChartView> {
   //eliminar
-  final conexion _conn = conexion();
+  final Conexion _conn = Conexion();
 
   String? selectedSensor;
   DateTime? startDate = DateTime.now();
@@ -148,7 +148,7 @@ class _SoundChartView extends State<SoundChartView> {
         borderRadius: BorderRadius.circular(10),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
+            color: Colors.grey.withAlpha((0.3 * 255).toInt()),
             spreadRadius: 2,
             blurRadius: 5,
             offset: const Offset(0, 3),
@@ -191,7 +191,7 @@ class _SoundChartView extends State<SoundChartView> {
                           selectedSensor =
                               value; // Actualiza el externalID seleccionado.
                         });
-                        },
+                      },
                     )),
                     const SizedBox(width: 16),
                     // Campo para seleccionar la fecha de inicio
@@ -573,7 +573,7 @@ class _SoundChartView extends State<SoundChartView> {
             child: ElevatedButton.icon(
               onPressed: () {
                 // Lógica para exportar datos
-                 },
+              },
               icon: const Icon(Icons.download),
               label: const Text("Exportar datos (.xls)"),
             ),

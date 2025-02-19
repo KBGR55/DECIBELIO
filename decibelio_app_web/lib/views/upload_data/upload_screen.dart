@@ -15,16 +15,16 @@ class UploadScreen extends StatelessWidget {
       builder: (newContext) {
         return Scaffold(
           //key: newContext.read<MenuAppController>().scaffoldKey,
-          drawer: SideMenu(),
+          drawer: const SideMenu(),
           body: SafeArea(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (Responsive.isDesktop(context))
-                  Expanded(
+                  const Expanded(
                     child: SideMenu(),
                   ),
-                Expanded(
+                const Expanded(
                   flex: 5,
                   child: SubirDatoControllerPage(
                     title: "Upload Data",

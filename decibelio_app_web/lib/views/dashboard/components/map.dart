@@ -1,11 +1,11 @@
-import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
+import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 import 'package:decibelio_app_web/views/dashboard/components/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
-import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
+import 'package:decibelio_app_web/services/facade/list/list_metric_dto.dart';
 
 class AnimatedMapControllerPage extends StatefulWidget {
   static const String route = '/map_controller_animated';
@@ -68,10 +68,10 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
           _populateMarkers();
         });
       } else {
-        print("Failed to fetch sensors: ${sensorData.message}");
+        debugPrint("Failed to fetch sensors: ${sensorData.message}");
       }
     } catch (e) {
-      print("Error fetching sensors: $e");
+      debugPrint("Error fetching sensors: $e");
     }
   }
 
@@ -176,7 +176,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
         _markers.add(marker);
       }
     } else {
-      print("No sensors available or sensors data is null.");
+      debugPrint("No sensors available or sensors data is null.");
     }
   }
 
@@ -237,7 +237,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 children: [
                   FlutterMap(
                     mapController: mapController,
-                    options: MapOptions(
+                    options: const MapOptions(
                       initialCenter: _loja,
                       initialZoom: 14.0,
                       maxZoom: 20.0,

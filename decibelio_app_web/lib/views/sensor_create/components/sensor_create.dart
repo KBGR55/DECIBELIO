@@ -16,14 +16,14 @@ class SensorCreateControllerPage extends StatefulWidget {
   final Color color;
 
   @override
-  _SensorCreateControllerPageState createState() =>
-      _SensorCreateControllerPageState();
+  SensorCreateControllerPageState createState() =>
+      SensorCreateControllerPageState();
 }
 
-class _SensorCreateControllerPageState
+class SensorCreateControllerPageState
     extends State<SensorCreateControllerPage> {
   GlobalKey<ScaffoldState> sensorScreenKey = GlobalKey<ScaffoldState>();
-  final conexion _con = conexion();
+  final Conexion _con = Conexion();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _externalIdController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -34,16 +34,13 @@ class _SensorCreateControllerPageState
   String _selectedLandUse = '1';
 
   // Coordenadas iniciales centradas en Loja, Ecuador
-  LatLng _selectedLocation = LatLng(-3.99313, -79.20422);
+  LatLng _selectedLocation = const LatLng(-3.99313, -79.20422);
   double _currentZoom = 12.0; // Agregar nivel de zoom actual
   // Obtener ubicación actual del dispositivo
   Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Verificar si el servicio está habilitado
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
+      if (!mounted) return; // Verificación corregida
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Por favor, habilita el servicio de ubicación')),
@@ -51,11 +48,11 @@ class _SensorCreateControllerPageState
       return;
     }
 
-    // Solicitar permisos de ubicación
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Permiso de ubicación denegado')),
         );
@@ -64,17 +61,23 @@ class _SensorCreateControllerPageState
     }
 
     if (permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-            content: Text(
-                'Permiso de ubicación denegado permanentemente. No se puede acceder a la ubicación.')),
+            content: Text('Permiso de ubicación denegado permanentemente.')),
       );
       return;
     }
 
-    // Obtener la ubicación actual
+    LocationSettings locationSettings = const LocationSettings(
+      accuracy: LocationAccuracy.high,
+    );
+
     Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
+      locationSettings: locationSettings,
+    );
+
+    if (!mounted) return;
     setState(() {
       _selectedLocation = LatLng(position.latitude, position.longitude);
       _mapController.move(_selectedLocation, _currentZoom);
@@ -116,7 +119,10 @@ class _SensorCreateControllerPageState
       };
 
       final respuesta =
-          await _con.solicitudPost('sensors/create', data, conexion.NO_TOKEN);
+          await _con.solicitudPost('sensors/create', data, Conexion.noToken);
+
+      if (!mounted) return;
+
       if (respuesta.status == "SUCCESS") {
         _nameController.clear();
         _externalIdController.clear();
@@ -124,9 +130,10 @@ class _SensorCreateControllerPageState
           _selectedSensorType = 'SOUND_LEVEL_METER';
           _selectedSensorStatus = 'ACTIVE';
           _selectedLandUse = '1';
-          _selectedLocation = LatLng(-3.99313, -79.20422);
+          _selectedLocation = const LatLng(-3.99313, -79.20422);
         });
 
+        if (!mounted) return;
         showDialog(
           context: context,
           builder: (BuildContext context) {
@@ -134,8 +141,8 @@ class _SensorCreateControllerPageState
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
               ),
-              title: Row(
-                children: const [
+              title: const Row(
+                children: [
                   Icon(Icons.check_circle, color: Colors.blue, size: 30),
                   SizedBox(width: 10),
                   Text('Sensor agregado correctamente'),
@@ -145,6 +152,7 @@ class _SensorCreateControllerPageState
           },
         );
       } else {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
             content: Text("Error al agregar el sensor: ${respuesta.message}")));
       }
@@ -156,10 +164,10 @@ class _SensorCreateControllerPageState
     return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: const EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            Header(),
+            const Header(),
             AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
@@ -263,13 +271,7 @@ class _SensorCreateControllerPageState
                                     size: 32.0,
                                     color: Colors.black,
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (_currentZoom < 18.0) _currentZoom++;
-                                      _mapController.move(
-                                          _selectedLocation, _currentZoom);
-                                    });
-                                  },
+                                  onPressed: _zoomIn,
                                 ),
                                 IconButton(
                                   icon: const Icon(
@@ -277,13 +279,7 @@ class _SensorCreateControllerPageState
                                     size: 32.0,
                                     color: Colors.black,
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (_currentZoom > 5.0) _currentZoom--;
-                                      _mapController.move(
-                                          _selectedLocation, _currentZoom);
-                                    });
-                                  },
+                                  onPressed: _zoomOut,
                                 ),
                                 const SizedBox(height: 16),
                                 IconButton(

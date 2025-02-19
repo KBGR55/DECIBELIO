@@ -5,8 +5,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 class SideMenu extends StatelessWidget {
   const SideMenu({
-    Key? key,
-  }) : super(key: key);
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -28,16 +28,16 @@ class SideMenu extends StatelessWidget {
                 width: 60,
                 height: 60,
               )),
-              SizedBox(height: 8),
+              const SizedBox(height: 8),
               ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(5),
-                          side: BorderSide(color: Colors.white70, width: 1)),
+                          side: const BorderSide(color: Colors.white70, width: 1)),
                       elevation: 0,
                       backgroundColor: Colors.transparent,
                       foregroundColor: Colors.white,
-                      padding: EdgeInsets.symmetric(
+                      padding: const EdgeInsets.symmetric(
                           horizontal: defaultPadding, vertical: 20)),
                   onPressed: () {},
                   child: Row(
@@ -48,8 +48,8 @@ class SideMenu extends StatelessWidget {
                         "assets/icons/google_color_svgrepo_com.svg", // Cambia la ruta al archivo correspondiente
                         height: 16, // Tamaño del ícono
                       ),
-                      SizedBox(width: 8),
-                      Text("Accede con Google")
+                      const SizedBox(width: 8),
+                      const Text("Accede con Google")
                     ],
                   )),
             ],
@@ -108,12 +108,12 @@ class SideMenu extends StatelessWidget {
 
 class DrawerListTile extends StatelessWidget {
   const DrawerListTile({
-    Key? key,
+    super.key,
     // For selecting those three line once press "Command+D"
     required this.title,
     required this.svgSrc,
     required this.press,
-  }) : super(key: key);
+  });
 
   final String title, svgSrc;
   final VoidCallback press;
@@ -125,12 +125,12 @@ class DrawerListTile extends StatelessWidget {
       horizontalTitleGap: 0.0,
       leading: SvgPicture.asset(
         svgSrc,
-        colorFilter: ColorFilter.mode(Colors.white54, BlendMode.srcIn),
+        colorFilter: const ColorFilter.mode(Colors.white54, BlendMode.srcIn),
         height: 16,
       ),
       title: Text(
         title,
-        style: TextStyle(color: Colors.white54),
+        style: const TextStyle(color: Colors.white54),
       ),
     );
   }

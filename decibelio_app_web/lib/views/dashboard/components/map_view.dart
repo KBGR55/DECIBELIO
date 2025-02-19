@@ -6,14 +6,14 @@ import '../../../constants.dart';
 
 class MapView extends StatelessWidget {
 
-  MapView({
-    Key? key,
-  }) : super(key: key);
+  const MapView({
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: EdgeInsets.all(defaultPadding),
+      padding: const EdgeInsets.all(defaultPadding),
       decoration: BoxDecoration(
         color: AdaptiveTheme.of(context).theme.primaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),

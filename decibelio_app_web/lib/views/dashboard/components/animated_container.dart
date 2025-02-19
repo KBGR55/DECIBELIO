@@ -8,11 +8,11 @@ class ExpandableButton extends StatefulWidget {
   final Widget expandedContent;
 
   const ExpandableButton({
-    Key? key,
+    super.key,
     required this.titleExpanded,
     required this.titleCollapsed,
     required this.expandedContent,
-  }) : super(key: key);
+  });
 
   @override
   State<ExpandableButton> createState() => _ExpandableButtonState();
@@ -35,7 +35,7 @@ class _ExpandableButtonState extends State<ExpandableButton> {
           elevation: 0,
           backgroundColor: Colors.transparent,
           foregroundColor: AdaptiveTheme.of(context).theme.cardColor,
-          padding: EdgeInsets.symmetric(horizontal: defaultPadding, vertical: 20)),
+          padding: const EdgeInsets.symmetric(horizontal: defaultPadding, vertical: 20)),
           
           onPressed: () {
             setState(() {
@@ -47,7 +47,7 @@ class _ExpandableButtonState extends State<ExpandableButton> {
               Text(
                 _isExpanded ? widget.titleExpanded : widget.titleCollapsed,
               ),
-              Icon(Icons.arrow_drop_down)
+              const Icon(Icons.arrow_drop_down)
             ],
           )
         ),

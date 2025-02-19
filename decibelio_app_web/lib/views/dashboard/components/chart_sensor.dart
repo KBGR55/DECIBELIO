@@ -52,7 +52,7 @@ class ChartState extends State<Chart> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                SizedBox(height: defaultPadding),
+                const SizedBox(height: defaultPadding),
                 Text(
                   widget.value.toString(),
                   style: Theme.of(context).textTheme.headlineMedium!.copyWith(
@@ -61,7 +61,7 @@ class ChartState extends State<Chart> {
                     height: 0.5,
                   ),
                 ),
-                Text("dB")
+                const Text("dB")
               ],
             ),
           ),
@@ -129,7 +129,7 @@ List<PieChartSectionData> showingSections(int touchedIndex, double value) {
     if (i == 12) {
       // Última sección de "resto"
       return PieChartSectionData(
-        color: Colors.grey.withOpacity(0.1),
+        color: Colors.grey.withAlpha((0.1 * 255).toInt()),
         value: calculateRest(),
         showTitle: false,
         radius: 13,

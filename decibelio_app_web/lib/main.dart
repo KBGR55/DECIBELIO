@@ -3,6 +3,7 @@ import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
 import 'package:decibelio_app_web/views/main/main_screen.dart';
 import 'package:decibelio_app_web/views/sensor_create/sensor_screen.dart';
 import 'package:decibelio_app_web/views/upload_data/upload_screen.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:decibelio_app_web/views/navigation/navigation_bloc.dart';
@@ -10,7 +11,9 @@ import 'package:decibelio_app_web/views/router/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   runApp(MyApp());
 }
 
@@ -19,18 +22,20 @@ class MyApp extends StatelessWidget {
 
   final _routes = {
     '/dashboard': (context) =>
-        MainScreen(
+        const MainScreen(
           title: "Dashboard",
           color: Colors.redAccent,
         ),
     '/upload_data': (context) =>
-        UploadScreen(title: "upload", color: Colors.white70),
+        const UploadScreen(title: "upload", color: Colors.white70),
     '/create_sensor': (context) =>
-        SensorScreen(
+        const SensorScreen(
           title: "Create Sensor",
           color: Colors.greenAccent,
         )
   };
+
+  MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -42,24 +47,24 @@ class MyApp extends StatelessWidget {
       ],
       child: AdaptiveTheme(
         dark: ThemeData.dark().copyWith(
-          primaryColor: Color(0xFF2A2D3E),
+          primaryColor: const Color(0xFF2A2D3E),
           cardColor: Colors.white70,
-          scaffoldBackgroundColor: Color(0xFF212332),
+          scaffoldBackgroundColor: const Color(0xFF212332),
           textTheme: GoogleFonts.poppinsTextTheme(Theme
               .of(context)
               .textTheme)
               .apply(bodyColor: Colors.white),
-          canvasColor: Color(0xFF1D1B20),
+          canvasColor: const Color(0xFF1D1B20),
         ),
         light: ThemeData.light().copyWith(
-          primaryColor: Color(0xB3D3D3D3),
+          primaryColor: const Color(0xB3D3D3D3),
           cardColor: Colors.black,
           scaffoldBackgroundColor: Colors.white,
           textTheme: GoogleFonts.poppinsTextTheme(Theme
               .of(context)
               .textTheme)
               .apply(bodyColor: Colors.black),
-          canvasColor: Color(0xFF0C2342),
+          canvasColor: const Color(0xFF0C2342),
         ),
         initial: AdaptiveThemeMode.dark,
         builder: (theme, darkTheme) {
@@ -70,7 +75,7 @@ class MyApp extends StatelessWidget {
               title: 'DECIBELIO',
               theme: theme,
               darkTheme: darkTheme,
-              home: MainScreen(
+              home: const MainScreen(
                 title: "Dashboard",
                 color: Colors.redAccent,
               ),

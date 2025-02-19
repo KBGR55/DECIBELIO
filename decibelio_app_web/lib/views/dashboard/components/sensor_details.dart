@@ -1,9 +1,9 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:decibelio_app_web/models/Metric.dart';
-import 'package:decibelio_app_web/models/SensorDTO.dart';
+import 'package:decibelio_app_web/models/metric.dart';
+import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
-import 'package:decibelio_app_web/services/facade/list/ListMetricDTO.dart';
-import 'package:decibelio_app_web/services/facade/list/ListSersorDTO.dart';
+import 'package:decibelio_app_web/services/facade/list/list_metric_dto.dart';
+import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 import 'package:decibelio_app_web/views/dashboard/components/chart_sensor.dart';
 import 'package:decibelio_app_web/views/dashboard/components/globals.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +12,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../constants.dart';
 
 class SensorDetails extends StatefulWidget {
-  SensorDetails({Key? key}) : super(key: key);
+  const SensorDetails({super.key});
 
 
   @override
@@ -83,7 +83,7 @@ class SensorDetailsState extends State<SensorDetails> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(sensor!.name.toString()),
-                            Text("Tipo: ${sensor!.sensorType}"),
+                            Text("Tipo: ${sensor.sensorType}"),
                             Text("Nivel de Ruido: ${metric.range}"),
                             Chart(
                               range: metric.range.toString(),

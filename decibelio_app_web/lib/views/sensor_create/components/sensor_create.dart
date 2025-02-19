@@ -16,14 +16,14 @@ class SensorCreateControllerPage extends StatefulWidget {
   final Color color;
 
   @override
-  _SensorCreateControllerPageState createState() =>
-      _SensorCreateControllerPageState();
+  SensorCreateControllerPageState createState() =>
+      SensorCreateControllerPageState();
 }
 
-class _SensorCreateControllerPageState
+class SensorCreateControllerPageState
     extends State<SensorCreateControllerPage> {
   GlobalKey<ScaffoldState> sensorScreenKey = GlobalKey<ScaffoldState>();
-  final conexion _con = conexion();
+  final Conexion _con = Conexion();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _externalIdController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -34,52 +34,48 @@ class _SensorCreateControllerPageState
   String _selectedLandUse = '1';
 
   // Coordenadas iniciales centradas en Loja, Ecuador
-  LatLng _selectedLocation = LatLng(-3.99313, -79.20422);
+  LatLng _selectedLocation = const LatLng(-3.99313, -79.20422);
   double _currentZoom = 12.0; // Agregar nivel de zoom actual
   // Obtener ubicación actual del dispositivo
-  Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    // Verificar si el servicio está habilitado
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Por favor, habilita el servicio de ubicación')),
-      );
-      return;
-    }
-
-    // Solicitar permisos de ubicación
-    permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso de ubicación denegado')),
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text(
-                'Permiso de ubicación denegado permanentemente. No se puede acceder a la ubicación.')),
-      );
-      return;
-    }
-
-    // Obtener la ubicación actual
-    Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high);
-    setState(() {
-      _selectedLocation = LatLng(position.latitude, position.longitude);
-      _mapController.move(_selectedLocation, _currentZoom);
-    });
+Future<void> _getCurrentLocation() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    if (!mounted) return;  // Verificación corregida
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Por favor, habilita el servicio de ubicación')),
+    );
+    return;
   }
+
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Permiso de ubicación denegado')),
+      );
+      return;
+    }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Permiso de ubicación denegado permanentemente.')),
+    );
+    return;
+  }
+
+  Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high);
+
+  if (!mounted) return;
+  setState(() {
+    _selectedLocation = LatLng(position.latitude, position.longitude);
+    _mapController.move(_selectedLocation, _currentZoom);
+  });
+}
 
   // Función para aumentar el zoom
   void _zoomIn() {
@@ -103,63 +99,68 @@ class _SensorCreateControllerPageState
     });
   }
 
-  Future<void> _agregarSensor() async {
-    if (_formKey.currentState!.validate()) {
-      Map<String, dynamic> data = {
-        "name": _nameController.text,
-        "externalId": _externalIdController.text,
-        "latitude": _selectedLocation.latitude,
-        "longitude": _selectedLocation.longitude,
-        "sensorType": _selectedSensorType,
-        "sensorStatus": _selectedSensorStatus,
-        "landUseID": int.parse(_selectedLandUse),
-      };
+Future<void> _agregarSensor() async {
+  if (_formKey.currentState!.validate()) {
+    Map<String, dynamic> data = {
+      "name": _nameController.text,
+      "externalId": _externalIdController.text,
+      "latitude": _selectedLocation.latitude,
+      "longitude": _selectedLocation.longitude,
+      "sensorType": _selectedSensorType,
+      "sensorStatus": _selectedSensorStatus,
+      "landUseID": int.parse(_selectedLandUse),
+    };
 
-      final respuesta =
-          await _con.solicitudPost('sensors/create', data, conexion.NO_TOKEN);
-      if (respuesta.status == "SUCCESS") {
-        _nameController.clear();
-        _externalIdController.clear();
-        setState(() {
-          _selectedSensorType = 'SOUND_LEVEL_METER';
-          _selectedSensorStatus = 'ACTIVE';
-          _selectedLandUse = '1';
-          _selectedLocation = LatLng(-3.99313, -79.20422);
-        });
+    final respuesta =
+        await _con.solicitudPost('sensors/create', data, Conexion.noToken);
 
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              title: Row(
-                children: const [
-                  Icon(Icons.check_circle, color: Colors.blue, size: 30),
-                  SizedBox(width: 10),
-                  Text('Sensor agregado correctamente'),
-                ],
-              ),
-            );
-          },
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Error al agregar el sensor: ${respuesta.message}")));
-      }
+    if (!mounted) return; 
+
+    if (respuesta.status == "SUCCESS") {
+      _nameController.clear();
+      _externalIdController.clear();
+      setState(() {
+        _selectedSensorType = 'SOUND_LEVEL_METER';
+        _selectedSensorStatus = 'ACTIVE';
+        _selectedLandUse = '1';
+        _selectedLocation = const LatLng(-3.99313, -79.20422);
+      });
+
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle, color: Colors.blue, size: 30),
+                SizedBox(width: 10),
+                Text('Sensor agregado correctamente'),
+              ],
+            ),
+          );
+        },
+      );
+    } else {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text("Error al agregar el sensor: ${respuesta.message}")));
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
         primary: false,
-        padding: EdgeInsets.all(defaultPadding),
+        padding: const EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            Header(),
+            const Header(),
             AlertDialog(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10.0),
@@ -263,13 +264,7 @@ class _SensorCreateControllerPageState
                                     size: 32.0,
                                     color: Colors.black,
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (_currentZoom < 18.0) _currentZoom++;
-                                      _mapController.move(
-                                          _selectedLocation, _currentZoom);
-                                    });
-                                  },
+                                  onPressed: _zoomIn,
                                 ),
                                 IconButton(
                                   icon: const Icon(
@@ -277,13 +272,7 @@ class _SensorCreateControllerPageState
                                     size: 32.0,
                                     color: Colors.black,
                                   ),
-                                  onPressed: () {
-                                    setState(() {
-                                      if (_currentZoom > 5.0) _currentZoom--;
-                                      _mapController.move(
-                                          _selectedLocation, _currentZoom);
-                                    });
-                                  },
+                                  onPressed:  _zoomOut,
                                 ),
                                 const SizedBox(height: 16),
                                 IconButton(

@@ -1,4 +1,4 @@
-import 'package:decibelio_app_web/models/GeoLocation.dart';
+import 'package:decibelio_app_web/models/geo_location.dart';
 
 class Metric {
   final String date; // Debería ser LocalDate en Java, pero se puede usar String aquí

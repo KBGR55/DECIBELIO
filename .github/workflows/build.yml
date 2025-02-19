@@ -75,8 +75,8 @@ jobs:
       - name: Construir aplicación Flutter (Web)
         run: |
           cd decibelio_app_web
-          flutter build web --release --no-sound-null-safety
-
+          flutter build web --release
+          
       # Copiar resultados de pruebas de Flutter
       - name: Copiar resultados de pruebas de Flutter
         run: |

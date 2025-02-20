@@ -55,13 +55,20 @@ jobs:
       - name: Pull and Run ZAP
         run: |
           docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap-full-scan.py \
-          -t http://localhost:5006 -r zap_report.html || exit 0
+          -t http://localhost:${{ env.APP_PORT }} -r zap_report.html || exit 0
+
+      - name: Check if report was generated
+        run: |
+          if [ ! -f "zap_report.html" ]; then
+            echo "ERROR: ZAP report was not generated!"
+            exit 1
+          fi
 
       - name: Upload HTML report
         uses: actions/upload-artifact@v4
         with:
           name: DAST_Report
-          path: report_html.html
+          path: zap_report.html
 
       - name: Stop and clean up Docker container
         if: always()

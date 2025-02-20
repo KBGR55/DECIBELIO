@@ -7,12 +7,15 @@ jobs:
   test-ssh:
     runs-on: ubuntu-latest
     steps:
-      - name: Probar conexión SSH al servidor
+      - name: Conectar por SSH y ejecutar comandos
         uses: appleboy/ssh-action@v0.1.6
         with:
           host: 192.168.50.161
           username: kareg
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
           script: |
             echo "✅ Conexión SSH exitosa"
             ls -la
+          timeout: 120s
+          command_timeout: 30m

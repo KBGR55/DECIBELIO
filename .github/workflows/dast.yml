@@ -47,19 +47,27 @@ jobs:
       - name: Wait for container to start
         run: |
           echo "Waiting for container to be ready on port ${{ env.APP_PORT }}..."
-          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" localhost:${{ env.APP_PORT }})" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 600 seconds."; docker logs demoApp; exit 1; }
+          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.APP_PORT }})" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 600 seconds."; docker logs demoApp; exit 1; }
 
-      - name: Test container
-        run: curl -s localhost:${{ env.APP_PORT }}/health
+      - name: Test container health endpoint
+        run: |
+          echo "Testing application health..."
+          curl -v http://localhost:${{ env.APP_PORT }}/health || { echo "Health check failed"; exit 1; }
 
       - name: Pull and Run ZAP
         run: |
+          echo "Running OWASP ZAP scan..."
           docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap-full-scan.py \
-          -t http://localhost:${{ env.APP_PORT }} -r zap_report.html || exit 0
+          -t http://localhost:${{ env.APP_PORT }} -r /zap/wrk/zap_report.html || true
 
-      - name: Check if report was generated
+      - name: Verify if ZAP report was generated
         run: |
-          if [ ! -f "zap_report.html" ]; then
+          if [ -f "zap_report.html" ]; then
+            echo "ZAP report successfully generated."
+          elif [ -f "/zap/wrk/zap_report.html" ]; then
+            echo "ZAP report found in /zap/wrk/. Moving it..."
+            mv /zap/wrk/zap_report.html .
+          else
             echo "ERROR: ZAP report was not generated!"
             exit 1
           fi

@@ -57,7 +57,7 @@ jobs:
       - name: Pull and Run ZAP
         run: |
           echo "Running OWASP ZAP scan..."
-          docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap-full-scan.py \
+          docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py \
           -t http://localhost:${{ env.APP_PORT }} -r /zap/wrk/zap_report.html || true
 
       - name: Verify if ZAP report was generated

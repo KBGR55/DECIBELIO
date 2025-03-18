@@ -1,18 +1,28 @@
-name: DAST Scan
+name: 50 DAST Scan Docker Image
 
 on:
-  push:
-    branches:
-      - development
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        type: string
+        description: 'The name of the docker image to scan'
+        required: true
+
+  workflow_call:
+    inputs:
+      image-tag:
+        type: string
+        description: 'The name of the docker image to scan'
+        required: true
+
+env:
+  REGISTRY: ghcr.io
+  APP_PORT: 9080
+  IMAGE_TAG: ${{ inputs.image-tag }}
 
 jobs:
   dast-scan:
     runs-on: ubuntu-latest
-
-    env:
-      REGISTRY: ghcr.io
-      APP_PORT: 9080
-      IMAGE_TAG: ghcr.io/kbgr55/decibelio:development
 
     steps:
       - name: Checkout code
@@ -28,7 +38,7 @@ jobs:
       - name: Build and run container
         run: |
           docker rm demoApp || true
-          echo "Starting container..."
+          echo "Starting container with image $IMAGE_TAG..."
           docker run -d -p $APP_PORT:$APP_PORT --name demoApp $IMAGE_TAG
 
       - name: Wait for container to be ready

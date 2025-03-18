@@ -52,21 +52,35 @@ jobs:
       - name: Test container health endpoint
         run: |
           echo "Testing application health..."
-          curl -v http://localhost:${{ env.APP_PORT }}/health || { echo "Health check failed"; exit 1; }
+          curl -v http://localhost:${{ env.APP_PORT }}/health || { 
+            echo "Health check failed. Dumping container logs...";
+            docker logs demoApp;
+            exit 1;
+          }
 
       - name: Pull and Run ZAP
         run: |
           echo "Running OWASP ZAP scan..."
           docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py \
-          -t http://localhost:${{ env.APP_PORT }} -r /zap/wrk/zap_report.html || true
+          -t http://localhost:${{ env.APP_PORT }} -r /zap/wrk/zap_report.html -d || true
+
+      - name: Display ZAP logs
+        if: always()
+        run: |
+          echo "Displaying ZAP logs..."
+          docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable cat /zap/wrk/zap.log || true
+
+      - name: Find ZAP Report
+        run: |
+          echo "Searching for ZAP report..."
+          find . -name 'zap_report.html' || echo "No report found."
 
       - name: Verify if ZAP report was generated
         run: |
-          if [ -f "zap_report.html" ]; then
-            echo "ZAP report successfully generated."
-          elif [ -f "/zap/wrk/zap_report.html" ]; then
-            echo "ZAP report found in /zap/wrk/. Moving it..."
-            mv /zap/wrk/zap_report.html .
+          REPORT_PATH=$(find . -name 'zap_report.html' | head -n 1)
+          if [ -n "$REPORT_PATH" ]; then
+            echo "ZAP report found at $REPORT_PATH. Moving to working directory..."
+            mv "$REPORT_PATH" ./zap_report.html
           else
             echo "ERROR: ZAP report was not generated!"
             exit 1

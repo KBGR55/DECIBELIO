@@ -1,76 +1,75 @@
-name: 50 DAST Scan Docker Image
+name: DAST Scan
 
 on:
-  workflow_dispatch:
-    inputs:
-      image-tag:
-        type: string
-        description: 'The name of the docker image to scan'
-        required: true
-
-  workflow_call:
-    inputs:
-      image-tag:
-        type: string
-        description: 'The name of the docker image to scan'
-        required: true
-
-env:
-  REGISTRY: ghcr.io
-  APP_PORT: 9080
+  push:
+    branches:
+      - development
 
 jobs:
   dast-scan:
-    name: DAST Scan
     runs-on: ubuntu-latest
+
+    env:
+      REGISTRY: ghcr.io
+      APP_PORT: 9080
+      IMAGE_TAG: ghcr.io/kbgr55/decibelio:development
+
     steps:
-      - name: Log in to the Container registry
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v2.1.0
         with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
+          registry: ghcr.io
+          username: ${{ secrets.GITHUB_ACTOR }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Validate IMAGE_TAG input
-        run: |
-          if [ -z "${{ inputs.image-tag }}" ]; then
-            echo "Error: IMAGE_TAG input is empty."
-            exit 1
-          fi
-          echo "IMAGE_TAG=${{ inputs.image-tag }}" >> $GITHUB_ENV
-
-      - name: Start demo app container
+      - name: Build and run container
         run: |
           docker rm demoApp || true
-          docker run -d -p ${{ env.APP_PORT }}:9080 --name demoApp ${{ inputs.image-tag }}
+          echo "Starting container..."
+          docker run -d -p $APP_PORT:$APP_PORT --name demoApp $IMAGE_TAG
 
-      - name: Wait for container to start
+      - name: Wait for container to be ready
         run: |
           echo "Waiting for container to be ready on port ${{ env.APP_PORT }}..."
-          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.APP_PORT }})" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 600 seconds."; docker logs demoApp; exit 1; }
+          timeout 1200 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.APP_PORT }})" != "200" ]]; do 
+            echo "Waiting..."; 
+            sleep 5; 
+          done' || { 
+            echo "Container not ready after 1200 seconds.";
+            docker logs demoApp;
+            exit 1; 
+          }
 
-      - name: Test container health endpoint
+      - name: Test application health
         run: |
           echo "Testing application health..."
-          curl -v http://localhost:${{ env.APP_PORT }}/health || { 
+          curl -v http://localhost:${{ env.APP_PORT }}/health || {
             echo "Health check failed. Dumping container logs...";
             docker logs demoApp;
             exit 1;
           }
 
-      - name: Pull and Run ZAP
+      - name: Create shared Docker network
+        run: |
+          docker network create zap-network || true
+          docker network connect zap-network demoApp
+
+      - name: Run OWASP ZAP scan
         run: |
           echo "Running OWASP ZAP scan..."
-          docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
-          -t http://localhost:${{ env.APP_PORT }} -r /zap/wrk/zap_report.html -d || true
+          docker run --rm --network zap-network -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+            -t http://localhost:${{ env.APP_PORT }} \
+            -r /zap/wrk/zap_report.html -d \
+            -config api.disablekey=true \
+            -config api.addrs.addr.name=.* \
+            -config api.addrs.addr.regex=true
 
-      - name: Find ZAP Report
+      - name: Find ZAP report
         run: |
           echo "Searching for ZAP report..."
-          find . -name 'zap_report.html' || echo "No report found."
-
-      - name: Verify if ZAP report was generated
-        run: |
           REPORT_PATH=$(find . -name 'zap_report.html' | head -n 1)
           if [ -n "$REPORT_PATH" ]; then
             echo "ZAP report found at $REPORT_PATH. Moving to working directory..."
@@ -80,15 +79,19 @@ jobs:
             exit 1
           fi
 
-      - name: Upload HTML report
+      - name: Upload ZAP report
         uses: actions/upload-artifact@v4
         with:
-          name: DAST_Report
-          path: zap_report.html
+          name: zap-report
+          path: ./zap_report.html
 
-      - name: Stop and clean up Docker container
-        if: always()
+      - name: Cleanup Docker
         run: |
-          docker stop demoApp && docker rm demoApp
+          docker stop demoApp || true
+          docker rm demoApp || true
           docker container prune --force
           docker image prune --force
+
+      - name: Logout from Docker Registry
+        run: |
+          docker logout ghcr.io

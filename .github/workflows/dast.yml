@@ -61,14 +61,8 @@ jobs:
       - name: Pull and Run ZAP
         run: |
           echo "Running OWASP ZAP scan..."
-          docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py \
+          docker run --rm -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
           -t http://localhost:${{ env.APP_PORT }} -r /zap/wrk/zap_report.html -d || true
-
-      - name: Display ZAP logs
-        if: always()
-        run: |
-          echo "Displaying ZAP logs..."
-          docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable cat /zap/wrk/zap.log || true
 
       - name: Find ZAP Report
         run: |

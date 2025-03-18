@@ -69,13 +69,11 @@ jobs:
 
       - name: Run OWASP ZAP scan
         run: |
-            echo "Running OWASP ZAP scan..."
-            docker run --rm --network zap-network -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
-              -t http://localhost:${{ env.APP_PORT }} \
-              -r /zap/wrk/zap_report.html -d \
-              -config api.disablekey=true \
-              -config api.addrs.addr.name=.* \
-              -config api.addrs.addr.regex=true
+              echo "Running OWASP ZAP scan..."
+              docker run --rm --network zap-network -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+                -t http://localhost:${{ env.APP_PORT }} \
+                -r /zap/wrk/zap_report.html -d
+  
         
 
       - name: Find ZAP report

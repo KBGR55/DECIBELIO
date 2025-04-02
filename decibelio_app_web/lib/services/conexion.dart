@@ -35,6 +35,60 @@ class Conexion {
     }
   }
 
+  Future<RespuestaGenerica> solicitudPut(
+      String dirRecurso, Map<dynamic, dynamic> data, String token) async {
+    Map<String, String> header = {'Content-Type': 'application/json'};
+    if (token != noToken) {
+      header = {'Content-Type': 'application/json', 'x-api-token': token};
+    }
+    final String url = "$urlBase$dirRecurso";
+    final uri = Uri.parse(url);
+    try {
+      final response =
+      await http.put(uri, headers: header, body: jsonEncode(data));
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return _responseJson(
+            'SUCCESS',
+            response.body,
+            jsonDecode(response.body)['message'] ?? "No data",
+            jsonDecode(response.body)['type'] ?? "No data");
+      } else {
+        return _responseJson('FAILURE', response.body, "No data", 'No data');
+      }
+    } catch (e) {
+      Map<dynamic, dynamic> mapa = {"payload": e.toString()};
+      return _responseJson(
+          'FAILURE', jsonEncode(mapa), "Hubo un error", 'No data');
+    }
+  }
+
+  Future<RespuestaGenerica> solicitudPatch(
+      String dirRecurso, Map<dynamic, dynamic>? data, String token) async {
+    Map<String, String> header = {'Content-Type': 'application/json', 'accept': '*/*'};
+    if (token != noToken) {
+      header = {'Content-Type': 'application/json', 'x-api-token': token, 'accept': '*/*'};
+    }
+    final String url = "$urlBase$dirRecurso";
+    final uri = Uri.parse(url);
+    try {
+      final response =
+      await http.patch(uri, headers: header, body: jsonEncode(data));
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return _responseJson(
+            'SUCCESS',
+            response.body,
+            jsonDecode(response.body)['message'] ?? "No data",
+            jsonDecode(response.body)['type'] ?? "No data");
+      } else {
+        return _responseJson('FAILURE', response.body, "No data", 'No data');
+      }
+    } catch (e) {
+      Map<dynamic, dynamic> mapa = {"payload": e.toString()};
+      return _responseJson(
+          'FAILURE', jsonEncode(mapa), "Hubo un error", 'No data');
+    }
+  }
+
   Future<RespuestaGenerica> solicitudGet(
       String dirRecurso, String token) async {
     Map<String, String> header = {'Content-Type': 'application/json'};

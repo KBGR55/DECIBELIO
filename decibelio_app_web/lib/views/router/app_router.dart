@@ -24,7 +24,7 @@ class AppRouter {
         return MaterialPageRoute(
           builder: (_) => const UploadScreen(title: "upload", color: Colors.white70),
         );
-      case '/create_sensor':
+      case '/manage_sensor':
         return MaterialPageRoute(
           builder: (_) => const SensorScreen(
             title: "Create Sensor",

@@ -17,6 +17,14 @@ class MapView extends StatelessWidget {
       decoration: BoxDecoration(
         color: AdaptiveTheme.of(context).theme.primaryColor,
         borderRadius: const BorderRadius.all(Radius.circular(10)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha((0.3 * 255).toInt()),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

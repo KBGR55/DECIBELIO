@@ -70,10 +70,10 @@ class SideMenu extends StatelessWidget {
             },
           ),
           DrawerListTile(
-            title: "Crear sensor",
+            title: "Administrar sensores",
             svgSrc: "assets/icons/menu_task.svg",
             press: () {
-              Navigator.pushReplacementNamed(context, '/create_sensor');
+              Navigator.pushReplacementNamed(context, '/manage_sensor');
             },
           ),  /*DrawerListTile(
             title: "Documents",

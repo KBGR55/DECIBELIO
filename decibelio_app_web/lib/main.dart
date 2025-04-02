@@ -28,7 +28,7 @@ class MyApp extends StatelessWidget {
         ),
     '/upload_data': (context) =>
         const UploadScreen(title: "upload", color: Colors.white70),
-    '/create_sensor': (context) =>
+    '/manage_sensor': (context) =>
         const SensorScreen(
           title: "Create Sensor",
           color: Colors.greenAccent,
@@ -57,9 +57,9 @@ class MyApp extends StatelessWidget {
           canvasColor: const Color(0xFF1D1B20),
         ),
         light: ThemeData.light().copyWith(
-          primaryColor: const Color(0xB3D3D3D3),
+          primaryColor: Colors.white,
           cardColor: Colors.black,
-          scaffoldBackgroundColor: Colors.white,
+          scaffoldBackgroundColor: Colors.white70,
           textTheme: GoogleFonts.poppinsTextTheme(Theme
               .of(context)
               .textTheme)

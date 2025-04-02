@@ -7,6 +7,7 @@ class SensorDTO {
   double longitude = 0.0;
   String externalId = '';
   String sensorType = '';
+  String sensorStatus = '';
   String landUseName = '';
   
   SensorDTO();
@@ -18,12 +19,13 @@ class SensorDTO {
     latitude = (mapa['latitude']);
     longitude = (mapa['longitude']);
     sensorType = mapa['sensorType'];
+    sensorStatus = mapa['sensorStatus']??'NO INFO';
     landUseName = mapa['landUseName'];
   }
 
   @override
   String toString() {
-    return 'Name: $name, Id: $id, ExternalId: $externalId, Latitude: $latitude, Longitude: $longitude, SensorType: $sensorType, LandUse: $landUseName';}
+    return 'Name: $name, Id: $id, ExternalId: $externalId, Latitude: $latitude, Longitude: $longitude, SensorType: $sensorType, SensorStatus: $sensorStatus, LandUse: $landUseName';}
 
   static Map<String, dynamic> toMap(SensorDTO model) => <String, dynamic>{
         "name": model.name,
@@ -32,6 +34,7 @@ class SensorDTO {
         "latitude": model.latitude,
         "longitude": model.longitude,
         "sensorType": model.sensorType,
+        "sensorStatus": model.sensorStatus,
         "landUse": model.landUseName
       };
   static String serialize(SensorDTO model) => json.encode(SensorDTO.toMap(model));

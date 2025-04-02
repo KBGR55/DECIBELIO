@@ -12,6 +12,12 @@ class Facade {
         (response.status != 'SUCCESS') ? null : response.payload);
   }
 
+  Future<ListSensorDTO> listAllSensorsDTO() async {
+    var response = await _conn.solicitudGet('sensors', "NO");
+    return _responseSensor(
+        (response.status != 'SUCCESS') ? null : response.payload);
+  }
+
 Future<ListMetricDTO> listMetricLastDTO() async {
   var response = await _conn.solicitudGet('metrics/last', "NO");
   var metrics = _responseMetricLast((response.status != 'SUCCESS') ? null : response.payload);

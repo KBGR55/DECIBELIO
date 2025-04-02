@@ -1,4 +1,7 @@
+import 'dart:convert';
+
 import 'package:decibelio_app_web/constants.dart';
+import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -7,35 +10,65 @@ import 'package:latlong2/latlong.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
 
-class SensorCreateControllerPage extends StatefulWidget {
-  const SensorCreateControllerPage(
-      {super.key, required this.title, required this.color});
+class SensorEditControllerPage extends StatefulWidget {
+  const SensorEditControllerPage(
+      {super.key,
+      required this.title,
+      required this.color,
+      required this.sensor});
 
   final String title;
   final Color color;
+  final SensorDTO sensor;
 
   @override
-  SensorCreateControllerPageState createState() =>
-      SensorCreateControllerPageState();
+  SensorEditControllerPageState createState() =>
+      SensorEditControllerPageState();
 }
 
-class SensorCreateControllerPageState
-    extends State<SensorCreateControllerPage> {
+class SensorEditControllerPageState extends State<SensorEditControllerPage> {
   GlobalKey<ScaffoldState> sensorScreenKey = GlobalKey<ScaffoldState>();
   final Conexion _con = Conexion();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _externalIdController = TextEditingController();
+  late TextEditingController _nameController = TextEditingController();
+  late TextEditingController _externalIdController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final MapController _mapController = MapController();
 
-  String _selectedSensorType = 'SOUND_LEVEL_METER';
+  late String _selectedSensorType;
   String _selectedSensorStatus = 'ACTIVE';
-  String _selectedLandUse = '1';
+  late String _selectedLandUse;
+
+  final Map<String, String> landUseValues = {
+    "RESIDENCIAL": "1",
+    "EQUIPAMIENTO DE SERVICIOS SOCIALES": "2",
+    "EQUIPAMIENTO DE SERVICIOS PÚBLICOS": "3",
+    "COMERCIAL": "4",
+    "AGRÍCOLA RESIDENCIAL": "5",
+    "INDUSTRIAL ID1/ID2": "6",
+    "INDUSTRIAL ID3/ID4": "7",
+  };
 
   // Coordenadas iniciales centradas en Loja, Ecuador
-  LatLng _selectedLocation = const LatLng(-3.99313, -79.20422);
+  late LatLng _selectedLocation;
   double _currentZoom = 12.0; // Agregar nivel de zoom actual
   // Obtener ubicación actual del dispositivo
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _nameController = TextEditingController(text: widget.sensor.name);
+    _externalIdController =
+        TextEditingController(text: widget.sensor.externalId);
+    _selectedLocation = LatLng(widget.sensor.latitude, widget.sensor.longitude);
+    _selectedSensorType = widget.sensor.sensorType;
+    _selectedLandUse = getLandUseValue(utf8.decode(widget.sensor.landUseName.runes.toList()))!;
+  }
+
+  String? getLandUseValue(String key) {
+    return landUseValues[key.toUpperCase()];
+  }
+
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
@@ -110,15 +143,17 @@ class SensorCreateControllerPageState
       Map<String, dynamic> data = {
         "name": _nameController.text,
         "externalId": _externalIdController.text,
-        "latitude": _selectedLocation.latitude,
-        "longitude": _selectedLocation.longitude,
+        "geoLocation": {
+          "latitude": _selectedLocation.latitude,
+          "longitude": _selectedLocation.longitude
+        },
         "sensorType": _selectedSensorType,
         "sensorStatus": _selectedSensorStatus,
-        "landUseID": int.parse(_selectedLandUse),
+        "landUse": {"id": int.parse(_selectedLandUse)}
       };
 
-      final respuesta =
-          await _con.solicitudPost('sensors/create', data, Conexion.noToken);
+      final respuesta = await _con.solicitudPut(
+          'sensors/${widget.sensor.id}', data, Conexion.noToken);
 
       if (!mounted) return;
 
@@ -144,7 +179,7 @@ class SensorCreateControllerPageState
                 children: [
                   Icon(Icons.check_circle, color: Colors.blue, size: 30),
                   SizedBox(width: 10),
-                  Text('Sensor agregado correctamente'),
+                  Text('Datos actualizados correctamente'),
                 ],
               ),
             );
@@ -153,7 +188,8 @@ class SensorCreateControllerPageState
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Error al agregar el sensor: ${respuesta.message}")));
+            content:
+                Text("Error al actulizar los datos: ${respuesta.message}")));
       }
     }
   }
@@ -179,7 +215,7 @@ class SensorCreateControllerPageState
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Agregar Sensor',
+                      const Text('Editar Datos del Sensor',
                           style: TextStyle(
                               fontSize: 24, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 24),
@@ -395,7 +431,7 @@ class SensorCreateControllerPageState
                           const SizedBox(width: 16),
                           ElevatedButton(
                             onPressed: _agregarSensor,
-                            child: const Text('Agregar Sensor'),
+                            child: const Text('Actulizar Datos'),
                           ),
                         ],
                       ),

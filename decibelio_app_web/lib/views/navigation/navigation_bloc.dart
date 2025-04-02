@@ -15,6 +15,6 @@ class NavigationBloc extends Bloc<NavigationEvent, String> {
     on<NavigateToHomePage>((event, emit) => emit('/'));
     on<NavigateToMapPage>((event, emit) => emit('/map'));
     on<NavigateToUploadPage>((event, emit) => emit('/upload'));
-    on<NavigateToSensorCreatePage>((event, emit) => emit('/sensor_create'));
+    on<NavigateToSensorCreatePage>((event, emit) => emit('/manage_sensor'));
   }
 }

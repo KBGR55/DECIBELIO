@@ -17,7 +17,6 @@ class SoundChartView extends StatefulWidget {
 }
 
 class _SoundChartView extends State<SoundChartView> {
-  //eliminar
   final Conexion _conn = Conexion();
 
   String? selectedSensor;
@@ -49,11 +48,7 @@ class _SoundChartView extends State<SoundChartView> {
     Facade facade = Facade();
     ListSensorDTO sensorData = await facade.listSensorDTO();
 
-    // Simulación de una llamada a un servicio o backend
-    await Future.delayed(const Duration(seconds: 1));
-    // Simular retardo de red
     setState(() {
-      //sensorNames = sensorData.data.map((sensor) => sensor.name).toList(); // Aquí coloca los nombres reales
       _sensors = sensorData.data;
     });
   }
@@ -340,7 +335,7 @@ class _SoundChartView extends State<SoundChartView> {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            //height: 300,
+            //height: 400,
             child: Column(
               //spacing: 16,
               children: [
@@ -377,7 +372,7 @@ class _SoundChartView extends State<SoundChartView> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     //spacing: 16,
                     children: [
-                      const Text('Pan'),
+                      const Text('Fijar'),
                       Switch(
                         value: _isPanEnabled,
                         onChanged: (value) {
@@ -386,7 +381,7 @@ class _SoundChartView extends State<SoundChartView> {
                           });
                         },
                       ),
-                      const Text('Scale'),
+                      const Text('Zoom'),
                       Switch(
                         value: _isScaleEnabled,
                         onChanged: (value) {
@@ -399,7 +394,7 @@ class _SoundChartView extends State<SoundChartView> {
                   ),
                 ),
                 AspectRatio(
-                  aspectRatio: 1.4,
+                  aspectRatio: 2.5,
                   child: Padding(
                     padding: const EdgeInsets.only(
                       top: 0.0,
@@ -425,17 +420,17 @@ class _SoundChartView extends State<SoundChartView> {
                                 }).toList() ??
                                 [],
                             dotData: const FlDotData(show: false),
-                            color: Colors.amber,
+                            color: Colors.blue,
                             barWidth: 1,
                             shadow: const Shadow(
-                              color: Colors.amber,
+                              color: Colors.blue,
                               blurRadius: 2,
                             ),
                             belowBarData: BarAreaData(
                               show: true,
-                              gradient: const LinearGradient(
-                                colors: [Colors.amberAccent, Colors.amber],
-                                stops: [0.5, 1.0],
+                              gradient: LinearGradient(
+                                colors: [Colors.blue.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.0)],
+                                stops: const [0.5, 1.0],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,
                               ),
@@ -602,7 +597,7 @@ class _ChartTitle extends StatelessWidget {
         Text(
           'History',
           style: TextStyle(
-            color: Colors.amber,
+            //color: Colors.amber,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
@@ -610,7 +605,7 @@ class _ChartTitle extends StatelessWidget {
         Text(
           '2023/12/19 - 2024/12/17',
           style: TextStyle(
-            color: Colors.green,
+            //color: Colors.green,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -630,8 +625,38 @@ class _TransformationButtons extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
+    return Row(
       children: [
+        Tooltip(
+          message: 'Move left',
+          child: IconButton(
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              size: 16,
+            ),
+            onPressed: _transformationMoveLeft,
+          ),
+        ),
+        Tooltip(
+          message: 'Reset zoom',
+          child: IconButton(
+            icon: const Icon(
+              Icons.refresh,
+              size: 16,
+            ),
+            onPressed: _transformationReset,
+          ),
+        ),
+        Tooltip(
+          message: 'Move right',
+          child: IconButton(
+            icon: const Icon(
+              Icons.arrow_forward_ios,
+              size: 16,
+            ),
+            onPressed: _transformationMoveRight,
+          ),
+        ),
         Tooltip(
           message: 'Zoom in',
           child: IconButton(
@@ -641,41 +666,6 @@ class _TransformationButtons extends StatelessWidget {
             ),
             onPressed: _transformationZoomIn,
           ),
-        ),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Tooltip(
-              message: 'Move left',
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios,
-                  size: 16,
-                ),
-                onPressed: _transformationMoveLeft,
-              ),
-            ),
-            Tooltip(
-              message: 'Reset zoom',
-              child: IconButton(
-                icon: const Icon(
-                  Icons.refresh,
-                  size: 16,
-                ),
-                onPressed: _transformationReset,
-              ),
-            ),
-            Tooltip(
-              message: 'Move right',
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 16,
-                ),
-                onPressed: _transformationMoveRight,
-              ),
-            ),
-          ],
         ),
         Tooltip(
           message: 'Zoom out',

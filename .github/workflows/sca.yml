@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-20.04"]
+        os: ["ubuntu-22.04"]  # Cambiado de ubuntu-20.04 a ubuntu-22.04
         manifest_file: ["pom.xml"]
     runs-on: ${{ matrix.os }}
     defaults:
@@ -18,10 +18,10 @@ jobs:
     name: SCA Java project
     steps:
       - name: Checkout action
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Java
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           distribution: temurin
           java-version: 17
@@ -53,28 +53,7 @@ jobs:
 
       - name: Print Artifact Name
         run: echo ${{ steps.scan_java.outputs.artifact_name }}
-
-  sonarqube:
-    name: SonarQube
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Java
-        uses: actions/setup-java@v2
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: maven
-
-      - name: Build project
-        run: |
-          cd decibelio 
-          mvn clean install
-
+        
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
@@ -94,8 +73,11 @@ jobs:
             -Dsonar.cpp.file.suffixes=-
             -Dsonar.objc.file.suffixes=-
 
-      - name: Upload SonarCloud Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sonarcloud-report
-          path: .scannerwork
+      - name: Check if `.scannerwork` directory exists
+        run: |
+          if [ -d ".scannerwork" ]; then
+            echo "SonarQube analysis successful."
+          else
+            echo "ERROR: .scannerwork directory not found. SonarQube analysis might have failed."
+            exit 1
+          fi

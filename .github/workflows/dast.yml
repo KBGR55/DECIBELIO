@@ -18,54 +18,89 @@ on:
 env:
   REGISTRY: ghcr.io
   APP_PORT: 9080
+  IMAGE_TAG: ${{ inputs.image-tag }}
 
 jobs:
   dast-scan:
-    name: DAST Scan
     runs-on: ubuntu-latest
+
     steps:
-      - name: Log in to the Container registry
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Login to GitHub Container Registry
         uses: docker/login-action@v2.1.0
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Validate IMAGE_TAG input
-        run: |
-          if [ -z "${{ inputs.image-tag }}" ]; then
-            echo "Error: IMAGE_TAG input is empty."
-            exit 1
-          fi
-          echo "IMAGE_TAG=${{ inputs.image-tag }}" >> $GITHUB_ENV
-
-      - name: Start demo app container
+      - name: Build and run container
         run: |
           docker rm demoApp || true
-          docker run -d -p ${{ env.APP_PORT }}:9080 --name demoApp ${{ inputs.image-tag }}
+          echo "Starting container with image $IMAGE_TAG..."
+          docker run -d -p $APP_PORT:$APP_PORT --name demoApp $IMAGE_TAG
 
-      - name: Wait for container to start
+      - name: Wait for container to be ready
         run: |
           echo "Waiting for container to be ready on port ${{ env.APP_PORT }}..."
-          timeout 600 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" localhost:${{ env.APP_PORT }})" != "200" ]]; do sleep 5; done' || { echo "Container not ready after 600 seconds."; docker logs demoApp; exit 1; }
+          timeout 1200 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.APP_PORT }})" != "200" ]]; do 
+            echo "Waiting..."; 
+            sleep 5; 
+          done' || { 
+            echo "Container not ready after 1200 seconds.";
+            docker logs demoApp;
+            exit 1; 
+          }
 
-      - name: Test container
-        run: curl -s localhost:${{ env.APP_PORT }}/health
-
-      - name: Pull and Run ZAP
+      - name: Test application health
         run: |
-          docker run --rm -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap-full-scan.py \
-          -t http://localhost:5006 -r zap_report.html || exit 0
+          echo "Testing application health..."
+          curl -v http://localhost:${{ env.APP_PORT }}/health || {
+            echo "Health check failed. Dumping container logs...";
+            docker logs demoApp;
+            exit 1;
+          }
 
-      - name: Upload HTML report
+      - name: Create shared Docker network
+        run: |
+          docker network create zap-network || true
+          docker network connect zap-network demoApp
+
+      - name: Run OWASP ZAP scan
+        run: |
+              echo "Running OWASP ZAP scan..."
+              docker run --rm --network zap-network -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
+                -t http://localhost:${{ env.APP_PORT }} \
+                -r /zap/wrk/zap_report.html -d
+  
+        
+
+      - name: Find ZAP report
+        run: |
+          echo "Searching for ZAP report..."
+          REPORT_PATH=$(find . -name 'zap_report.html' | head -n 1)
+          if [ -n "$REPORT_PATH" ]; then
+            echo "ZAP report found at $REPORT_PATH. Moving to working directory..."
+            mv "$REPORT_PATH" ./zap_report.html
+          else
+            echo "ERROR: ZAP report was not generated!"
+            exit 1
+          fi
+
+      - name: Upload ZAP report
         uses: actions/upload-artifact@v4
         with:
-          name: DAST_Report
-          path: report_html.html
+          name: zap-report
+          path: ./zap_report.html
 
-      - name: Stop and clean up Docker container
-        if: always()
+      - name: Cleanup Docker
         run: |
-          docker stop demoApp && docker rm demoApp
+          docker stop demoApp || true
+          docker rm demoApp || true
           docker container prune --force
           docker image prune --force
+
+      - name: Logout from Docker Registry
+        run: |
+          docker logout ghcr.io

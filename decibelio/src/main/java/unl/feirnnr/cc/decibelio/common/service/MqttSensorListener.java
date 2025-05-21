@@ -1,4 +1,4 @@
-package unl.feirnnr.decibelio.common.service;
+package unl.feirnnr.cc.decibelio.common.service;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;

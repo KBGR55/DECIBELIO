@@ -39,7 +39,7 @@ class SensorCreateControllerPageState
   Future<void> _getCurrentLocation() async {
     bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      if (!mounted) return; // Verificación corregida
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
             content: Text('Por favor, habilita el servicio de ubicación')),
@@ -68,12 +68,8 @@ class SensorCreateControllerPageState
       return;
     }
 
-    LocationSettings locationSettings = const LocationSettings(
-      accuracy: LocationAccuracy.high,
-    );
-
     Position position = await Geolocator.getCurrentPosition(
-      locationSettings: locationSettings,
+      desiredAccuracy: LocationAccuracy.high,
     );
 
     if (!mounted) return;

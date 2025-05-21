@@ -69,52 +69,46 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
     return landUseValues[key.toUpperCase()];
   }
 
-  Future<void> _getCurrentLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      if (!mounted) return; // Verificación corregida
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Por favor, habilita el servicio de ubicación')),
-      );
-      return;
-    }
+ Future<void> _getCurrentLocation() async {
+  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Por favor, habilita el servicio de ubicación')),
+    );
+    return;
+  }
 
-    LocationPermission permission = await Geolocator.checkPermission();
+  LocationPermission permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Permiso de ubicación denegado')),
-        );
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Permiso de ubicación denegado permanentemente.')),
+        const SnackBar(content: Text('Permiso de ubicación denegado')),
       );
       return;
     }
-
-    LocationSettings locationSettings = const LocationSettings(
-      accuracy: LocationAccuracy.high,
-    );
-
-    Position position = await Geolocator.getCurrentPosition(
-      locationSettings: locationSettings,
-    );
-
-    if (!mounted) return;
-    setState(() {
-      _selectedLocation = LatLng(position.latitude, position.longitude);
-      _mapController.move(_selectedLocation, _currentZoom);
-    });
   }
+
+  if (permission == LocationPermission.deniedForever) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Permiso de ubicación denegado permanentemente.')),
+    );
+    return;
+  }
+
+  Position position = await Geolocator.getCurrentPosition(
+    desiredAccuracy: LocationAccuracy.high,
+  );
+
+  if (!mounted) return;
+  setState(() {
+    _selectedLocation = LatLng(position.latitude, position.longitude);
+    _mapController.move(_selectedLocation, _currentZoom);
+  });
+}
 
   // Función para aumentar el zoom
   void _zoomIn() {

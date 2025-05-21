@@ -9,17 +9,17 @@ import java.util.Objects;
 
 @Entity
 @TableGenerator(
-        name = "RangeGenerator",
+        name = "OptimalRangeGenerator",
         table = "IdentityGenerator",
         pkColumnName = "name",
         valueColumnName = "value",
-        pkColumnValue = "Range",
+        pkColumnValue = "OptimalRange",
         initialValue = 1, allocationSize = 1
 )
-public class Range implements Serializable {
+public class OptimalRange implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "Range", strategy = GenerationType.TABLE)
+    @GeneratedValue(generator = "OptimalRange", strategy = GenerationType.TABLE)
     private Long id;
 
     @Column
@@ -58,7 +58,7 @@ public class Range implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Range range = (Range) o;
+        OptimalRange range = (OptimalRange) o;
         return Objects.equals(id, range.id) && Objects.equals(value, range.value) && Objects.equals(timeFrame, range.timeFrame);
     }
 
@@ -69,7 +69,7 @@ public class Range implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("Range{");
+        final StringBuffer sb = new StringBuffer("OptimalRange{");
         sb.append("id=").append(id);
         sb.append(", value=").append(value);
         sb.append(", timeFrame=").append(timeFrame);

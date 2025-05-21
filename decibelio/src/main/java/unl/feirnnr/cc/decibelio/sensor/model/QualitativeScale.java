@@ -4,9 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
 
 import java.io.Serializable;
-import java.util.LinkedHashSet;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * @author wduck
@@ -16,10 +14,10 @@ import java.util.Set;
  *
  */
 @Entity
-@TableGenerator(name = "LandUseGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "LandUse", initialValue = 1, allocationSize = 1)
-public class LandUse implements Serializable {
+@TableGenerator(name = "QualitativeScaleGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "QualitativeScale", initialValue = 1, allocationSize = 1)
+public class QualitativeScale implements Serializable {
     @Id
-    @GeneratedValue(generator = "LandUseGenerator", strategy = GenerationType.TABLE)
+    @GeneratedValue(generator = "QualitativeScaleGenerator", strategy = GenerationType.TABLE)
     private Long id;
 
     @Column(unique = true)
@@ -29,13 +27,6 @@ public class LandUse implements Serializable {
     @Column
     private String description;
 
-    @OneToMany(targetEntity = OptimalRange.class, orphanRemoval = true, cascade = CascadeType.ALL)
-    @JoinColumn(name = "landUse_id")
-    private Set<OptimalRange> ranges;
-
-    public LandUse() {
-        ranges = new LinkedHashSet<>();
-    }
 
     public void setId(Long id) {
         this.id = id;
@@ -65,9 +56,9 @@ public class LandUse implements Serializable {
     public boolean equals(Object o) {
         if (this == o)
             return true;
-        if (!(o instanceof LandUse landUse))
+        if (!(o instanceof QualitativeScale qualitativeScale))
             return false;
-        return Objects.equals(id, landUse.id) && Objects.equals(name, landUse.name);
+        return Objects.equals(id, qualitativeScale.id) && Objects.equals(name, qualitativeScale.name);
     }
 
     @Override
@@ -77,11 +68,10 @@ public class LandUse implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("LandUse{");
+        final StringBuffer sb = new StringBuffer("QualitativeScale{");
         sb.append("id=").append(id);
         sb.append(", name='").append(name).append('\'');
         sb.append(", description='").append(description).append('\'');
-        sb.append(", ranges=").append(ranges);
         sb.append('}');
         return sb.toString();
     }

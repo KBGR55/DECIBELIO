@@ -8,7 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.Query;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
-import unl.feirnnr.cc.decibelio.sensor.model.Range;
+import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
 
 @Stateless
 public class RangeService {
@@ -23,8 +23,8 @@ public class RangeService {
      * @return El rango encontrado.
      * @throws EntityNotFoundException Si el rango no se encuentra.
      */
-    public Range findById(@NotNull Long id) {
-        Range entity = crudService.find(Range.class, id);
+    public OptimalRange findById(@NotNull Long id) {
+        OptimalRange entity = crudService.find(OptimalRange.class, id);
         if (entity != null) {
             return entity;
         }
@@ -36,8 +36,8 @@ public class RangeService {
      *
      * @return Lista de todos los rangos.
      */
-    public List<Range> findAll() {
-        return crudService.findWithNativeQuery("select * from range", Range.class);
+    public List<OptimalRange> findAll() {
+        return crudService.findWithNativeQuery("select * from range", OptimalRange.class);
     }
 
     /**
@@ -47,13 +47,13 @@ public class RangeService {
      * @param timeFrameId 
      * @return El rango encontrado, o nulo si no se encuentra.
      */
-    public Range findByLandUseAndTimeFrame(@NotNull Long landUseId, @NotNull Long timeFrameId) {
+    public OptimalRange findByLandUseAndTimeFrame(@NotNull Long landUseId, @NotNull Long timeFrameId) {
         String sql = "SELECT * FROM Range WHERE landUse_id = ? AND timeFrame_id = ?";
-        Query query = crudService.createNativeQuery(sql, Range.class);
+        Query query = crudService.createNativeQuery(sql, OptimalRange.class);
         query.setParameter(1, landUseId);
         query.setParameter(2, timeFrameId);
         @SuppressWarnings("unchecked")
-        List<Range> ranges = query.getResultList();
+        List<OptimalRange> ranges = query.getResultList();
         if (!ranges.isEmpty()) {
             return ranges.get(0);
         }

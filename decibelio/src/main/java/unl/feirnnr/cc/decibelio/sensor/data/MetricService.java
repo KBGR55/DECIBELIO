@@ -11,7 +11,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
-import unl.feirnnr.cc.decibelio.sensor.model.Metric;
+import unl.feirnnr.cc.decibelio.sensor.model.Observation;
 import unl.feirnnr.cc.decibelio.sensor.model.SensorStatus;
 
 @Stateless
@@ -27,7 +27,7 @@ public class MetricService {
      * @param metric la entidad Metric a ser guardada
      * @return la entidad Metric guardada
      */
-    public Metric save(@NotNull Metric metric) {
+    public Observation save(@NotNull Observation metric) {
         return metric.getId() == null ? crudService.create(metric) : crudService.update(metric);
     }
 
@@ -39,8 +39,8 @@ public class MetricService {
      * @throws EntityNotFoundException si no se encuentra ninguna entidad Metric con
      *                                 el ID dado
      */
-    public Metric findById(@NotNull Long id) {
-        Metric entity = crudService.find(Metric.class, id);
+    public Observation findById(@NotNull Long id) {
+        Observation entity = crudService.find(Observation.class, id);
         if (entity != null) {
             return entity;
         }
@@ -52,11 +52,11 @@ public class MetricService {
      * 
      * @return una lista de todas las entidades Metric
      */
-    public List<Metric> findAll() {
-        return crudService.findWithNativeQuery("select * from metric", Metric.class);
+    public List<Observation> findAll() {
+        return crudService.findWithNativeQuery("select * from metric", Observation.class);
     }
 
-    public List<Metric> findLastMetricOfActiveSensors() {
+    public List<Observation> findLastMetricOfActiveSensors() {
         String query = "SELECT m FROM Metric m " +
                 "WHERE m.date = (SELECT MAX(m2.date) FROM Metric m2 WHERE m2.sensorExternalId = m.sensorExternalId) " +
                 "AND m.id = (SELECT MAX(m3.id) FROM Metric m3 WHERE m3.sensorExternalId = m.sensorExternalId AND m3.date = m.date) "
@@ -69,7 +69,7 @@ public class MetricService {
         return crudService.findWithQuery(query, parameters);
     }
 
-    public List<Metric> findMetricsBySensorAndDateRangeWithInterval(
+    public List<Observation> findMetricsBySensorAndDateRangeWithInterval(
             @Nullable String sensorExternalId,
             @NotNull LocalDate startDate,
             @NotNull LocalDate endDate,
@@ -98,7 +98,7 @@ public class MetricService {
      * @param date Fecha a consultar
      * @return Lista de métricas máximas agrupadas por día y noche
      */
-    public List<Metric> findMaxMetricsByDayAndNight(@NotNull LocalDate date) {
+    public List<Observation> findMaxMetricsByDayAndNight(@NotNull LocalDate date) {
         String query = "SELECT m FROM Metric m WHERE m.id IN (" +
                        "    SELECT m1.id FROM Metric m1 WHERE m1.date = :date AND " +
                        "    EXTRACT(HOUR FROM m1.time) BETWEEN 7 AND 20 AND " +

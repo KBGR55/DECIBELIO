@@ -10,45 +10,50 @@ import java.util.Objects;
 
 @Entity
 @TableGenerator(
-        name = "MetricGenerator",
+        name = "ObservationGenerator",
         table = "IdentityGenerator",
         pkColumnName = "name",
         valueColumnName = "value",
-        pkColumnValue = "Metric",
+        pkColumnValue = "Observation",
         initialValue = 1, allocationSize = 1
 )
-public class Metric implements Serializable {
+public class Observation implements Serializable {
 
     @Id
-    @GeneratedValue(generator = "MetricGenerator", strategy = GenerationType.TABLE)
+    @GeneratedValue(generator = "ObservationGenerator", strategy = GenerationType.TABLE)
     private Long id;
 
     @NotNull
     @Column
-    LocalDate date;
+    private LocalDate date;
 
     @NotNull
     @Column
-    LocalTime time;
-
-    @NotNull
-    @Column
-    float value;
+    private float value;
 
     @Column
-    String range;
+    private String sensorExternalId;
+
+    @Column
+    private Long timeFrameId;
 
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "latitude", column = @Column(name = "geo_latitude")),
             @AttributeOverride(name = "longitude", column = @Column(name = "geo_longitude"))
     })
-    //@NotNull
+    
+    @NotNull
     private GeoLocation geoLocation;
 
-    // OJO DESPUES CON LOS ORIGINALES
     @Column
-    private String sensorExternalId;
+    @NotNull
+    private QualitativeScaleValue qualitativeScaleValue;
+
+    @Column
+    @NotNull
+    private Quantity quantity;
+
 
     public Long getId() {
         return id;
@@ -66,14 +71,6 @@ public class Metric implements Serializable {
         this.date = date;
     }
 
-    public @NotNull LocalTime getTime() {
-        return time;
-    }
-
-    public void setTime(@NotNull LocalTime time) {
-        this.time = time;
-    }
-
     @NotNull
     public float getValue() {
         return value;
@@ -83,12 +80,12 @@ public class Metric implements Serializable {
         this.value = value;
     }
 
-    public String getRange() {
-        return range;
+    public Long gettimeFrameId() {
+        return timeFrameId;
     }
 
-    public void setRange(String range) {
-        this.range = range;
+    public void settimeFrameId(Long timeFrameId) {
+        this.timeFrameId = timeFrameId;
     }
 
     public GeoLocation getGeoLocation() {
@@ -97,6 +94,26 @@ public class Metric implements Serializable {
 
     public void setGeoLocation(GeoLocation geoLocation) {
         this.geoLocation = geoLocation;
+    }
+
+    public void setQualitativeScaleValue(QualitativeScaleValue qualitativeScaleValue) {
+        this.qualitativeScaleValue = qualitativeScaleValue;
+    }
+
+    public QualitativeScaleValue getQualitativeScaleValue() {
+        return qualitativeScaleValue;
+    }
+
+    public void setQuantity(Quantity quantity) {
+        this.quantity = quantity;
+    }
+
+    public Quantity getQuantity() {
+        return quantity;
+    }
+
+    public Long getTimeFrameId() {
+        return timeFrameId;
     }
 
     public String getSensorExternalId() {
@@ -111,25 +128,26 @@ public class Metric implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Metric metric = (Metric) o;
-        return Float.compare(value, metric.value) == 0 && Objects.equals(id, metric.id) && Objects.equals(date, metric.date) && Objects.equals(time, metric.time) && Objects.equals(geoLocation, metric.geoLocation) && Objects.equals(sensorExternalId, metric.sensorExternalId);
+        Observation observation = (Observation) o;
+        return Float.compare(value, observation.value) == 0 && Objects.equals(id, observation.id) && Objects.equals(date, observation.date) && Objects.equals(timeFrameId, observation.timeFrameId) && Objects.equals(qualitativeScaleValue, observation.qualitativeScaleValue) && Objects.equals(quantity, observation.quantity) && Objects.equals(geoLocation, observation.geoLocation) && Objects.equals(sensorExternalId, observation.sensorExternalId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, date, time, value, geoLocation, sensorExternalId);
+        return Objects.hash(id, date, qualitativeScaleValue, quantity, value, geoLocation, sensorExternalId);
     }
 
     @Override
     public String toString() {
-        return "Metric{" +
+        return "Observation{" +
                 "id=" + id +
                 ", date=" + date +
-                ", time=" + time +
                 ", value=" + value +
-                ", range='" + range + '\'' +
+                ", timeFrameId='" + timeFrameId + '\'' +
                 ", geoLocation=" + geoLocation +
                 ", sensorExternalId='" + sensorExternalId + '\'' +
+                ", qualitativeScaleValue=" + qualitativeScaleValue.toString() +
+                ", quantity=" + quantity.toString() +
                 '}';
-    }
+    } 
 }

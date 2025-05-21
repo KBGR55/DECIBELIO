@@ -5,7 +5,11 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
+import java.util.LinkedHashSet;
 import java.util.Objects;
+import java.util.Set;
+
+import org.checkerframework.checker.units.qual.C;
 
 @Entity
 @TableGenerator(
@@ -52,9 +56,18 @@ public class Sensor implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     private TerritorialReference territorialReference;
 
+    @Column
+    @NotNull
+    private UnitType unitType;
+
+    @OneToMany(targetEntity = QualitativeScale.class, orphanRemoval = true, cascade = CascadeType.ALL)
+    @JoinColumn(name = "qualitativeScale_id")
+    private Set<QualitativeScale> qualitativeScale;
+
     public Sensor() {
         sensorStatus = SensorStatus.ACTIVE;
         sensorType = SensorType.SOUND_LEVEL_METER;
+        qualitativeScale = new LinkedHashSet<>();
     }
 
     public Long getId() {
@@ -148,6 +161,7 @@ public class Sensor implements Serializable {
         sb.append(", externalId='").append(externalId).append('\'');
         sb.append(", landUse=").append(landUse);
         sb.append(", territorialReference=").append(territorialReference);
+        sb.append(", qualitativeScale=").append(qualitativeScale);
         sb.append('}');
         return sb.toString();
     }

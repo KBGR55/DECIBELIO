@@ -12,7 +12,7 @@ import unl.feirnnr.cc.decibelio.common.rest.RestResult;
 import unl.feirnnr.cc.decibelio.common.rest.RestResultStatus;
 import unl.feirnnr.cc.decibelio.common.rest.exception.RuntimeExceptionMapper;
 import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
-import unl.feirnnr.cc.decibelio.sensor.model.Range;
+import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
 
 import java.util.List;
 import java.util.logging.Logger;
@@ -38,8 +38,8 @@ public class RangesResource {
             @APIResponse(responseCode = "404", description = "Error: Not found"),
     })
     public Response getAllRanges() {
-        List<Range> ranges = decibelioFacade.findAllRanges();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully", Range.class, ranges);
+        List<OptimalRange> ranges = decibelioFacade.findAllRanges();
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully", OptimalRange.class, ranges);
         return Response.ok(result).build();
     }
 }

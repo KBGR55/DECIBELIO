@@ -12,8 +12,8 @@ import unl.feirnnr.cc.decibelio.sensor.data.RangeService;
 import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
 import unl.feirnnr.cc.decibelio.sensor.model.LandUse;
 import unl.feirnnr.cc.decibelio.sensor.model.GeoLocation;
-import unl.feirnnr.cc.decibelio.sensor.model.Metric;
-import unl.feirnnr.cc.decibelio.sensor.model.Range;
+import unl.feirnnr.cc.decibelio.sensor.model.Observation;
+import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
 
@@ -83,7 +83,7 @@ public class DecibelioFacade {
      * 
      * @return una lista de todas las Métricas
      */
-    public List<Metric> findAllMetrics() {
+    public List<Observation> findAllMetrics() {
         return metricService.findAll();
     }
 
@@ -92,7 +92,7 @@ public class DecibelioFacade {
      * 
      * @return una lista de todos los Rangos
      */
-    public List<Range> findAllRanges() {
+    public List<OptimalRange> findAllRanges() {
         return rangeService.findAll();
     }
 
@@ -108,11 +108,11 @@ public class DecibelioFacade {
      * @return la lista de Métricas guardadas
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public List<Metric> save(List<Metric> metrics) {
-        List<Metric> savedMetrics = new ArrayList<>();
-        for (Metric metric : metrics) {
+    public List<Observation> save(List<Observation> metrics) {
+        List<Observation> savedMetrics = new ArrayList<>();
+        for (Observation metric : metrics) {
             try {
-                Metric savedMetric = metricService.save(metric);
+                Observation savedMetric = metricService.save(metric);
                 savedMetrics.add(savedMetric);
             } catch (Exception e) {
                 LOGGER.severe("Error saving metric with ID: " + metric.getId() + ": " + e.getMessage());
@@ -127,7 +127,7 @@ public class DecibelioFacade {
      * @param id el ID de la Métrica
      * @return la entidad Métrica encontrada
      */
-    public Metric findByMetricId(Long id) {
+    public Observation findByMetricId(Long id) {
         return metricService.findById(id);
     }
 
@@ -139,7 +139,7 @@ public class DecibelioFacade {
      */
     public List<String> loadMetricFileCSV(InputStream uploadedInputStream) {
         List<String> errors = new ArrayList<>();
-        List<Metric> metrics = new ArrayList<>();
+        List<Observation> metrics = new ArrayList<>();
 
         try (Reader reader = new InputStreamReader(uploadedInputStream);
                 CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
@@ -148,10 +148,10 @@ public class DecibelioFacade {
             for (CSVRecord csvRecord : csvParser) {
                 LOGGER.info("Processing record: " + csvRecord.toString());
 
-                Metric metric = new Metric();
+                Observation metric = new Observation();
                 try {
                     metric.setDate(LocalDate.parse(csvRecord.get("Fecha"), DATE_FORMATTER));
-                    metric.setTime(LocalTime.parse(csvRecord.get("Time/No."), TIME_FORMATTER));
+                  //  metric.setTime(LocalTime.parse(csvRecord.get("Time/No."), TIME_FORMATTER));
                     metric.setValue(Float.parseFloat(csvRecord.get("Value").replace(",", ".")));
                     metric.setGeoLocation(new GeoLocation(
                             Float.parseFloat(csvRecord.get("Latitud_y").replace(",", ".")),
@@ -199,9 +199,9 @@ public class DecibelioFacade {
      * @param metric la Métrica para la cual se debe generar el rango
      * @return la Métrica con el rango asignado
      */
-    public Metric generateRange(Metric metric) {
-        List<Range> ranges = rangeService.findAll();
-        LocalTime hora = metric.getTime();
+    public Observation generateRange(Observation metric) {
+        List<OptimalRange> ranges = rangeService.findAll();
+     //   LocalTime hora = metric.getTime();
         Sensor sensor = findByExternalId(metric.getSensorExternalId());
         LandUse landUse = sensor.getLandUse();
 
@@ -210,13 +210,13 @@ public class DecibelioFacade {
             return metric;
         }
 
-        TimeFrame timeFrame = findTimeFrameForHour(hora, ranges);
+      /**  TimeFrame timeFrame = findTimeFrameForHour(hora, ranges);
         if (timeFrame == null) {
             LOGGER.warning("No TimeFrame found for time: " + hora);
             return metric;
         }
 
-        Range range = rangeService.findByLandUseAndTimeFrame(landUse.getId(), timeFrame.getId());
+        OptimalRange range = rangeService.findByLandUseAndTimeFrame(landUse.getId(), timeFrame.getId());
         if (range != null) {
             BigDecimal metricValue = BigDecimal.valueOf(metric.getValue());
             BigDecimal rangeValue = range.getValue();
@@ -230,6 +230,7 @@ public class DecibelioFacade {
                     "No Range found for LandUse ID: " + landUse.getId() + " and TimeFrame ID: " + timeFrame.getId());
             return metric;
         }
+            */ 
         return metric;
     }
 
@@ -244,8 +245,8 @@ public class DecibelioFacade {
      * @return el TimeFrame correspondiente o null si no se encuentra
      */
 
-    private TimeFrame findTimeFrameForHour(LocalTime hour, List<Range> ranges) {
-        for (Range range : ranges) {
+    private TimeFrame findTimeFrameForHour(LocalTime hour, List<OptimalRange> ranges) {
+        for (OptimalRange range : ranges) {
             LocalTime startTime = range.getTimeFrame().getStartTime();
             LocalTime endTime = range.getTimeFrame().getEndTime();
             if (isTimeInRange(hour, startTime, endTime)) {
@@ -279,11 +280,11 @@ public class DecibelioFacade {
      * @param timeFrameId el ID del TimeFrame
      * @return el Range correspondiente
      */
-    public Range findByLandUseAndTimeFrame(Long landUseId, Long timeFrameId) {
+    public OptimalRange findByLandUseAndTimeFrame(Long landUseId, Long timeFrameId) {
         return rangeService.findByLandUseAndTimeFrame(landUseId, timeFrameId);
     }
 
-    public List<Metric> findLastMetricOfActiveSensors() {
+    public List<Observation> findLastMetricOfActiveSensors() {
         return metricService.findLastMetricOfActiveSensors();
     }
 
@@ -298,7 +299,7 @@ public class DecibelioFacade {
      *                         etc.)
      * @return una lista de métricas que cumplen con los criterios
      */
-    public List<Metric> findMetricsBySensorAndDateRangeWithInterval(
+    public List<Observation> findMetricsBySensorAndDateRangeWithInterval(
             @NotNull String sensorExternalId,
             @NotNull LocalDate startDate,
             @NotNull LocalDate endDate,
@@ -311,7 +312,7 @@ public class DecibelioFacade {
                 intervalMinutes);
     }
 
-    public List<Metric> findMetricsByDayOrNight() {
+    public List<Observation> findMetricsByDayOrNight() {
         LocalDate today = LocalDate.now();
         return metricService.findMaxMetricsByDayAndNight(today);
     }

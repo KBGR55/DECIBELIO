@@ -15,7 +15,7 @@ import unl.feirnnr.cc.decibelio.common.rest.RestResult;
 import unl.feirnnr.cc.decibelio.common.rest.RestResultStatus;
 import unl.feirnnr.cc.decibelio.common.rest.exception.RuntimeExceptionMapper;
 import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
-import unl.feirnnr.cc.decibelio.sensor.model.Metric;
+import unl.feirnnr.cc.decibelio.sensor.model.Observation;
 
 import java.io.InputStream;
 import java.time.LocalDateTime;
@@ -48,9 +48,9 @@ public class MetricsResource {
                         @APIResponse(responseCode = "404", description = "Error: Not found"),
         })
         public Response getAllMetrics() {
-                List<Metric> metrics = decibelioFacade.findAllMetrics();
+                List<Observation> metrics = decibelioFacade.findAllMetrics();
                 RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully",
-                                Metric.class,
+                                Observation.class,
                                 metrics);
                 return Response.ok(result).build();
         }
@@ -64,9 +64,9 @@ public class MetricsResource {
                         @APIResponse(responseCode = "404", description = "Error: Not found"),
         })
         public Response getAllMetricsFind() {
-                List<Metric> metrics = decibelioFacade.findLastMetricOfActiveSensors();
+                List<Observation> metrics = decibelioFacade.findLastMetricOfActiveSensors();
                 RestResult result = new RestResult(RestResultStatus.SUCCESS, "List consulted successfully",
-                                Metric.class,
+                                Observation.class,
                                 metrics);
                 return Response.ok(result).build();
         }
@@ -158,27 +158,27 @@ public class MetricsResource {
                                         "Fetching metrics for sensor: %s from %s to %s with interval of %d minutes",
                                         sensorExternalId, start, end, intervalMinutes));
 
-                        List<Metric> metrics = decibelioFacade.findMetricsBySensorAndDateRangeWithInterval(
+                        List<Observation> metrics = decibelioFacade.findMetricsBySensorAndDateRangeWithInterval(
                                         sensorExternalId,
                                         start.toLocalDate(), end.toLocalDate(), intervalMinutes);
 
                         if (metrics.isEmpty()) {
                                 RestResult result = new RestResult(RestResultStatus.SUCCESS,
-                                                "No metrics found for the specified criteria", Metric.class, metrics);
+                                                "No metrics found for the specified criteria", Observation.class, metrics);
                                 return Response.status(Response.Status.NOT_FOUND).entity(result).build();
                         }
                         // Agrupar las métricas por sensorExternalId
-                        Map<String, List<Metric>> groupedMetrics = metrics.stream()
-                                        .collect(Collectors.groupingBy(Metric::getSensorExternalId));
+                        Map<String, List<Observation>> groupedMetrics = metrics.stream()
+                                        .collect(Collectors.groupingBy(Observation::getSensorExternalId));
 
                         // Crear la respuesta
                         List<Map<String, Object>> responsePayload = new ArrayList<>();
-                        for (Map.Entry<String, List<Metric>> entry : groupedMetrics.entrySet()) {
+                        for (Map.Entry<String, List<Observation>> entry : groupedMetrics.entrySet()) {
                                 String sensorId = entry.getKey();
-                                List<Metric> sensorMetrics = entry.getValue();
+                                List<Observation> sensorMetrics = entry.getValue();
 
                                 // Obtener detalles del sensor (solo una vez)
-                                Metric firstMetric = sensorMetrics.get(0);
+                                Observation firstMetric = sensorMetrics.get(0);
                                 Map<String, Object> geoLocation = new HashMap<>();
                                 geoLocation.put("latitude", firstMetric.getGeoLocation().getLatitude());
                                 geoLocation.put("longitude", firstMetric.getGeoLocation().getLongitude());
@@ -190,12 +190,12 @@ public class MetricsResource {
 
                                 // Crear la lista de métricas sin los detalles del sensor
                                 List<Map<String, Object>> metricsList = new ArrayList<>();
-                                for (Metric metric : sensorMetrics) {
+                                for (Observation metric : sensorMetrics) {
                                         Map<String, Object> metricData = new HashMap<>();
                                         metricData.put("date", metric.getDate());
                                         metricData.put("id", metric.getId());
-                                        metricData.put("range", metric.getRange());
-                                        metricData.put("time", metric.getTime());
+                                       // metricData.put("range", metric.getRange());
+                                        //metricData.put("time", metric.getTime());
                                         metricData.put("value", metric.getValue());
                                         metricsList.add(metricData);
                                 }
@@ -204,7 +204,7 @@ public class MetricsResource {
                         }
 
                         RestResult result = new RestResult(RestResultStatus.SUCCESS, "Metrics retrieved successfully",
-                                        Metric.class, responsePayload);
+                                        Observation.class, responsePayload);
                         return Response.ok(result).build();
                 } catch (Exception e) {
                         LOGGER.log(Level.SEVERE, "Error fetching metrics", e);
@@ -223,17 +223,17 @@ public class MetricsResource {
             @APIResponse(responseCode = "404", description = "Error: Not found")
         })
         public Response getMetricsByDayOrNight() {
-            List<Metric> metrics = decibelioFacade.findMetricsByDayOrNight();
+            List<Observation> metrics = decibelioFacade.findMetricsByDayOrNight();
         
-            Map<String, List<Metric>> groupedMetrics = metrics.stream()
-                    .collect(Collectors.groupingBy(Metric::getSensorExternalId));
+            Map<String, List<Observation>> groupedMetrics = metrics.stream()
+                    .collect(Collectors.groupingBy(Observation::getSensorExternalId));
         
             List<Map<String, Object>> responsePayload = new ArrayList<>();
-            for (Map.Entry<String, List<Metric>> entry : groupedMetrics.entrySet()) {
+            for (Map.Entry<String, List<Observation>> entry : groupedMetrics.entrySet()) {
                 String sensorId = entry.getKey();
-                List<Metric> sensorMetrics = entry.getValue();
+                List<Observation> sensorMetrics = entry.getValue();
 
-                Metric firstMetric = sensorMetrics.get(0);
+                Observation firstMetric = sensorMetrics.get(0);
                 Map<String, Object> geoLocation = new HashMap<>();
                 geoLocation.put("latitude", firstMetric.getGeoLocation().getLatitude());
                 geoLocation.put("longitude", firstMetric.getGeoLocation().getLongitude());
@@ -243,12 +243,12 @@ public class MetricsResource {
                 sensor.put("geoLocation", geoLocation);
         
                 List<Map<String, Object>> metricsList = new ArrayList<>();
-                for (Metric metric : sensorMetrics) {
+                for (Observation metric : sensorMetrics) {
                     Map<String, Object> metricData = new HashMap<>();
                     metricData.put("date", metric.getDate());
                     metricData.put("id", metric.getId());
-                    metricData.put("range", metric.getRange());
-                    metricData.put("time", metric.getTime());
+                   // metricData.put("range", metric.getRange());
+                 //   metricData.put("time", metric.getTime());
                     metricData.put("max", metric.getValue());
                     metricsList.add(metricData);
                 }
@@ -259,7 +259,7 @@ public class MetricsResource {
             RestResult result = new RestResult(
                     RestResultStatus.SUCCESS,
                     "Metrics retrieved successfully",
-                    Metric.class,
+                    Observation.class,
                     responsePayload
             );
             return Response.ok(result).build();

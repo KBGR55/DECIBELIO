@@ -9,5 +9,21 @@ public class HistoricalObservation extends Observation {
     @Column
     private MeasurementType measurementType;
 
-    
+    public void setMeasurementType(MeasurementType measurementType) {
+        this.measurementType = measurementType;
+    }
+
+    public MeasurementType getMeasurementType() {
+        return measurementType;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("HistoricalObservation{");
+        sb.append(", measurementType=").append(measurementType);
+        sb.append('}');
+        return sb.toString();
+    }
+
 }

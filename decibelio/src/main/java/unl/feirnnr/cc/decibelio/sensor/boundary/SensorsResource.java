@@ -24,6 +24,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -43,10 +44,12 @@ import unl.feirnnr.cc.decibelio.common.rest.exception.RuntimeExceptionMapper;
 import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
 import unl.feirnnr.cc.decibelio.sensor.model.GeoLocation;
 import unl.feirnnr.cc.decibelio.sensor.model.LandUse;
+import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScale;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 import unl.feirnnr.cc.decibelio.sensor.model.SensorStatus;
 import unl.feirnnr.cc.decibelio.sensor.model.SensorType;
 import unl.feirnnr.cc.decibelio.sensor.model.TerritorialReference;
+import unl.feirnnr.cc.decibelio.sensor.model.UnitType;
 
 @Path("sensors")
 @APIResponses(value = {
@@ -65,7 +68,6 @@ public class SensorsResource {
     private static final String LATITUDE_TYPE = "latitude";
     private static final String LONGITUDE_TYPE = "longitude";
 
-
     @Inject
     DecibelioFacade decibelioFacade;
 
@@ -79,7 +81,7 @@ public class SensorsResource {
     public SensorResource find(@PathParam("id") Long id) {
         return new SensorResource(id, decibelioFacade);
     }
-        
+
     @POST
     @Path("/create")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -88,54 +90,64 @@ public class SensorsResource {
     @APIResponses(value = {
             @APIResponse(responseCode = "201", description = "Successful operation"),
     })
-    @RequestBody(
-        description = "JSON object containing the sensor details",
-        required = true,
-        content = @Content(
-                schema = @Schema(
-                        type = SchemaType.OBJECT,
-                        properties = {
-                                @SchemaProperty(name = "name", type = SchemaType.STRING, description = "Name of the sensor"),
-                                @SchemaProperty(name = "sensorStatus", type = SchemaType.STRING, description = "Status of the sensor"),
-                                @SchemaProperty(name = "sensorType", type = SchemaType.STRING, description = "Type of the sensor"),
-                                @SchemaProperty(name = LATITUDE_TYPE, type = SchemaType.NUMBER, format = "double", description = "Latitude of the sensor location"),
-                                @SchemaProperty(name = LONGITUDE_TYPE, type = SchemaType.NUMBER, format = "double", description = "Longitude of the sensor location"),
-                                @SchemaProperty(name = "externalID", type = SchemaType.STRING, description = "External ID of the sensor"),
-                                @SchemaProperty(name = "landUseID", type = SchemaType.INTEGER, format = "int64", description = "ID of the land use")
-                        }
-                )
-        )
-    )
-    //@Fallback(fallbackMethod = "fallbackMethodCreated")
-    public Response create(JsonObject json, @Context UriInfo uriInfo){
+    @RequestBody(description = "JSON object containing the sensor details", required = true, content = @Content(schema = @Schema(type = SchemaType.OBJECT, properties = {
+            @SchemaProperty(name = "name", type = SchemaType.STRING, description = "Name of the sensor"),
+            @SchemaProperty(name = "sensorStatus", type = SchemaType.STRING, description = "Status of the sensor"),
+            @SchemaProperty(name = "sensorType", type = SchemaType.STRING, description = "Type of the sensor"),
+            @SchemaProperty(name = LATITUDE_TYPE, type = SchemaType.NUMBER, format = "double", description = "Latitude of the sensor location"),
+            @SchemaProperty(name = LONGITUDE_TYPE, type = SchemaType.NUMBER, format = "double", description = "Longitude of the sensor location"),
+            @SchemaProperty(name = "nameUnitType", type = SchemaType.STRING, description = "Name of the unit type"),
+            @SchemaProperty(name = "abbreviationUnitType", type = SchemaType.STRING, description = "Abbreviation of the unit type"),
+            @SchemaProperty(name = "externalID", type = SchemaType.STRING, description = "External ID of the sensor"),
+            @SchemaProperty(name = "landUseID", type = SchemaType.INTEGER, format = "int64", description = "ID of the land use"),
+
+    })))
+    // @Fallback(fallbackMethod = "fallbackMethodCreated")
+    public Response create(JsonObject json, @Context UriInfo uriInfo) {
         Sensor sensor = new Sensor();
         sensor.setName(json.getString("name"));
-    sensor.setSensorStatus(SensorStatus.valueOf(json.getString("sensorStatus")));
-    sensor.setSensorType(SensorType.valueOf(json.getString(SENSOR_TYPE)));
+        sensor.setSensorStatus(SensorStatus.valueOf(json.getString("sensorStatus")));
+        sensor.setSensorType(SensorType.valueOf(json.getString(SENSOR_TYPE)));
 
-    GeoLocation geoLocation = new GeoLocation();
-    geoLocation.setLatitude(((float)json.getJsonNumber(LATITUDE_TYPE).doubleValue()));
-    geoLocation.setLongitude(((float)json.getJsonNumber(LONGITUDE_TYPE).doubleValue()));
-    sensor.setGeoLocation(geoLocation);
+        GeoLocation geoLocation = new GeoLocation();
+        geoLocation.setLatitude(((float) json.getJsonNumber(LATITUDE_TYPE).doubleValue()));
+        geoLocation.setLongitude(((float) json.getJsonNumber(LONGITUDE_TYPE).doubleValue()));
+        sensor.setGeoLocation(geoLocation);
 
-    sensor.setExternalId(json.getString("externalId"));
+        String unitName = json.getString("nameUnitType");
+        String unitAbbr = json.getString("abbreviationUnitType");
 
-    Long landUseId = json.getJsonNumber("landUseID").longValue();
-    LandUse landUse = decibelioFacade.findByLandUseId(landUseId);
-    if (landUse == null) {
-        return Response.status(Response.Status.BAD_REQUEST)
-                .entity(new RestResult(RestResultStatus.FAILURE, "Invalid land use ID", "LandUse", null))
-                .build();
-    }
-    sensor.setLandUse(landUse);
+        // Buscar UnitType existente (debes implementar este método en decibelioFacade)
+        UnitType unitType = decibelioFacade.findUnitTypeByNameAndAbbreviation(unitName, unitAbbr);
 
-    // Persistir el sensor
-    Sensor saved = decibelioFacade.save(sensor);
-    LOGGER.log(Level.INFO, "Method POST, Sensor created: {0}", saved);
-    Long id = saved.getId();
-    URI uri = uriInfo.getAbsolutePathBuilder().path("/" + id).build();
-    RestResult result = new RestResult(RestResultStatus.SUCCESS, "Entity created", Sensor.class.getSimpleName(), saved);
-    return Response.created(uri).entity(result).build();
+        if (unitType == null) {
+            unitType = new UnitType();
+            unitType.setName(unitName);
+            unitType.setAbbreviation(unitAbbr);
+            decibelioFacade.saveUnitType(unitType); // Guarda el UnitType
+        }
+
+        sensor.setUnitType(unitType);
+
+        sensor.setExternalId(json.getString("externalId"));
+
+        Long landUseId = json.getJsonNumber("landUseID").longValue();
+        LandUse landUse = decibelioFacade.findByLandUseId(landUseId);
+        if (landUse == null) {
+            return Response.status(Response.Status.BAD_REQUEST)
+                    .entity(new RestResult(RestResultStatus.FAILURE, "Invalid land use ID", "LandUse", null))
+                    .build();
+        }
+        sensor.setLandUse(landUse);
+
+        // Persistir el sensor
+        Sensor saved = decibelioFacade.save(sensor);
+        LOGGER.log(Level.INFO, "Method POST, Sensor created: {0}", saved);
+        Long id = saved.getId();
+        URI uri = uriInfo.getAbsolutePathBuilder().path("/" + id).build();
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "Entity created", Sensor.class.getSimpleName(),
+                saved);
+        return Response.created(uri).entity(result).build();
     }
 
     @PATCH
@@ -151,15 +163,16 @@ public class SensorsResource {
         if (sensor != null) {
             if (sensor.getSensorStatus() == SensorStatus.ACTIVE) {
                 sensor.setSensorStatus(SensorStatus.DESACTIVE);
-                message = "Sensor is deactivated";
-            } else{
+                message = "Sensor desactivado";
+            } else {
                 sensor.setSensorStatus(SensorStatus.ACTIVE);
-                message = "Sensor is active";
+                message = "Sensor activado";
             }
             decibelioFacade.save(sensor);
             Sensor saved = decibelioFacade.findBySensorId(id);
             LOGGER.log(Level.INFO, "....IN. SensorResource SAVING WITH PUT by {0}", saved.getId());
-            RestResult result = new RestResult(RestResultStatus.SUCCESS, message, Sensor.class.getSimpleName(), saved.getId());
+            RestResult result = new RestResult(RestResultStatus.SUCCESS, message, Sensor.class.getSimpleName(),
+                    saved.getId());
             return Response.ok().entity(result).build();
         } else {
             return Response.status(Response.Status.NOT_FOUND).entity("Sensor not found").build();
@@ -174,23 +187,15 @@ public class SensorsResource {
     @APIResponses(value = {
             @APIResponse(responseCode = "200", description = "Successful operation")
     })
-    @RequestBody(
-        description = "JSON object containing the sensor details",
-        required = true,
-        content = @Content(
-                schema = @Schema(
-                        type = SchemaType.OBJECT,
-                        properties = {
-                                @SchemaProperty(name = "country", type = SchemaType.STRING),
-                                @SchemaProperty(name = "city", type = SchemaType.STRING),
-                                @SchemaProperty(name = "parish", type = SchemaType.STRING),
-                                @SchemaProperty(name = "locality", type = SchemaType.STRING),
-                                @SchemaProperty(name = "street", type = SchemaType.STRING),
-                        }
-                )
-        )
-    )
-    public Response addTerritorialReference(@PathParam("id") Long id, @Valid TerritorialReference territorialReference) {
+    @RequestBody(description = "JSON object containing the sensor details", required = true, content = @Content(schema = @Schema(type = SchemaType.OBJECT, properties = {
+            @SchemaProperty(name = "country", type = SchemaType.STRING),
+            @SchemaProperty(name = "city", type = SchemaType.STRING),
+            @SchemaProperty(name = "parish", type = SchemaType.STRING),
+            @SchemaProperty(name = "locality", type = SchemaType.STRING),
+            @SchemaProperty(name = "street", type = SchemaType.STRING),
+    })))
+    public Response addTerritorialReference(@PathParam("id") Long id,
+            @Valid TerritorialReference territorialReference) {
         Sensor sensor = decibelioFacade.findBySensorId(id);
         String message;
         RestResultStatus resStatus;
@@ -199,7 +204,7 @@ public class SensorsResource {
             if (sensor.getTerritorialReference() != null) {
                 message = "The sensor already has an associated territorial reference";
                 resStatus = RestResultStatus.FAILURE;
-            } else{
+            } else {
                 sensor.setTerritorialReference(territorialReference);
                 message = "Territorial Reference was successfully added ";
                 resStatus = RestResultStatus.SUCCESS;
@@ -227,20 +232,39 @@ public class SensorsResource {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
 
         for (Sensor sensor : sensors) {
+            JsonArrayBuilder qualitativeScaleArrayBuilder = Json.createArrayBuilder();
+            if (sensor.getQualitativeScale() != null) {
+                for (QualitativeScale scale : sensor.getQualitativeScale()) {
+                    JsonObject scaleJson = Json.createObjectBuilder()
+                            .add("name", scale.getName() != null ? scale.getName() : "")
+                            .add("description", scale.getDescription() != null ? scale.getDescription() : "")
+                            .build();
+                    qualitativeScaleArrayBuilder.add(scaleJson);
+                }
+            }
             JsonObject sensorJson = Json.createObjectBuilder()
                     .add("id", sensor.getId())
                     .add("name", sensor.getName())
                     .add("externalID", sensor.getExternalId())
-                    .add(LATITUDE_TYPE, ((float)sensor.getGeoLocation().getLatitude()))
-                    .add(LONGITUDE_TYPE, ((float)sensor.getGeoLocation().getLongitude()))
+                    .add(LATITUDE_TYPE, ((float) sensor.getGeoLocation().getLatitude()))
+                    .add(LONGITUDE_TYPE, ((float) sensor.getGeoLocation().getLongitude()))
                     .add(SENSOR_TYPE, sensor.getSensorType().name())
                     .add("landUseName", sensor.getLandUse().getName())
+                    .add("qualitativeScale", qualitativeScaleArrayBuilder.build())
+                    .add("unitType", sensor.getUnitType() != null ? Json.createObjectBuilder()
+                            .add("name", sensor.getUnitType().getName())
+                            .add("abbreviation",
+                                    sensor.getUnitType().getAbbreviation() == null ? ""
+                                            : sensor.getUnitType().getAbbreviation())
+                            .build()
+                            : JsonValue.NULL)
                     .build();
             arrayBuilder.add(sensorJson);
         }
 
         JsonArray sensorArray = arrayBuilder.build();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of active Sensors", Sensor.class.getSimpleName(), sensorArray);
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of active Sensors",
+                Sensor.class.getSimpleName(), sensorArray);
         return Response.ok().entity(result).build();
     }
 
@@ -255,13 +279,13 @@ public class SensorsResource {
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
 
         for (Sensor sensor : sensors) {
-            
+
             JsonObject sensorJson = Json.createObjectBuilder()
                     .add("id", sensor.getId())
                     .add("name", sensor.getName())
                     .add("externalID", sensor.getExternalId())
-                    .add(LATITUDE_TYPE, ((float)sensor.getGeoLocation().getLatitude()))
-                    .add(LONGITUDE_TYPE, ((float)sensor.getGeoLocation().getLongitude()))
+                    .add(LATITUDE_TYPE, ((float) sensor.getGeoLocation().getLatitude()))
+                    .add(LONGITUDE_TYPE, ((float) sensor.getGeoLocation().getLongitude()))
                     .add(SENSOR_TYPE, sensor.getSensorType().name())
                     .add("sensorStatus", sensor.getSensorStatus().toString())
                     .add("landUseName", sensor.getLandUse().getName())
@@ -270,7 +294,8 @@ public class SensorsResource {
         }
 
         JsonArray sensorArray = arrayBuilder.build();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of all Sensors", Sensor.class.getSimpleName(), sensorArray);
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of all Sensors",
+                Sensor.class.getSimpleName(), sensorArray);
         return Response.ok().entity(result).build();
     }
 
@@ -294,7 +319,29 @@ public class SensorsResource {
         }
 
         JsonArray landUseArray = arrayBuilder.build();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of all landuse", LandUse.class.getSimpleName(), landUseArray);
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of all landuse",
+                LandUse.class.getSimpleName(), landUseArray);
         return Response.ok().entity(result).build();
     }
+
+    @POST
+    @Path("/{id}/qualitativeScales")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response addQualitativeScale(@PathParam("id") Long sensorId, @Valid QualitativeScale qualitativeScale) {
+        Sensor sensor = decibelioFacade.findBySensorId(sensorId);
+        if (sensor == null) {
+            return Response.status(Response.Status.NOT_FOUND)
+                    .entity(new RestResult(RestResultStatus.FAILURE, "Sensor not found", "Sensor", null))
+                    .build();
+        }
+        // Agregar la escala a la colección del sensor
+        sensor.getQualitativeScale().add(qualitativeScale);
+        decibelioFacade.save(sensor); // Guarda con cascada las escalas nuevas
+
+        RestResult result = new RestResult(RestResultStatus.SUCCESS, "Qualitative scale added",
+                Sensor.class.getSimpleName(), sensor.getId());
+        return Response.ok(result).build();
+    }
+
 }

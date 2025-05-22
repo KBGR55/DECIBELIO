@@ -9,8 +9,6 @@ import java.util.LinkedHashSet;
 import java.util.Objects;
 import java.util.Set;
 
-import org.checkerframework.checker.units.qual.C;
-
 @Entity
 @TableGenerator(
         name = "SensorGenerator",
@@ -56,8 +54,8 @@ public class Sensor implements Serializable {
     @ManyToOne(fetch = FetchType.LAZY)
     private TerritorialReference territorialReference;
 
-    @Column
-    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "unit_type_id")
     private UnitType unitType;
 
     @OneToMany(targetEntity = QualitativeScale.class, orphanRemoval = true, cascade = CascadeType.ALL)
@@ -133,6 +131,18 @@ public class Sensor implements Serializable {
     public void setTerritorialReference(TerritorialReference territorialReference) {
         this.territorialReference = territorialReference;
     }
+
+    public void setUnitType(UnitType unitType) {
+        this.unitType = unitType;
+    }
+
+    public UnitType getUnitType() {
+        return unitType;
+    }
+    public Set<QualitativeScale> getQualitativeScale() {
+        return qualitativeScale;
+    }
+
 
     @Override
     public boolean equals(Object o) {

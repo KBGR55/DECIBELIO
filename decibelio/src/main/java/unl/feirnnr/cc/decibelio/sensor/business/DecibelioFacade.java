@@ -8,14 +8,18 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.sensor.data.LandUseService;
 import unl.feirnnr.cc.decibelio.sensor.data.MetricService;
+import unl.feirnnr.cc.decibelio.sensor.data.QualitativeScaleService;
 import unl.feirnnr.cc.decibelio.sensor.data.RangeService;
 import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
+import unl.feirnnr.cc.decibelio.sensor.data.UnitTypeService;
 import unl.feirnnr.cc.decibelio.sensor.model.LandUse;
 import unl.feirnnr.cc.decibelio.sensor.model.GeoLocation;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;
 import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
+import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScale;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
+import unl.feirnnr.cc.decibelio.sensor.model.UnitType;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -23,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -49,6 +52,9 @@ public class DecibelioFacade {
     MetricService metricService;
     @Inject
     RangeService rangeService;
+    @Inject
+    UnitTypeService unitTypeService;
+
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
@@ -316,4 +322,27 @@ public class DecibelioFacade {
         LocalDate today = LocalDate.now();
         return metricService.findMaxMetricsByDayAndNight(today);
     }
+    // UnitType
+
+ // Método para guardar un UnitType
+    public UnitType saveUnitType(UnitType unitType) {
+        LOGGER.log(Level.INFO, "Saving UnitType entity: {0}", unitType);
+        return unitTypeService.save(unitType);
+    }
+
+    // Método para buscar UnitType por nombre y abreviatura
+    public UnitType findUnitTypeByNameAndAbbreviation(String name, String abbreviation) {
+        LOGGER.log(Level.INFO, "Searching UnitType by name: {0} and abbreviation: {1}", new Object[]{name, abbreviation});
+        return unitTypeService.findByNameAndAbbreviation(name, abbreviation);
+    }
+    
+ //QualitativeScaleService 
+
+@Inject
+QualitativeScaleService qualitativeScaleService;
+
+public QualitativeScale saveQualitativeScale(QualitativeScale qualitativeScale) {
+    return qualitativeScaleService.save(qualitativeScale);
+}
+
 }

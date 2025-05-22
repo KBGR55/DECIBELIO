@@ -5,6 +5,7 @@ import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
+import 'package:decibelio_app_web/views/qualitative_scale/qualitative_scale_create.dart';
 import 'package:decibelio_app_web/views/sensor_create/components/sensor_create.dart';
 import 'package:decibelio_app_web/views/sensor_edit/components/sensor_edit.dart';
 import 'package:flutter/material.dart';
@@ -43,10 +44,10 @@ class _SensorTable extends State<SensorTable> {
     final query = widget.searchQuery.toLowerCase();
 
     final filteredSensors = _sensors.where((sensor) {
-
       final name = sensor.name.toLowerCase();
       final type = sensor.sensorType.toLowerCase();
-      final landUse = utf8.decode(sensor.landUseName.runes.toList()).toLowerCase();
+      final landUse =
+          utf8.decode(sensor.landUseName.runes.toList()).toLowerCase();
       final external = sensor.externalId.toLowerCase();
 
       return name.contains(query) ||
@@ -72,7 +73,6 @@ class _SensorTable extends State<SensorTable> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -125,7 +125,7 @@ class _SensorTable extends State<SensorTable> {
               // En vez de _sensors, ahora usamos filteredSensors
               rows: List.generate(
                 filteredSensors.length,
-                    (index) => sensorsDataRow(filteredSensors[index], context),
+                (index) => sensorsDataRow(filteredSensors[index], context),
               ),
             ),
           ),
@@ -134,7 +134,6 @@ class _SensorTable extends State<SensorTable> {
     );
   }
 }
-
 
 DataRow sensorsDataRow(SensorDTO sensor, BuildContext context) {
   return DataRow(
@@ -179,6 +178,20 @@ DataRow sensorsDataRow(SensorDTO sensor, BuildContext context) {
               initialStatus: sensor.sensorStatus == 'ACTIVE',
               sensorId: sensor.id,
             ),
+            Tooltip(
+              message: "Agregar Escala Cualitativa",
+              child: IconButton(
+                icon: const Icon(Icons.add_chart),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return QualitativeScaleCreatePage(sensorId: sensor.id);
+                    },
+                  );
+                },
+              ),
+            ),
           ],
         ),
       ),
@@ -215,25 +228,34 @@ class SensorSwitchState extends State<SensorSwitch> {
       showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ), content: Row(children: [
-              const Icon(Icons.check_circle, color: Colors.blue, size: 30),
-              const SizedBox(width: 10),
-              Text(respuesta.message)
-            ],));
+            return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                content: Row(
+                  children: [
+                    const Icon(Icons.check_circle,
+                        color: Colors.blue, size: 30),
+                    const SizedBox(width: 10),
+                    Text(respuesta.message)
+                  ],
+                ));
           });
-    } else if(mounted){
+    } else if (mounted) {
       showDialog(
           context: context,
           builder: (BuildContext context) {
-            return AlertDialog(shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),content: const Row(children: [
-              Icon(Icons.check_circle, color: Colors.red, size: 30),
-              SizedBox(width: 10),
-              Text('No se ha podido completar la acción')
-            ],));
+            return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                content: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.red, size: 30),
+                    SizedBox(width: 10),
+                    Text('No se ha podido completar la acción')
+                  ],
+                ));
           });
       setState(() {
         !status;

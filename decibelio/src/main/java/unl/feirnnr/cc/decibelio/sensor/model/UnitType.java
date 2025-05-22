@@ -6,15 +6,17 @@ import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * @author wduck
- *         Clase que representa el Uso de Suelo para establecer los rangos
- *         permitidos
- *         de acuerdo a las leyes de la República del Ecuador
- *
- */
+
 @Entity
-@TableGenerator(name = "UnitTypeGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "UnitType", initialValue = 1, allocationSize = 1)
+@TableGenerator(
+    name = "UnitTypeGenerator",
+    table = "IdentityGenerator",
+    pkColumnName = "name",
+    valueColumnName = "value",
+    pkColumnValue = "UnitType",
+    initialValue = 1,
+    allocationSize = 1
+)
 public class UnitType implements Serializable {
     @Id
     @GeneratedValue(generator = "UnitTypeGenerator", strategy = GenerationType.TABLE)
@@ -44,11 +46,11 @@ public class UnitType implements Serializable {
         this.name = name;
     }
 
-    public String getabbreviation() {
+    public String getAbbreviation() {
         return abbreviation;
     }
 
-    public void setabbreviation(String abbreviation) {
+    public void setAbbreviation(String abbreviation) {
         this.abbreviation = abbreviation;
     }
 

@@ -21,7 +21,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     with TickerProviderStateMixin {
   GlobalKey<ScaffoldState> mapScreenKey = GlobalKey<ScaffoldState>();
   static const _unl = LatLng(-4.032126227155394, -79.20267644603182);
-  static const _loja = LatLng(-4.0050051,-79.2046022);
+  static const _loja = LatLng(-4.0050051, -79.2046022);
   final Facade _facade = Facade();
   ListSensorDTO? sensors;
   ListMetricDTO? metricLast;
@@ -80,99 +80,195 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     if (sensors != null && sensors!.data.isNotEmpty) {
       for (var sensor in sensors!.data) {
         Marker marker = Marker(
-          width: 35,
-          height: 35,
-          point: LatLng(sensor.latitude, sensor.longitude),
-          child: GestureDetector(
-            onTap: () {
-              String? value;
-              String? date;
-              String? time;
+            width: 35,
+            height: 35,
+            point: LatLng(sensor.latitude, sensor.longitude),
+            child: GestureDetector(
+              onTap: () {
+                String? value;
+                String? date;
+                String? time;
 
-              // Buscar la métrica correspondiente al sensor
-              if (metricLast != null) {
-                for (var metric in metricLast!.data) {
-                  if (metric.sensorExternalId == sensor.externalId) {
-                    value = metric.value.toString();
-                    date = metric.date; // Obtener la fecha
-                    time = metric.time; // Obtener la hora
-                    break;
+                // Buscar la métrica correspondiente al sensor
+                if (metricLast != null) {
+                  for (var metric in metricLast!.data) {
+                    if (metric.sensorExternalId == sensor.externalId) {
+                      value = metric.value.toString();
+                      date = metric.date; // Obtener la fecha
+                      time = metric.time; // Obtener la hora
+                      break;
+                    }
                   }
                 }
-              }
 
-              showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  Color getValueColor(double? value) {
-                    if (value == null) return Colors.grey;
-                    if (value <= 20) return const Color(0xFF13E500);
-                    if (value <= 30) return const Color(0xFF64E900);
-                    if (value <= 40) return const Color(0xFF8FEC00);
-                    if (value <= 50) return const Color(0xFFBAEE00);
-                    if (value <= 60) return const Color(0xFFE5F000);
-                    if (value <= 70) return const Color(0xFFF3D300);
-                    if (value <= 80) return const Color(0xFFF5AB00);
-                    if (value <= 90) return const Color(0xFFF78100);
-                    if (value <= 100) return const Color(0xFFFA5700);
-                    if (value <= 110) return const Color(0xFFFC2C00);
-                    return const Color(0xFFFF0000);
-                  }
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    Color getValueColor(double? value) {
+                      if (value == null) return Colors.grey;
+                      if (value <= 20) return const Color(0xFF13E500);
+                      if (value <= 30) return const Color(0xFF64E900);
+                      if (value <= 40) return const Color(0xFF8FEC00);
+                      if (value <= 50) return const Color(0xFFBAEE00);
+                      if (value <= 60) return const Color(0xFFE5F000);
+                      if (value <= 70) return const Color(0xFFF3D300);
+                      if (value <= 80) return const Color(0xFFF5AB00);
+                      if (value <= 90) return const Color(0xFFF78100);
+                      if (value <= 100) return const Color(0xFFFA5700);
+                      if (value <= 110) return const Color(0xFFFC2C00);
+                      return const Color(0xFFFF0000);
+                    }
 
-                  return AlertDialog(
-                    title: Text(sensor.name),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Tipo de sensor: ${sensor.sensorType}'),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Text('Valor: '),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 8, vertical: 4),
-                              decoration: BoxDecoration(
-                                color:
-                                    getValueColor(double.tryParse(value ?? '')),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: Text(
-                                value ?? 'No disponible',
-                                style: const TextStyle(
-                                  color: Colors.white, 
-                                  fontWeight: FontWeight.bold,
+                    bool showMore = false;
+
+                    return StatefulBuilder(
+                      builder: (context, setState) {
+                        return AlertDialog(
+                          title: Text(sensor.name),
+                          content: SingleChildScrollView(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Tipo de sensor: ${sensor.sensorType}'),
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    const Text('Valor: '),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: getValueColor(
+                                            double.tryParse(value ?? '')),
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Text(
+                                        value ?? 'No disponible',
+                                        style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
+                                  ],
                                 ),
-                              ),
+                                const SizedBox(height: 8),
+                                Text('Fecha: ${date ?? 'No disponible'}'),
+                                const SizedBox(height: 8),
+                                Text('Hora: ${time ?? 'No disponible'}'),
+                                const SizedBox(height: 8),
+
+                                // Botón para mostrar más info
+                                TextButton(
+                                  child: Text(
+                                      showMore ? 'Ver menos...' : 'Ver más...'),
+                                  onPressed: () {
+                                    setState(() {
+                                      showMore = !showMore;
+                                    });
+                                  },
+                                ),
+
+                                if (showMore)
+                                  // Tabla con UnitType y QualitativeScales
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      // Mostrar UnitType
+                                      // en tabla
+                                      if (sensor.unitType != null) ...[
+                                        const Text('Unidad de medida:'),
+                                        Text(
+                                          '${sensor.unitType?.name} (${sensor.unitType?.abbreviation ?? ''})',
+                                          style: const TextStyle(
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        const SizedBox(height: 8),
+                                      ],
+                                      const SizedBox(height: 16),
+
+                                      // Tabla con escalas cualitativas
+                                      const Text('Escalas Cualitativas:',
+                                          style: TextStyle(
+                                              fontWeight: FontWeight.bold)),
+                                      if (sensor.qualitativeScales.isNotEmpty)
+                                        Table(
+                                          columnWidths: const {
+                                            0: FlexColumnWidth(2),
+                                            1: FlexColumnWidth(4),
+                                          },
+                                          border: TableBorder.all(),
+                                          children: [
+                                            // Header
+                                            const TableRow(children: [
+                                              Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: Text('Nombre',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                              ),
+                                              Padding(
+                                                padding: EdgeInsets.all(8.0),
+                                                child: Text('Descripción',
+                                                    style: TextStyle(
+                                                        fontWeight:
+                                                            FontWeight.bold)),
+                                              ),
+                                            ]),
+                                            // Filas de escalas
+                                            ...sensor.qualitativeScales.map(
+                                                (scale) => TableRow(children: [
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(scale.name),
+                                                      ),
+                                                      Padding(
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .all(8.0),
+                                                        child: Text(scale
+                                                                .description ??
+                                                            'Sin descripción'),
+                                                      ),
+                                                    ])),
+                                          ],
+                                        )
+                                      else
+                                        const Padding(
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 8.0),
+                                          child: Text(
+                                              'No hay escalas cualitativas asociadas.'),
+                                        ),
+                                    ],
+                                  )
+                              ],
+                            ),
+                          ),
+                          actions: [
+                            TextButton(
+                              child: const Text('Cerrar'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
                             ),
                           ],
-                        ),
-                        const SizedBox(height: 8),
-                        Text('Fecha: ${date ?? 'No disponible'}'),
-                        const SizedBox(height: 8),
-                        Text('Hora: ${time ?? 'No disponible'}'),
-                      ],
-                    ),
-                    actions: [
-                      TextButton(
-                        child: const Text('Cerrar'),
-                        onPressed: () {
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                    ],
-                  );
-                },
-              );
-            },
-            child: SvgPicture.asset(
-              'assets/icons/map-marker-svgrepo-com.svg',
-              width: 35,
-              height: 35,
-            ),
-          ),
-        );
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+              child: SvgPicture.asset(
+                'assets/icons/map-marker-svgrepo-com.svg',
+                width: 35,
+                height: 35,
+              ),
+            ));
         _markers.add(marker);
       }
     } else {

@@ -25,6 +25,9 @@ class SensorCreateControllerPageState
   final Conexion _con = Conexion();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _externalIdController = TextEditingController();
+  final TextEditingController _nameUnitTypeController = TextEditingController();
+  final TextEditingController _abbreviationUnitTypeController =
+      TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final MapController _mapController = MapController();
 
@@ -111,6 +114,8 @@ class SensorCreateControllerPageState
         "sensorType": _selectedSensorType,
         "sensorStatus": _selectedSensorStatus,
         "landUseID": int.parse(_selectedLandUse),
+        "nameUnitType": _nameUnitTypeController.text,
+        "abbreviationUnitType": _abbreviationUnitTypeController.text,
       };
 
       final respuesta =
@@ -121,6 +126,8 @@ class SensorCreateControllerPageState
       if (respuesta.status == "SUCCESS") {
         _nameController.clear();
         _externalIdController.clear();
+        _nameUnitTypeController.clear();
+        _abbreviationUnitTypeController.clear();
         setState(() {
           _selectedSensorType = 'SOUND_LEVEL_METER';
           _selectedSensorStatus = 'ACTIVE';
@@ -190,6 +197,44 @@ class SensorCreateControllerPageState
                           ),
                           prefixIcon: const Icon(Icons.label),
                         ),
+                      ),
+                      const SizedBox(height: 24),
+
+// Campo para nombre del tipo de unidad
+                      TextFormField(
+                        controller: _nameUnitTypeController,
+                        decoration: InputDecoration(
+                          labelText: 'Nombre del tipo de unidad',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          prefixIcon: const Icon(Icons.straighten),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa el nombre del tipo de unidad';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+
+// Campo para abreviación del tipo de unidad
+                      TextFormField(
+                        controller: _abbreviationUnitTypeController,
+                        decoration: InputDecoration(
+                          labelText: 'Abreviación del tipo de unidad',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          prefixIcon: const Icon(Icons.short_text),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa la abreviación del tipo de unidad';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 24),
 

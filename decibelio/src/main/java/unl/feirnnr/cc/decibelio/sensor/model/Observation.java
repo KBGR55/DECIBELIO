@@ -46,12 +46,13 @@ public class Observation implements Serializable {
     @NotNull
     private GeoLocation geoLocation;
 
-    @Column
-    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "qualitative_scale_value_id")
+    @NotNull   
     private QualitativeScaleValue qualitativeScaleValue;
 
-    @Column
-    @NotNull
+    @ManyToOne
+    @JoinColumn(name = "quantity_id")
     private Quantity quantity;
 
 

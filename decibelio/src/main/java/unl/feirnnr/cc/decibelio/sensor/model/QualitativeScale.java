@@ -20,7 +20,7 @@ public class QualitativeScale implements Serializable {
     @GeneratedValue(generator = "QualitativeScaleGenerator", strategy = GenerationType.TABLE)
     private Long id;
 
-    @Column(unique = true)
+    @Column
     @NotEmpty
     private String name;
 

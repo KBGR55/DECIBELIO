@@ -1,5 +1,5 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
-import 'package:decibelio_app_web/models/metric.dart';
+import 'package:decibelio_app_web/models/observation.dart';
 import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
 import 'package:decibelio_app_web/services/facade/list/list_metric_dto.dart';
@@ -21,7 +21,7 @@ class SensorDetails extends StatefulWidget {
 
 class SensorDetailsState extends State<SensorDetails> {
 
-  List<Metric> _metrics = [];
+  List<Observation> _metrics = [];
   List<SensorDTO> _sensors = [];
   bool _isLoading = true;
 

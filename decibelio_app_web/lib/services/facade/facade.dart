@@ -18,20 +18,20 @@ class Facade {
         (response.status != 'SUCCESS') ? null : response.payload);
   }
 
-Future<ListMetricDTO> listMetricLastDTO() async {
-  var response = await _conn.solicitudGet('metrics/last', "NO");
-  var metrics = _responseMetricLast((response.status != 'SUCCESS') ? null : response.payload);
-  return metrics;
-}
+  Future<ListMetricDTO> listMetricLastDTO() async {
+    var response = await _conn.solicitudGet('observation/last', "NO");
+    var observation = _responseMetricLast(
+        (response.status != 'SUCCESS') ? null : response.payload);
+    return observation;
+  }
 
   ListMetricDTO _responseMetricLast(dynamic data) {
     var sesion = ListMetricDTO();
     if (data != null) {
       Map<String, dynamic> mapa = jsonDecode(data);
       if (mapa.containsKey("payload")) {
-        
         List datos = jsonDecode(jsonEncode(mapa["payload"]));
-    
+
         sesion = ListMetricDTO.fromMap(datos, mapa["status"].toString());
       } else {
         List myList = List.empty();
@@ -57,25 +57,25 @@ Future<ListMetricDTO> listMetricLastDTO() async {
   }
 
   Future<ListMetrics> listMetrics(dynamic data) async {
-    var response = await _conn.solicitudPost('metrics/sensor', data, "NO");
-    var metrics = _responseMetrics((response.status != 'SUCCESS') ? null : response.payload);
-    return metrics;
+    var response = await _conn.solicitudPost('observation/sensor', data, "NO");
+    var observation = _responseMetrics(
+        (response.status != 'SUCCESS') ? null : response.payload);
+    return observation;
   }
 
   ListMetrics _responseMetrics(dynamic data) {
-
     var sesion = ListMetrics();
     Map<String, dynamic> mapa = jsonDecode(data);
     if (mapa.containsKey("payload")) {
       // Decodificar la lista de payload
       List datos = jsonDecode(jsonEncode(mapa["payload"]));
 
-      // Acceder al primer elemento de "payload" y extraer "metrics"
-      if (datos.isNotEmpty && datos[0].containsKey("metrics")) {
-        List metrics = datos[0]["metrics"];
-     
+      // Acceder al primer elemento de "payload" y extraer "observation"
+      if (datos.isNotEmpty && datos[0].containsKey("observation")) {
+        List observation = datos[0]["observation"];
+
         // Puedes convertirlo directamente a tu modelo si es necesario
-        sesion = ListMetrics.fromMap(metrics, mapa["status"].toString());
+        sesion = ListMetrics.fromMap(observation, mapa["status"].toString());
       } else {
         List myList = List.empty();
         sesion = ListMetrics.fromMap(myList, mapa["status"].toString());

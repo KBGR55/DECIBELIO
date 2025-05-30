@@ -5,7 +5,7 @@ import 'package:decibelio_app_web/models/respuesta_generica.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 
 class FileUploadService {
-  final String urlBase = "${Conexion.urlBase}metrics/upload";
+  final String urlBase = "${Conexion.urlBase}observation/upload";
 
   // Método para subir un archivo al servidor
   Future<RespuestaGenerica> uploadFile(html.File file) async {

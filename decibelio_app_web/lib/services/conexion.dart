@@ -13,7 +13,7 @@ class Conexion {
       String dirRecurso, Map<dynamic, dynamic> data, String token) async {
     Map<String, String> header = {'Content-Type': 'application/json'};
     if (token != noToken) {
-      header = {'Content-Type': 'application/json', 'x-api-token': token};
+      header = {'Content-Type': 'application/json'};
     }
     final String url = "$urlBase$dirRecurso";
     final uri = Uri.parse(url);
@@ -40,7 +40,7 @@ class Conexion {
       String dirRecurso, Map<dynamic, dynamic> data, String token) async {
     Map<String, String> header = {'Content-Type': 'application/json'};
     if (token != noToken) {
-      header = {'Content-Type': 'application/json', 'x-api-token': token};
+      header = {'Content-Type': 'application/json'};
     }
     final String url = "$urlBase$dirRecurso";
     final uri = Uri.parse(url);
@@ -67,7 +67,7 @@ class Conexion {
       String dirRecurso, Map<dynamic, dynamic>? data, String token) async {
     Map<String, String> header = {'Content-Type': 'application/json', 'accept': '*/*'};
     if (token != noToken) {
-      header = {'Content-Type': 'application/json', 'x-api-token': token, 'accept': '*/*'};
+      header = {'Content-Type': 'application/json', 'accept': '*/*'};
     }
     final String url = "$urlBase$dirRecurso";
     final uri = Uri.parse(url);
@@ -94,7 +94,7 @@ class Conexion {
       String dirRecurso, String token) async {
     Map<String, String> header = {'Content-Type': 'application/json'};
     if (token != noToken) {
-      header = {'Content-Type': 'application/json', 'x-api-token': token};
+      header = {'Content-Type': 'application/json'};
     }
     final String url = "$urlBase$dirRecurso";
     final uri = Uri.parse(url);

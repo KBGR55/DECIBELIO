@@ -6,8 +6,9 @@ import jakarta.ejb.TransactionAttributeType;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import unl.feirnnr.cc.decibelio.dto.ObservationDTO;
 import unl.feirnnr.cc.decibelio.sensor.data.LandUseService;
-import unl.feirnnr.cc.decibelio.sensor.data.MetricService;
+import unl.feirnnr.cc.decibelio.sensor.data.ObservationService;
 import unl.feirnnr.cc.decibelio.sensor.data.QualitativeScaleService;
 import unl.feirnnr.cc.decibelio.sensor.data.RangeService;
 import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
@@ -20,6 +21,7 @@ import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScale;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
 import unl.feirnnr.cc.decibelio.sensor.model.UnitType;
+
 
 import java.util.List;
 import java.util.ArrayList;
@@ -49,15 +51,25 @@ public class DecibelioFacade {
     @Inject
     LandUseService landUseService;
     @Inject
-    MetricService metricService;
+    ObservationService observationService;
     @Inject
     RangeService rangeService;
     @Inject
     UnitTypeService unitTypeService;
 
-
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+
+    private Observation insert(@NotNull ObservationDTO  observationDTO) {
+        LOGGER.log(Level.INFO, "Inserting observation: {0}", observationDTO);
+       
+        Observation observation = new Observation();
+        observation.setDate(observationDTO.getDate());
+        observation.setSensorExternalId(observationDTO.getSensorExternalId());
+        observation.setValue(observationDTO.getValue());
+    
+        return observationService.save(observation);        
+    }
 
     public Sensor save(@NotNull @Valid Sensor entity) {
         LOGGER.log(Level.OFF, "Saving Sensor entity: {0}", entity);
@@ -90,7 +102,7 @@ public class DecibelioFacade {
      * @return una lista de todas las Métricas
      */
     public List<Observation> findAllMetrics() {
-        return metricService.findAll();
+        return observationService.findAll();
     }
 
     /**
@@ -110,15 +122,15 @@ public class DecibelioFacade {
      * Guarda una lista de Métricas en la base de datos. Si ocurre un error, la
      * transacción se revertirá.
      * 
-     * @param metrics la lista de Métricas a ser guardadas
+     * @param observation la lista de Métricas a ser guardadas
      * @return la lista de Métricas guardadas
      */
     @TransactionAttribute(TransactionAttributeType.REQUIRED)
-    public List<Observation> save(List<Observation> metrics) {
+    public List<Observation> save(List<Observation> observation) {
         List<Observation> savedMetrics = new ArrayList<>();
-        for (Observation metric : metrics) {
+        for (Observation metric : observation) {
             try {
-                Observation savedMetric = metricService.save(metric);
+                Observation savedMetric = observationService.save(metric);
                 savedMetrics.add(savedMetric);
             } catch (Exception e) {
                 LOGGER.severe("Error saving metric with ID: " + metric.getId() + ": " + e.getMessage());
@@ -134,7 +146,7 @@ public class DecibelioFacade {
      * @return la entidad Métrica encontrada
      */
     public Observation findByMetricId(Long id) {
-        return metricService.findById(id);
+        return observationService.findById(id);
     }
 
     /**
@@ -145,7 +157,7 @@ public class DecibelioFacade {
      */
     public List<String> loadMetricFileCSV(InputStream uploadedInputStream) {
         List<String> errors = new ArrayList<>();
-        List<Observation> metrics = new ArrayList<>();
+        List<Observation> observation = new ArrayList<>();
 
         try (Reader reader = new InputStreamReader(uploadedInputStream);
                 CSVParser csvParser = new CSVParser(reader, CSVFormat.DEFAULT.withFirstRecordAsHeader())) {
@@ -157,14 +169,14 @@ public class DecibelioFacade {
                 Observation metric = new Observation();
                 try {
                     metric.setDate(LocalDate.parse(csvRecord.get("Fecha"), DATE_FORMATTER));
-                  //  metric.setTime(LocalTime.parse(csvRecord.get("Time/No."), TIME_FORMATTER));
+                    // metric.setTime(LocalTime.parse(csvRecord.get("Time/No."), TIME_FORMATTER));
                     metric.setValue(Float.parseFloat(csvRecord.get("Value").replace(",", ".")));
                     metric.setGeoLocation(new GeoLocation(
                             Float.parseFloat(csvRecord.get("Latitud_y").replace(",", ".")),
                             Float.parseFloat(csvRecord.get("Longitud_x").replace(",", "."))));
                     metric.setSensorExternalId(csvRecord.get("Sensor_externalId"));
                     metric = generateRange(metric);
-                    metrics.add(metric);
+                    observation.add(metric);
                 } catch (DateTimeParseException e) {
                     String errorMessage = "Error parsing date or time: " + e.getMessage() + " in record: "
                             + csvRecord.toString();
@@ -183,17 +195,17 @@ public class DecibelioFacade {
             errors.add(errorMessage);
         }
 
-        if (errors.isEmpty() && !metrics.isEmpty()) {
+        if (errors.isEmpty() && !observation.isEmpty()) {
             try {
-                save(metrics);
-                LOGGER.info("CSV file processed and metrics saved");
+                save(observation);
+                LOGGER.info("CSV file processed and observation saved");
             } catch (Exception e) {
-                String errorMessage = "Error saving metrics: " + e.getMessage();
+                String errorMessage = "Error saving observation: " + e.getMessage();
                 LOGGER.severe(errorMessage);
                 errors.add(errorMessage);
             }
-        } else if (!metrics.isEmpty()) {
-            LOGGER.warning("CSV file processed with errors. Metrics were not saved.");
+        } else if (!observation.isEmpty()) {
+            LOGGER.warning("CSV file processed with errors. Observations were not saved.");
         }
 
         return errors;
@@ -207,7 +219,7 @@ public class DecibelioFacade {
      */
     public Observation generateRange(Observation metric) {
         List<OptimalRange> ranges = rangeService.findAll();
-     //   LocalTime hora = metric.getTime();
+        // LocalTime hora = metric.getTime();
         Sensor sensor = findByExternalId(metric.getSensorExternalId());
         LandUse landUse = sensor.getLandUse();
 
@@ -216,27 +228,30 @@ public class DecibelioFacade {
             return metric;
         }
 
-      /**  TimeFrame timeFrame = findTimeFrameForHour(hora, ranges);
-        if (timeFrame == null) {
-            LOGGER.warning("No TimeFrame found for time: " + hora);
-            return metric;
-        }
-
-        OptimalRange range = rangeService.findByLandUseAndTimeFrame(landUse.getId(), timeFrame.getId());
-        if (range != null) {
-            BigDecimal metricValue = BigDecimal.valueOf(metric.getValue());
-            BigDecimal rangeValue = range.getValue();
-            if (metricValue.compareTo(rangeValue) > 0) {
-                metric.setRange("ALTO");
-            } else {
-                metric.setRange("BAJO");
-            }
-        } else {
-            LOGGER.warning(
-                    "No Range found for LandUse ID: " + landUse.getId() + " and TimeFrame ID: " + timeFrame.getId());
-            return metric;
-        }
-            */ 
+        /**
+         * TimeFrame timeFrame = findTimeFrameForHour(hora, ranges);
+         * if (timeFrame == null) {
+         * LOGGER.warning("No TimeFrame found for time: " + hora);
+         * return metric;
+         * }
+         * 
+         * OptimalRange range = rangeService.findByLandUseAndTimeFrame(landUse.getId(),
+         * timeFrame.getId());
+         * if (range != null) {
+         * BigDecimal metricValue = BigDecimal.valueOf(metric.getValue());
+         * BigDecimal rangeValue = range.getValue();
+         * if (metricValue.compareTo(rangeValue) > 0) {
+         * metric.setRange("ALTO");
+         * } else {
+         * metric.setRange("BAJO");
+         * }
+         * } else {
+         * LOGGER.warning(
+         * "No Range found for LandUse ID: " + landUse.getId() + " and TimeFrame ID: " +
+         * timeFrame.getId());
+         * return metric;
+         * }
+         */
         return metric;
     }
 
@@ -291,7 +306,7 @@ public class DecibelioFacade {
     }
 
     public List<Observation> findLastMetricOfActiveSensors() {
-        return metricService.findLastMetricOfActiveSensors();
+        return observationService.findLastMetricOfActiveSensors();
     }
 
     /**
@@ -311,20 +326,20 @@ public class DecibelioFacade {
             @NotNull LocalDate endDate,
             @NotNull Integer intervalMinutes) {
 
-        LOGGER.log(Level.INFO, "Finding metrics for sensor: {0}, from {1} to {2} with interval of {3} minutes",
+        LOGGER.log(Level.INFO, "Finding observation for sensor: {0}, from {1} to {2} with interval of {3} minutes",
                 new Object[] { sensorExternalId, startDate, endDate, intervalMinutes });
 
-        return metricService.findMetricsBySensorAndDateRangeWithInterval(sensorExternalId, startDate, endDate,
+        return observationService.findMetricsBySensorAndDateRangeWithInterval(sensorExternalId, startDate, endDate,
                 intervalMinutes);
     }
 
     public List<Observation> findMetricsByDayOrNight() {
         LocalDate today = LocalDate.now();
-        return metricService.findMaxMetricsByDayAndNight(today);
+        return observationService.findMaxMetricsByDayAndNight(today);
     }
     // UnitType
 
- // Método para guardar un UnitType
+    // Método para guardar un UnitType
     public UnitType saveUnitType(UnitType unitType) {
         LOGGER.log(Level.INFO, "Saving UnitType entity: {0}", unitType);
         return unitTypeService.save(unitType);
@@ -332,17 +347,18 @@ public class DecibelioFacade {
 
     // Método para buscar UnitType por nombre y abreviatura
     public UnitType findUnitTypeByNameAndAbbreviation(String name, String abbreviation) {
-        LOGGER.log(Level.INFO, "Searching UnitType by name: {0} and abbreviation: {1}", new Object[]{name, abbreviation});
+        LOGGER.log(Level.INFO, "Searching UnitType by name: {0} and abbreviation: {1}",
+                new Object[] { name, abbreviation });
         return unitTypeService.findByNameAndAbbreviation(name, abbreviation);
     }
-    
- //QualitativeScaleService 
 
-@Inject
-QualitativeScaleService qualitativeScaleService;
+    // QualitativeScaleService
 
-public QualitativeScale saveQualitativeScale(QualitativeScale qualitativeScale) {
-    return qualitativeScaleService.save(qualitativeScale);
-}
+    @Inject
+    QualitativeScaleService qualitativeScaleService;
+
+    public QualitativeScale saveQualitativeScale(QualitativeScale qualitativeScale) {
+        return qualitativeScaleService.save(qualitativeScale);
+    }
 
 }

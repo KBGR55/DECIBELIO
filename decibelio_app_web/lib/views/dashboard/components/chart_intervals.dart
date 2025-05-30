@@ -100,11 +100,12 @@ class _SoundChartView extends State<SoundChartView> {
       "intervalMinutes": selectedNumericValue,
     };
     try {
-      final respuesta = await _conn.solicitudPost('metrics/sensor', data, "NO");
-      final metrics = jsonDecode(respuesta.payload) as Map<String, dynamic>;
+      final respuesta =
+          await _conn.solicitudPost('observation/sensor', data, "NO");
+      final observation = jsonDecode(respuesta.payload) as Map<String, dynamic>;
       setState(() {
-        _metricsHistory = (metrics['payload'] as List)
-            .expand((item) => (item['metrics'] as List).map((metric) =>
+        _metricsHistory = (observation['payload'] as List)
+            .expand((item) => (item['observation'] as List).map((metric) =>
                 (shortTime(metric['time']), metric['value'] as double)))
             .toList();
       });
@@ -429,7 +430,10 @@ class _SoundChartView extends State<SoundChartView> {
                             belowBarData: BarAreaData(
                               show: true,
                               gradient: LinearGradient(
-                                colors: [Colors.blue.withValues(alpha: 0.2), Colors.blue.withValues(alpha: 0.0)],
+                                colors: [
+                                  Colors.blue.withValues(alpha: 0.2),
+                                  Colors.blue.withValues(alpha: 0.0)
+                                ],
                                 stops: const [0.5, 1.0],
                                 begin: Alignment.topCenter,
                                 end: Alignment.bottomCenter,

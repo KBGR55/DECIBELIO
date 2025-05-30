@@ -1,15 +1,15 @@
-import 'package:decibelio_app_web/models/metrics.dart';
+import 'package:decibelio_app_web/models/observations.dart';
 import 'package:decibelio_app_web/models/respuesta_generica.dart';
 
 class ListMetrics extends RespuestaGenerica {
-  late List<Metrics> data = [];
+  late List<Observations> data = [];
 
   ListMetrics();
 
   ListMetrics.fromMap(List<dynamic> datos, String status) {
     for (var item in datos) {
       Map<String, dynamic> mapa = item as Map<String, dynamic>;
-      Metrics aux = Metrics.fromMap(mapa);
+      Observations aux = Observations.fromMap(mapa);
       data.add(aux);
     }
     message = message;

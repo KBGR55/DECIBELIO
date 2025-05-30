@@ -4,7 +4,6 @@ import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.inject.Inject;
-import unl.feirnnr.cc.decibelio.sensor.boundary.ObservationMapper;
 import unl.feirnnr.cc.decibelio.sensor.data.ObservationService;
 import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;

@@ -48,7 +48,7 @@ public class Observation implements Serializable {
 
     @ManyToOne
     @JoinColumn(name = "qualitative_scale_value_id")
-    @NotNull   
+    //@NotNull   
     private QualitativeScaleValue qualitativeScaleValue;
 
     @ManyToOne

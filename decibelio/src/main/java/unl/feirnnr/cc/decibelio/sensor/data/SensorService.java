@@ -1,10 +1,13 @@
 package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
@@ -31,9 +34,21 @@ public class SensorService {
     public List<Sensor> findAll() {
         return crudService.findWithNativeQuery("select * from sensor", Sensor.class);
     }
-  
+
     public List<Sensor> findAllActive() {
-        return crudService.findWithNativeQuery("select * from sensor where sensorstatus = 0",Sensor.class);
+        return crudService.findWithNativeQuery("select * from sensor where sensorstatus = 0", Sensor.class);
+    }
+
+    @PersistenceContext
+    private EntityManager em;
+
+    public List<String> getAllExternalIds() {
+        List<?> results = em.createNativeQuery("SELECT externalid FROM sensor")
+                .getResultList();
+
+        return results.stream()
+                .map(Object::toString)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -53,5 +68,5 @@ public class SensorService {
         }
         return null;
     }
-    
+
 }

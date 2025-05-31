@@ -12,12 +12,15 @@ import unl.feirnnr.cc.decibelio.sensor.data.ObservationService;
 import unl.feirnnr.cc.decibelio.sensor.data.QualitativeScaleService;
 import unl.feirnnr.cc.decibelio.sensor.data.RangeService;
 import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
+import unl.feirnnr.cc.decibelio.sensor.data.TimeFrameService;
 import unl.feirnnr.cc.decibelio.sensor.data.UnitTypeService;
 import unl.feirnnr.cc.decibelio.sensor.model.LandUse;
 import unl.feirnnr.cc.decibelio.sensor.model.GeoLocation;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;
 import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
 import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScale;
+import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScaleValue;
+import unl.feirnnr.cc.decibelio.sensor.model.Quantity;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
 import unl.feirnnr.cc.decibelio.sensor.model.UnitType;
@@ -47,7 +50,6 @@ public class DecibelioFacade {
 
     @Inject
     SensorService sensorService;
-
     @Inject
     LandUseService landUseService;
     @Inject
@@ -56,20 +58,38 @@ public class DecibelioFacade {
     RangeService rangeService;
     @Inject
     UnitTypeService unitTypeService;
+    @Inject
+    QualitativeScaleService qualitativeScaleService;
+    @Inject
+    TimeFrameService timeFrameService;
+
+
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    private Observation insert(@NotNull ObservationDTO  observationDTO) {
-        LOGGER.log(Level.INFO, "Inserting observation: {0}", observationDTO);
-
-       
+    public void insert(@NotNull ObservationDTO  observationDTO) {
+        LOGGER.log(Level.INFO, "Inserting observation DTO: {0}", observationDTO);
+        Sensor sensor = sensorService.findByExternalId(observationDTO.getSensorExternalId());
         Observation observation = new Observation();
         observation.setDate(observationDTO.getDate());
         observation.setSensorExternalId(observationDTO.getSensorExternalId());
-        //        observation.setValue(observationDTO.getValue());
-    
-        return observationService.save(observation);        
+        //Guardar quantity
+        Quantity quantity = new Quantity();
+        quantity.setValue(observationDTO.getValue());
+        quantity.setTime(observationDTO.getTime());
+        String abreviatura = sensorService.findUnitTypeAbbreviationByExternalId(observationDTO.getSensorExternalId());
+        quantity.setAbbreviation(abreviatura);
+        observation.setQuantity(quantity);
+        //TimeFrame
+        observation.setTimeFrame(timeFrameService.findByTime(observationDTO.getTime()));
+        //Guardar GeoLocation
+        observation.setGeoLocation(sensor.getGeoLocation());
+        //Guardar QualitativeScaleValue 
+        QualitativeScaleValue qualitativeScaleValue = new QualitativeScaleValue();
+        qualitativeScaleValue.setName(observationService.generateRange(sensor, quantity));
+        observation.setQualitativeScaleValue(qualitativeScaleValue);
+        observationService.save(observation);
     }
 
     public Sensor save(@NotNull @Valid Sensor entity) {
@@ -176,7 +196,7 @@ public class DecibelioFacade {
                             Float.parseFloat(csvRecord.get("Latitud_y").replace(",", ".")),
                             Float.parseFloat(csvRecord.get("Longitud_x").replace(",", "."))));
                     metric.setSensorExternalId(csvRecord.get("Sensor_externalId"));
-                    metric = generateRange(metric);
+                    //metric = generateRange(metric);
                     observation.add(metric);
                 } catch (DateTimeParseException e) {
                     String errorMessage = "Error parsing date or time: " + e.getMessage() + " in record: "
@@ -210,50 +230,6 @@ public class DecibelioFacade {
         }
 
         return errors;
-    }
-
-    /**
-     * Genera el rango de la métrica basado en los valores de rango establecidos.
-     * 
-     * @param metric la Métrica para la cual se debe generar el rango
-     * @return la Métrica con el rango asignado
-     */
-    public Observation generateRange(Observation metric) {
-        List<OptimalRange> ranges = rangeService.findAll();
-        // LocalTime hora = metric.getTime();
-        Sensor sensor = findByExternalId(metric.getSensorExternalId());
-        LandUse landUse = sensor.getLandUse();
-
-        if (landUse == null) {
-            LOGGER.warning("LandUse is null for sensor with external ID: " + metric.getSensorExternalId());
-            return metric;
-        }
-
-        /**
-         * TimeFrame timeFrame = findTimeFrameForHour(hora, ranges);
-         * if (timeFrame == null) {
-         * LOGGER.warning("No TimeFrame found for time: " + hora);
-         * return metric;
-         * }
-         * 
-         * OptimalRange range = rangeService.findByLandUseAndTimeFrame(landUse.getId(),
-         * timeFrame.getId());
-         * if (range != null) {
-         * BigDecimal metricValue = BigDecimal.valueOf(metric.getValue());
-         * BigDecimal rangeValue = range.getValue();
-         * if (metricValue.compareTo(rangeValue) > 0) {
-         * metric.setRange("ALTO");
-         * } else {
-         * metric.setRange("BAJO");
-         * }
-         * } else {
-         * LOGGER.warning(
-         * "No Range found for LandUse ID: " + landUse.getId() + " and TimeFrame ID: " +
-         * timeFrame.getId());
-         * return metric;
-         * }
-         */
-        return metric;
     }
 
     /**
@@ -352,11 +328,6 @@ public class DecibelioFacade {
                 new Object[] { name, abbreviation });
         return unitTypeService.findByNameAndAbbreviation(name, abbreviation);
     }
-
-    // QualitativeScaleService
-
-    @Inject
-    QualitativeScaleService qualitativeScaleService;
 
     public QualitativeScale saveQualitativeScale(QualitativeScale qualitativeScale) {
         return qualitativeScaleService.save(qualitativeScale);

@@ -4,6 +4,8 @@ import jakarta.annotation.PostConstruct;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.inject.Inject;
+import unl.feirnnr.cc.decibelio.dto.ObservationDTO;
+import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
 import unl.feirnnr.cc.decibelio.sensor.data.ObservationService;
 import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
 
@@ -13,6 +15,8 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -43,6 +47,9 @@ public class MqttSensorListener {
     @Inject
     ObservationService observationService; // Servicio de persistencia
 
+    @Inject
+    DecibelioFacade decibelioFacade;
+
     private MqttClient client;
 
     @PostConstruct
@@ -68,7 +75,19 @@ public class MqttSensorListener {
                         String externalIdPart = parts[2]; // ej. HOPb0a7323594a2_NLO
                         String externalId = externalIdPart.split("_")[0]; // extrae HOPb0a7323594a2
 
-                        observationService.processAndSaveObservation(externalId, payloadMap);
+                       // observationService.processAndSaveObservation(externalId, payloadMap);
+                        float sonLaeq = Float.parseFloat(payloadMap.getOrDefault("son_laeq", "0").toString());
+                        String timeInstant = payloadMap.get("TimeInstant").toString();
+                        LocalDate date = LocalDate.parse(timeInstant.substring(0, 10));
+                        LocalTime time = LocalTime.parse(timeInstant.substring(11, 19));
+
+                        ObservationDTO observationDTO = new ObservationDTO();
+                        observationDTO.setDate(date);
+                        observationDTO.setSensorExternalId(externalId);
+                        observationDTO.setValue(sonLaeq);
+                        observationDTO.setTime(time);
+                        decibelioFacade.insert(observationDTO);
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

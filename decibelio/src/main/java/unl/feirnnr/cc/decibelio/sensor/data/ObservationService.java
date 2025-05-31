@@ -1,5 +1,6 @@
 package unl.feirnnr.cc.decibelio.sensor.data;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashMap;
@@ -15,9 +16,11 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;
+import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
 import unl.feirnnr.cc.decibelio.sensor.model.Quantity;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 import unl.feirnnr.cc.decibelio.sensor.model.SensorStatus;
+import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
 
 @Stateless
 public class ObservationService {
@@ -27,6 +30,12 @@ public class ObservationService {
 
     @Inject
     SensorService sensorService;
+
+    @Inject
+    TimeFrameService timeFrameService;
+
+    @Inject
+    OptimalRangesService optimalRangesService;
 
     @PersistenceContext(unitName = "decibelioPU")
     EntityManager em;
@@ -163,6 +172,45 @@ public class ObservationService {
 
         // Persistencia// Necesario si Quantity tiene su propio ID
         em.persist(obs);
+    }
+
+    /**
+     * Genera "ALTO" / "BAJO" para una observación, dado un Sensor y su Quantity.
+     * <p>
+     * 1. Obtiene el LandUse del sensor.
+     * 2. Obtiene la hora de la cantidad (Quantity).
+     * 3. Busca el TimeFrame apropiado (usando timeFrameService).
+     * 4. Busca el OptimalRange que corresponde a (landUseId, timeFrameId).
+     * 5. Compara quantity.getValue() (asumimos double o BigDecimal) contra
+     * range.getValue().
+     * 6. Devuelve "ALTO" si value &gt; rango; en otro caso "BAJO".
+     *
+     * @param sensor   Sensor al cual pertenece la medición (ya debe estar cargado
+     *                 con LandUse).
+     * @param quantity Objeto Quantity que contiene getValue() (número) y getTime()
+     *                 (LocalTime).
+     * @return "ALTO" o "BAJO" según la comparación, o null si no se pudo
+     *         determinar.
+     */
+    public String generateRange(@NotNull Sensor sensor, @NotNull Quantity quantity) {
+        var landUse = sensor.getLandUse();
+        LocalTime hora = quantity.getTime();
+        // 3. Buscar el TimeFrame correspondiente
+        TimeFrame timeFrame;
+        timeFrame = timeFrameService.findByTime(hora);
+        // 4. Obtener el OptimalRange según landUse + timeFrame
+        OptimalRange range = optimalRangesService.findByLandUseAndTimeFrame(
+                landUse.getId(),
+                timeFrame.getId());
+        // 5. Comparar el valor de la medición vs. rango óptimo
+        BigDecimal valorMedido = BigDecimal.valueOf(quantity.getValue());
+        BigDecimal valorRango = range.getValue(); // suponemos que getValue() devuelve BigDecimal
+
+        if (valorMedido.compareTo(valorRango) > 0) {
+            return "ALTO";
+        } else {
+            return "BAJO";
+        }
     }
 
 }

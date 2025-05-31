@@ -11,6 +11,7 @@ import jakarta.persistence.Query;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
+import unl.feirnnr.cc.decibelio.sensor.model.UnitType;
 
 @Stateless
 public class SensorService {
@@ -65,6 +66,27 @@ public class SensorService {
         if (!sensors.isEmpty()) {
             return sensors.get(0);
         }
+        return null;
+    }
+
+    /**
+     * A partir de un externalId de sensor, obtiene la abreviatura del UnitType asociado.
+     *
+     * @param externalId Identificador externo del sensor.
+     * @return String con la abreviatura (p.ej. "dB", "m", etc.), o null si el Sensor existe pero no tiene UnitType.
+     * @throws EntityNotFoundException si no se encuentra ningún Sensor con ese externalId.
+     */
+    public String findUnitTypeAbbreviationByExternalId(@NotNull String externalId) {
+        // 1. Primero buscamos el Sensor
+        Sensor sensor = findByExternalId(externalId);
+
+        // 2. Obtenemos el UnitType asociado (puede ser null si no se asignó ninguno)
+        UnitType unidad = sensor.getUnitType();
+        if (unidad != null) {
+            return unidad.getAbbreviation();
+        }
+
+        // Si el sensor existe pero no tiene UnitType:
         return null;
     }
 

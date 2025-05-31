@@ -69,4 +69,6 @@ public class UnitTypeService {
     public List<UnitType> findAll() {
         return crudService.findWithNativeQuery("SELECT * FROM UnitType", UnitType.class);
     }
+
+
 }

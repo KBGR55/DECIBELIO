@@ -20,13 +20,14 @@ class _SoundChartView extends State<SoundChartView> {
   final Conexion _conn = Conexion();
 
   String? selectedSensor;
-  DateTime? startDate = DateTime.now();
-  DateTime? endDate = DateTime.now();
-  List<String> sensorNames = [];
-  String? selectedText; // Texto seleccionado
-  int? selectedNumericValue; // Valor numérico seleccionado
-
+  DateTime? startDate;
+  DateTime? endDate;
   List<SensorDTO> _sensors = [];
+  String? selectedText;           // Texto seleccionado en minutos
+  int? selectedNumericValue;      // Valor numérico seleccionado en minutos
+
+  // Flag para diferenciar la primera carga de todas las demás
+  bool _isInitialLoad = true;
 
   final Map<String, int> valuesMins = {
     "60 minutos": 60,
@@ -37,11 +38,23 @@ class _SoundChartView extends State<SoundChartView> {
     "10 minutos": 10,
   };
 
+  late TransformationController _transformationController;
+  bool _isPanEnabled = true;
+  bool _isScaleEnabled = true;
+  List<(String, double)>? _metricsHistory;
+
   @override
   void initState() {
     super.initState();
-    loadSensorNames(); // Cargar los nombres de los sensores dinámicamente
+    selectedText = "30 minutos";
+    selectedNumericValue = valuesMins[selectedText];
+    final now = DateTime.now();
+    startDate = DateTime(now.year, now.month, now.day, 0, 0); // 00:00:00
+    endDate = now;
+
     _transformationController = TransformationController();
+
+    loadSensorNames();
   }
 
   Future<void> loadSensorNames() async {
@@ -50,12 +63,15 @@ class _SoundChartView extends State<SoundChartView> {
 
     setState(() {
       _sensors = sensorData.data;
+      if (_sensors.isNotEmpty) {
+          selectedSensor = _sensors.first.externalId;
+      }
     });
+    _reloadData();
   }
 
   void applyFilter() {
-    // Lógica para aplicar los filtros seleccionados
-    if (selectedSensor == null || selectedNumericValue == null) {
+   if (selectedSensor == null || selectedNumericValue == null) {
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -67,7 +83,7 @@ class _SoundChartView extends State<SoundChartView> {
               children: [
                 Icon(Icons.error_outline, color: Colors.red, size: 30),
                 SizedBox(width: 10),
-                Text('Porfavor llena todos los campos'),
+                Text('Por favor llena todos los campos'),
               ],
             ),
           );
@@ -76,41 +92,35 @@ class _SoundChartView extends State<SoundChartView> {
     } else {
       _reloadData();
     }
-    // Aquí puedes implementar la lógica de carga de datos para la gráfica
   }
 
-  //Variables y metodos graphics
-  late TransformationController _transformationController;
-  bool _isPanEnabled = true;
-  bool _isScaleEnabled = true;
-  List<(String, double)>? _metricsHistory;
-
   String shortTime(String timeString) {
-    List<String> parts = timeString.split(":");
+    final parts = timeString.split(":");
     return "${parts[0]}:${parts[1]}";
   }
 
   void _reloadData() async {
-    Map<String, dynamic> data = {
+    final data = {
       "sensorExternalId": selectedSensor.toString(),
-      "startDate": DateFormat("yyyy-MM-ddTHH:mm:ss")
-          .format(startDate!), // Formato: "YYYY-MM-DDTHH:mm:ss"
-      "endDate": DateFormat("yyyy-MM-ddTHH:mm:ss")
-          .format(endDate!), // Formato: "YYYY-MM-DDTHH:mm:ss"
+      "startDate": DateFormat("yyyy-MM-ddTHH:mm:ss").format(startDate!),
+      "endDate": DateFormat("yyyy-MM-ddTHH:mm:ss").format(endDate!),
       "intervalMinutes": selectedNumericValue,
     };
+
     try {
       final respuesta =
           await _conn.solicitudPost('observation/sensor', data, "NO");
       final observation = jsonDecode(respuesta.payload) as Map<String, dynamic>;
+
       setState(() {
         _metricsHistory = (observation['payload'] as List)
             .expand((item) => (item['observation'] as List).map((metric) =>
                 (shortTime(metric['time']), metric['value'] as double)))
             .toList();
       });
-      showDialog(
-          // ignore: use_build_context_synchronously
+
+      if (!_isInitialLoad) {
+        showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
@@ -125,18 +135,26 @@ class _SoundChartView extends State<SoundChartView> {
                 ],
               ),
             );
-          });
+          },
+        );
+      }
     } catch (e) {
-      // ignore: use_build_context_synchronously
+      // En caso de error, siempre mostramos un SnackBar
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al realizar la solicitud: $e")),
       );
+    } finally {
+      // Después de la primera carga, desactivamos el flag
+      if (_isInitialLoad) {
+        _isInitialLoad = false;
+      }
     }
   }
 
-  @override
+ @override
   Widget build(BuildContext context) {
     const leftReservedSize = 52.0;
+
     return Container(
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -162,36 +180,48 @@ class _SoundChartView extends State<SoundChartView> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Dropdown para seleccionar el sensor
-                    Expanded(
-                        child: DropdownButtonFormField<String>(
-                      decoration: const InputDecoration(
-                        labelText: "Sensores",
-                        prefixIcon: Icon(Icons.sensors),
-                        border: OutlineInputBorder(),
+                   Expanded(
+                      child: DropdownButtonFormField<String>(
+                        isExpanded: true, // ← Importante para que reserve todo el ancho
+                        decoration: const InputDecoration(
+                          labelText: "Sensores",
+                          prefixIcon: Icon(Icons.sensors),
+                          border: OutlineInputBorder(),
+                        ),
+                        value: selectedSensor,
+                        items: _sensors.map((sensor) {
+                          return DropdownMenuItem<String>(
+                            value: sensor.externalId,
+                            child: Text(
+                              sensor.name,
+                              overflow: TextOverflow.ellipsis, // ← Trunca y pone “…”
+                              maxLines: 1,                       // ← Máximo 1 línea
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (value) {
+                          setState(() {
+                            selectedSensor = value;
+                          });
+                        },
+                        selectedItemBuilder: (BuildContext context) {
+                          return _sensors.map((sensor) {
+                            return Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                sensor.name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }).toList();
+                        },
                       ),
-                      value:
-                          selectedSensor, // Aquí seleccionamos el externalID actual.
-                      items: _sensors.map((sensor) {
-                        return DropdownMenuItem<String>(
-                          value: sensor
-                              .externalId, // Asigna el externalID como valor.
-                          child: Text(sensor.name,
-                              style: const TextStyle(
-                                  color: Colors
-                                      .white)), // Muestra el nombre del sensor en la lista.
-                        );
-                      }).toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          selectedSensor =
-                              value; // Actualiza el externalID seleccionado.
-                        });
-                      },
-                    )),
+                    ),
                     const SizedBox(width: 16),
-                    // Campo para seleccionar la fecha de inicio
-                    Expanded(
+                Expanded(
                       child: TextFormField(
                         readOnly: true,
                         decoration: const InputDecoration(
@@ -202,18 +232,15 @@ class _SoundChartView extends State<SoundChartView> {
                         onTap: () async {
                           DateTime? pickedDate = await showDatePicker(
                             context: context,
-                            initialDate: DateTime.now(),
+                            initialDate: startDate ?? DateTime.now(),
                             firstDate: DateTime(2000),
                             lastDate: DateTime(2100),
                           );
-
                           if (pickedDate != null) {
                             TimeOfDay? pickedTime = await showTimePicker(
-                              initialTime: TimeOfDay.now(),
-                              // ignore: use_build_context_synchronously
+                              initialTime: TimeOfDay.fromDateTime(startDate!),
                               context: context,
                             );
-
                             if (pickedTime != null) {
                               setState(() {
                                 startDate = DateTime(
@@ -229,13 +256,17 @@ class _SoundChartView extends State<SoundChartView> {
                         },
                         controller: TextEditingController(
                           text: startDate != null
-                              ? "${startDate!.month}/${startDate!.day}/${startDate!.year} ${startDate!.hour}:${startDate!.minute.toString().padLeft(2, '0')}"
+                              ? "${startDate!.month}/${startDate!.day}/${startDate!.year} "
+                                "${startDate!.hour.toString().padLeft(2, '0')}:"
+                                "${startDate!.minute.toString().padLeft(2, '0')}"
                               : "",
+                        ),
+                        style: const TextStyle(
+                          overflow: TextOverflow.ellipsis, 
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
-                    // Campo para seleccionar la fecha de fin
                     Expanded(
                       child: TextFormField(
                         readOnly: true,
@@ -247,18 +278,15 @@ class _SoundChartView extends State<SoundChartView> {
                         onTap: () async {
                           DateTime? pickedDate = await showDatePicker(
                             context: context,
-                            initialDate: DateTime.now(),
+                            initialDate: endDate ?? DateTime.now(),
                             firstDate: DateTime(2000),
                             lastDate: DateTime(2100),
                           );
-
                           if (pickedDate != null) {
                             TimeOfDay? pickedTime = await showTimePicker(
-                              // ignore: use_build_context_synchronously
+                              initialTime: TimeOfDay.fromDateTime(endDate!),
                               context: context,
-                              initialTime: TimeOfDay.now(),
                             );
-
                             if (pickedTime != null) {
                               setState(() {
                                 endDate = DateTime(
@@ -274,14 +302,20 @@ class _SoundChartView extends State<SoundChartView> {
                         },
                         controller: TextEditingController(
                           text: endDate != null
-                              ? "${endDate!.month}/${endDate!.day}/${endDate!.year} ${endDate!.hour}:${endDate!.minute.toString().padLeft(2, '0')}"
+                              ? "${endDate!.month}/${endDate!.day}/${endDate!.year} "
+                                "${endDate!.hour.toString().padLeft(2, '0')}:"
+                                "${endDate!.minute.toString().padLeft(2, '0')}"
                               : "",
+                        ),
+                        style: const TextStyle(
+                          overflow: TextOverflow.ellipsis, // ← También aquí
                         ),
                       ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
                       child: DropdownButtonFormField<String>(
+                        isExpanded: true, // ← Para que ocupe todo el ancho disponible
                         decoration: const InputDecoration(
                           labelText: "Minutos",
                           prefixIcon: Icon(Icons.access_time),
@@ -293,6 +327,8 @@ class _SoundChartView extends State<SoundChartView> {
                             value: text,
                             child: Text(
                               text,
+                              overflow: TextOverflow.ellipsis, // ← Truncamiento
+                              maxLines: 1,
                               style: const TextStyle(color: Colors.white),
                             ),
                           );
@@ -300,14 +336,25 @@ class _SoundChartView extends State<SoundChartView> {
                         onChanged: (value) {
                           setState(() {
                             selectedText = value;
-                            selectedNumericValue = valuesMins[
-                                value]; // Obtener el valor numérico asociado
+                            selectedNumericValue = valuesMins[value];
                           });
+                        },
+                        selectedItemBuilder: (BuildContext context) {
+                          return valuesMins.keys.map((text) {
+                            return Align(
+                              alignment: Alignment.centerLeft,
+                              child: Text(
+                                text,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: const TextStyle(color: Colors.white),
+                              ),
+                            );
+                          }).toList();
                         },
                       ),
                     ),
                     const SizedBox(width: 16),
-                    // Botón para aplicar el filtro
                     ElevatedButton(
                       onPressed: applyFilter,
                       child: const Text("Consultar"),
@@ -318,6 +365,9 @@ class _SoundChartView extends State<SoundChartView> {
               ],
             ),
           ),
+
+
+
           const Text(
             "Niveles de ruido dB (decibelio)",
             style: TextStyle(
@@ -327,7 +377,7 @@ class _SoundChartView extends State<SoundChartView> {
           ),
           const SizedBox(height: 8),
           const Text(
-            "Frecuencia en horas / A partir del 03-Dic-2024 01:15:18.",
+            "Frecuencia en horas / A partir de hoy",
             style: TextStyle(
               fontSize: 14,
               color: Colors.grey,
@@ -336,9 +386,7 @@ class _SoundChartView extends State<SoundChartView> {
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
-            //height: 400,
             child: Column(
-              //spacing: 16,
               children: [
                 LayoutBuilder(
                   builder: (context, constraints) {
@@ -371,7 +419,6 @@ class _SoundChartView extends State<SoundChartView> {
                   padding: const EdgeInsets.symmetric(horizontal: 16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
-                    //spacing: 16,
                     children: [
                       const Text('Fijar'),
                       Switch(
@@ -397,10 +444,7 @@ class _SoundChartView extends State<SoundChartView> {
                 AspectRatio(
                   aspectRatio: 2.5,
                   child: Padding(
-                    padding: const EdgeInsets.only(
-                      top: 0.0,
-                      right: 18.0,
-                    ),
+                    padding: const EdgeInsets.only(right: 18.0),
                     child: LineChart(
                       transformationConfig: FlTransformationConfig(
                         scaleAxis: FlScaleAxis.horizontal,
@@ -431,8 +475,8 @@ class _SoundChartView extends State<SoundChartView> {
                               show: true,
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.blue.withValues(alpha: 0.2),
-                                  Colors.blue.withValues(alpha: 0.0)
+                                  Colors.blue.withOpacity(0.2),
+                                  Colors.blue.withOpacity(0.0)
                                 ],
                                 stops: const [0.5, 1.0],
                                 begin: Alignment.topCenter,
@@ -445,8 +489,10 @@ class _SoundChartView extends State<SoundChartView> {
                           touchSpotThreshold: 5,
                           getTouchLineStart: (_, __) => -double.infinity,
                           getTouchLineEnd: (_, __) => double.infinity,
-                          getTouchedSpotIndicator: (LineChartBarData barData,
-                              List<int> spotIndexes) {
+                          getTouchedSpotIndicator: (
+                            LineChartBarData barData,
+                            List<int> spotIndexes,
+                          ) {
                             return spotIndexes.map((spotIndex) {
                               return TouchedSpotIndicatorData(
                                 const FlLine(
@@ -534,7 +580,8 @@ class _SoundChartView extends State<SoundChartView> {
                               reservedSize: 38,
                               maxIncluded: false,
                               getTitlesWidget: (double value, TitleMeta meta) {
-                                final time = _metricsHistory![value.toInt()].$1;
+                                final time =
+                                    _metricsHistory![value.toInt()].$1;
                                 return SideTitleWidget(
                                   meta: meta,
                                   child: Transform.rotate(
@@ -601,15 +648,13 @@ class _ChartTitle extends StatelessWidget {
         Text(
           'History',
           style: TextStyle(
-            //color: Colors.amber,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         Text(
-          '2023/12/19 - 2024/12/17',
+          'Desde la madrugada de hoy',
           style: TextStyle(
-            //color: Colors.green,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
@@ -690,34 +735,18 @@ class _TransformationButtons extends StatelessWidget {
   }
 
   void _transformationZoomIn() {
-    controller.value *= Matrix4.diagonal3Values(
-      1.1,
-      1.1,
-      1,
-    );
+    controller.value *= Matrix4.diagonal3Values(1.1, 1.1, 1);
   }
 
   void _transformationMoveLeft() {
-    controller.value *= Matrix4.translationValues(
-      20,
-      0,
-      0,
-    );
+    controller.value *= Matrix4.translationValues(20, 0, 0);
   }
 
   void _transformationMoveRight() {
-    controller.value *= Matrix4.translationValues(
-      -20,
-      0,
-      0,
-    );
+    controller.value *= Matrix4.translationValues(-20, 0, 0);
   }
 
   void _transformationZoomOut() {
-    controller.value *= Matrix4.diagonal3Values(
-      0.9,
-      0.9,
-      1,
-    );
+    controller.value *= Matrix4.diagonal3Values(0.9, 0.9, 1);
   }
 }

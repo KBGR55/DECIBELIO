@@ -197,7 +197,7 @@ public class ObservationsResource {
                                         metricData.put("id", metric.getId());
                                         // metricData.put("range", metric.getRange());
                                         // metricData.put("time", metric.getTime());
-                                        metricData.put("value", metric.getValue());
+                                       // metricData.put("value", metric.getValue());
                                         metricsList.add(metricData);
                                 }
                                 sensor.put("observation", metricsList);
@@ -251,7 +251,7 @@ public class ObservationsResource {
                                 metricData.put("id", metric.getId());
                                 // metricData.put("range", metric.getRange());
                                 // metricData.put("time", metric.getTime());
-                                metricData.put("max", metric.getValue());
+                                //metricData.put("max", metric.getValue());
                                 metricsList.add(metricData);
                         }
                         sensor.put("observation", metricsList);

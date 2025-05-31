@@ -5,7 +5,6 @@ import jakarta.validation.constraints.NotNull;
 
 import java.io.Serializable;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.Objects;
 
 @Entity
@@ -27,15 +26,14 @@ public class Observation implements Serializable {
     @Column
     private LocalDate date;
 
+    @Column
     @NotNull
-    @Column
-    private float value;
-
-    @Column
     private String sensorExternalId;
 
-    @Column
-    private Long timeFrameId;
+    @ManyToOne
+    @JoinColumn(name = "time_frame_id")
+    private TimeFrame timeFrame;
+
 
     @Embedded
     @AttributeOverrides({
@@ -46,14 +44,19 @@ public class Observation implements Serializable {
     @NotNull
     private GeoLocation geoLocation;
 
-    @ManyToOne
-    @JoinColumn(name = "qualitative_scale_value_id")
-    //@NotNull   
-    private QualitativeScaleValue qualitativeScaleValue;
-
-    @ManyToOne
-    @JoinColumn(name = "quantity_id")
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "value", column = @Column(name = "quantity_value")),
+            @AttributeOverride(name = "abbreviation", column = @Column(name = "quantity_abbreviation")),
+    })
     private Quantity quantity;
+
+    @Embedded
+    @AttributeOverrides({
+            @AttributeOverride(name = "id", column = @Column(name = "qualitative_scale_value_id")),
+            @AttributeOverride(name = "name", column = @Column(name = "qualitative_scale_value_name"))
+    })
+    private QualitativeScaleValue qualitativeScaleValue;
 
 
     public Long getId() {
@@ -72,23 +75,6 @@ public class Observation implements Serializable {
         this.date = date;
     }
 
-    @NotNull
-    public float getValue() {
-        return value;
-    }
-
-    public void setValue(@NotNull float value) {
-        this.value = value;
-    }
-
-    public Long gettimeFrameId() {
-        return timeFrameId;
-    }
-
-    public void settimeFrameId(Long timeFrameId) {
-        this.timeFrameId = timeFrameId;
-    }
-
     public GeoLocation getGeoLocation() {
         return geoLocation;
     }
@@ -97,13 +83,6 @@ public class Observation implements Serializable {
         this.geoLocation = geoLocation;
     }
 
-    public void setQualitativeScaleValue(QualitativeScaleValue qualitativeScaleValue) {
-        this.qualitativeScaleValue = qualitativeScaleValue;
-    }
-
-    public QualitativeScaleValue getQualitativeScaleValue() {
-        return qualitativeScaleValue;
-    }
 
     public void setQuantity(Quantity quantity) {
         this.quantity = quantity;
@@ -111,10 +90,6 @@ public class Observation implements Serializable {
 
     public Quantity getQuantity() {
         return quantity;
-    }
-
-    public Long getTimeFrameId() {
-        return timeFrameId;
     }
 
     public String getSensorExternalId() {
@@ -125,17 +100,34 @@ public class Observation implements Serializable {
         this.sensorExternalId = sensorExternalId;
     }
 
+    public TimeFrame getTimeFrame() {
+        return timeFrame;
+    }
+
+    public void setTimeFrame(TimeFrame timeFrame) {
+        this.timeFrame = timeFrame;
+    }
+
+    public QualitativeScaleValue getQualitativeScaleValue() {
+        return qualitativeScaleValue;
+    }
+
+    public void setQualitativeScaleValue(QualitativeScaleValue qualitativeScaleValue) {
+        this.qualitativeScaleValue = qualitativeScaleValue;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Observation observation = (Observation) o;
-        return Float.compare(value, observation.value) == 0 && Objects.equals(id, observation.id) && Objects.equals(date, observation.date) && Objects.equals(timeFrameId, observation.timeFrameId) && Objects.equals(qualitativeScaleValue, observation.qualitativeScaleValue) && Objects.equals(quantity, observation.quantity) && Objects.equals(geoLocation, observation.geoLocation) && Objects.equals(sensorExternalId, observation.sensorExternalId);
+        Observation that = (Observation) o;
+        return Objects.equals(id, that.id);
     }
+
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, date, qualitativeScaleValue, quantity, value, geoLocation, sensorExternalId);
+        return Objects.hash(id, date, sensorExternalId, timeFrame, geoLocation, quantity, qualitativeScaleValue);
     }
 
     @Override
@@ -143,12 +135,12 @@ public class Observation implements Serializable {
         return "Observation{" +
                 "id=" + id +
                 ", date=" + date +
-                ", value=" + value +
-                ", timeFrameId='" + timeFrameId + '\'' +
-                ", geoLocation=" + geoLocation +
                 ", sensorExternalId='" + sensorExternalId + '\'' +
-                ", qualitativeScaleValue=" + qualitativeScaleValue.toString() +
-                ", quantity=" + quantity.toString() +
+                ", timeFrame=" + timeFrame +
+                ", geoLocation=" + geoLocation +
+                ", quantity=" + quantity +
+                ", qualitativeScaleValue=" + qualitativeScaleValue +
                 '}';
-    } 
+    }
+
 }

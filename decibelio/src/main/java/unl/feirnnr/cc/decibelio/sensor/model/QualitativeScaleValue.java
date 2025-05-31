@@ -1,22 +1,16 @@
 package unl.feirnnr.cc.decibelio.sensor.model;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+
 import java.io.Serializable;
 import java.util.Objects;
 
-@Entity
-@TableGenerator(
-        name = "QualitativeScaleValueGenerator",
-        table = "IdentityGenerator",
-        pkColumnName = "name",
-        valueColumnName = "value",
-        pkColumnValue = "QualitativeScaleValue",
-        initialValue = 1, allocationSize = 1
-)
+@Embeddable
 public class QualitativeScaleValue implements Serializable {
 
-    @Id
-    @GeneratedValue(generator = "QualitativeScaleValueGenerator", strategy = GenerationType.TABLE)
+    @Column
+    @NotNull
     private Long id;
 
     @Column(unique = true)

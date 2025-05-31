@@ -72,7 +72,7 @@ public class MqttSensorListener {
                         String externalIdPart = parts[2]; // ej. HOPb0a7323594a2_NLO
                         String externalId = externalIdPart.split("_")[0]; // extrae HOPb0a7323594a2
 
-                        observationService.processAndSaveObservation(externalId, payloadMap);
+                        //observationService.processAndSaveObservation(externalId, payloadMap);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

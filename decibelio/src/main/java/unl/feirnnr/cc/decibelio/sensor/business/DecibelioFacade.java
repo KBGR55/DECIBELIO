@@ -62,11 +62,12 @@ public class DecibelioFacade {
 
     private Observation insert(@NotNull ObservationDTO  observationDTO) {
         LOGGER.log(Level.INFO, "Inserting observation: {0}", observationDTO);
+
        
         Observation observation = new Observation();
         observation.setDate(observationDTO.getDate());
         observation.setSensorExternalId(observationDTO.getSensorExternalId());
-        observation.setValue(observationDTO.getValue());
+        //        observation.setValue(observationDTO.getValue());
     
         return observationService.save(observation);        
     }
@@ -170,7 +171,7 @@ public class DecibelioFacade {
                 try {
                     metric.setDate(LocalDate.parse(csvRecord.get("Fecha"), DATE_FORMATTER));
                     // metric.setTime(LocalTime.parse(csvRecord.get("Time/No."), TIME_FORMATTER));
-                    metric.setValue(Float.parseFloat(csvRecord.get("Value").replace(",", ".")));
+                   // metric.setValue(Float.parseFloat(csvRecord.get("Value").replace(",", ".")));
                     metric.setGeoLocation(new GeoLocation(
                             Float.parseFloat(csvRecord.get("Latitud_y").replace(",", ".")),
                             Float.parseFloat(csvRecord.get("Longitud_x").replace(",", "."))));

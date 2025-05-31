@@ -7,40 +7,21 @@ import java.io.Serializable;
 import java.time.LocalTime;
 import java.util.Objects;
 
-@Entity
-@TableGenerator(
-        name = "QuantityGenerator",
-        table = "IdentityGenerator",
-        pkColumnName = "name",
-        valueColumnName = "value",
-        pkColumnValue = "Quantity",
-        initialValue = 1, allocationSize = 1
-)
+@Embeddable
 public class Quantity implements Serializable {
 
-    @Id
-    @GeneratedValue(generator = "QuantityGenerator", strategy = GenerationType.TABLE)
-    private Long id;
+    @NotNull
+    @Column
+    private float value;
 
     @NotNull
     @Column
-    private float amount;
-
-    @NotNull
-    @Column
-    private Long unitTypeId;
+    private String abbreviation;
 
     @NotNull
     @Column
     private LocalTime time;
 
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
     public @NotNull LocalTime getTime() {
         return time;
     }
@@ -50,34 +31,33 @@ public class Quantity implements Serializable {
     }
 
     @NotNull
-    public float getAmount() {
-        return amount;
+    public float getValue() {
+        return value;
     }
 
-    public void setAmount(@NotNull float amount) {
-        this.amount = amount;
+    public void setValue(@NotNull float value) {
+        this.value = value;
     }
 
-    public void setUnitTypeId(Long unitTypeId) {
-        this.unitTypeId = unitTypeId;
+    public String getAbbreviation() {
+        return abbreviation;
     }
 
-    public Long getUnitTypeId() {
-        return unitTypeId;
+    public void setAbbreviation(@NotNull String abbreviation) {
+        this.abbreviation = abbreviation;
     }
+
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, time, amount, unitTypeId);
+        return Objects.hash(time, value,abbreviation);
     }
-
 
     @Override
     public String toString() {
         return "Quantity{" +
-                "id=" + id +
-                ", amount=" + amount +
-                ", unitTypeId=" + unitTypeId + 
+                ", value=" + value +
+                ", abbreviation='" + abbreviation + '\'' +
                 ", time=" + time +
                 '}';
     }

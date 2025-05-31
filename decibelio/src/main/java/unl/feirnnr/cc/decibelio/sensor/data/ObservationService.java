@@ -1,6 +1,7 @@
 package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.math.BigDecimal;
+import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.HashMap;
@@ -13,6 +14,7 @@ import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;
@@ -78,42 +80,78 @@ public class ObservationService {
     }
 
     public List<Observation> findLastMetricOfActiveSensors() {
-        String query = "SELECT m FROM Observation m " +
-                "WHERE m.date = (SELECT MAX(m2.date) FROM Observation m2 WHERE m2.sensorExternalId = m.sensorExternalId) "
-                +
-                "AND m.id = (SELECT MAX(m3.id) FROM Observation m3 WHERE m3.sensorExternalId = m.sensorExternalId AND m3.date = m.date) "
-                +
-                "AND EXISTS (SELECT s FROM Sensor s WHERE s.externalId = m.sensorExternalId AND s.sensorStatus = :activeStatus)";
+        String jpql = "SELECT m FROM Observation m " +
+                "WHERE " +
+                "  m.date = (" +
+                "    SELECT MAX(m2.date) " +
+                "    FROM Observation m2 " +
+                "    WHERE m2.sensorExternalId = m.sensorExternalId" +
+                "  ) " +
+                "  AND m.id = (" +
+                "    SELECT MAX(m3.id) " +
+                "    FROM Observation m3 " +
+                "    WHERE m3.sensorExternalId = m.sensorExternalId " +
+                "      AND m3.date = m.date" +
+                "  ) " +
+                "  AND EXISTS (" +
+                "    SELECT s FROM Sensor s " +
+                "    WHERE s.externalId = m.sensorExternalId " +
+                "      AND s.sensorStatus = :activeStatus" +
+                "  )";
 
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("activeStatus", SensorStatus.ACTIVE);
 
-        return crudService.findWithQuery(query, parameters);
+        return crudService.findWithQuery(jpql, parameters);
     }
 
+     /**
+     * Busca observaciones en un rango de fechas, filtrando cada hora a múltiplos de intervalMinutes,
+     * para un sensor (opcional). Se usa consulta nativa para manejar EXTRACT(...) y MOD(...).
+     *
+     * @param sensorExternalId Opcional, si se quiere filtrar por sensor.
+     * @param startDate Fecha inicial (inclusive).
+     * @param endDate   Fecha final (inclusive).
+     * @param intervalMinutes Intervalo en minutos (e.g. 30 para cada media hora).
+     * @return Lista de Observation que cumplen el criterio.
+     */
     public List<Observation> findMetricsBySensorAndDateRangeWithInterval(
-            @Nullable String sensorExternalId,
-            @NotNull LocalDate startDate,
-            @NotNull LocalDate endDate,
-            @NotNull Integer intervalMinutes) {
+        @Nullable String sensorExternalId,
+        @NotNull LocalDate startDate,
+        @NotNull LocalDate endDate,
+        @NotNull Integer intervalMinutes) {
 
-        StringBuilder queryBuilder = new StringBuilder(
-                "SELECT m FROM Observation m WHERE m.date BETWEEN :startDate AND :endDate " +
-                        "AND MOD(EXTRACT(MINUTE FROM m.time), :intervalMinutes) = 0 ");
-        Map<String, Object> parameters = new HashMap<>();
+    StringBuilder sql = new StringBuilder();
+    sql.append("SELECT * ")
+       .append("FROM public.observation o ")
+       .append("WHERE o.date BETWEEN ? AND ? ")
+       .append("  AND MOD(EXTRACT(MINUTE FROM o.quantity_time), ?) = 0 ");
 
-        if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
-            queryBuilder.append("AND m.sensorExternalId = :sensorExternalId ");
-            parameters.put("sensorExternalId", sensorExternalId);
-        }
-        queryBuilder.append("ORDER BY m.date ASC, m.time ASC");
-        String query = queryBuilder.toString();
-        parameters.put("startDate", startDate);
-        parameters.put("endDate", endDate);
-        parameters.put("intervalMinutes", intervalMinutes);
-
-        return crudService.findWithQuery(query, parameters);
+    // Usamos 'o.sensorexternalid' en lugar de 'o.sensor_external_id'
+    if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
+        sql.append("AND o.sensorexternalid = ? ");
     }
+
+    sql.append("ORDER BY o.date ASC, o.quantity_time ASC");
+
+    Query nativeQuery = crudService.getEntityManager()
+        .createNativeQuery(sql.toString(), Observation.class);
+
+    int index = 1;
+    nativeQuery.setParameter(index++, Date.valueOf(startDate));  // primer '?'
+    nativeQuery.setParameter(index++, Date.valueOf(endDate));    // segundo '?'
+    nativeQuery.setParameter(index++, intervalMinutes);          // tercer '?'
+
+    if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
+        nativeQuery.setParameter(index++, sensorExternalId);      // cuarto '?'
+    }
+
+    @SuppressWarnings("unchecked")
+    List<Observation> resultados = nativeQuery.getResultList();
+    return resultados;
+}
+
+
 
     /**
      * Encuentra las métricas máximas por día y noche para una fecha dada.
@@ -143,35 +181,6 @@ public class ObservationService {
         parameters.put("date", date);
 
         return crudService.findWithQuery(query, parameters);
-    }
-
-    public void processAndSaveObservation(String externalId, Map<String, Object> payloadMap) {
-
-        Sensor sensor = sensorService.findByExternalId(externalId);
-        // Parseo de los valores
-        float sonLaeq = Float.parseFloat(payloadMap.getOrDefault("son_laeq", "0").toString());
-        String timeInstant = payloadMap.get("TimeInstant").toString(); // formato: 2024-05-20T14:45:00.000Z
-        LocalDate date = LocalDate.parse(timeInstant.substring(0, 10));
-        LocalTime time = LocalTime.parse(timeInstant.substring(11, 19));
-
-        // Construcción de Quantity
-        Quantity quantity = new Quantity();
-        quantity.setValue(sonLaeq);
-        quantity.setTime(time);
-        quantity.setAbbreviation("LAeq"); // ← puedes parametrizar esto también
-
-        // Construcción de Observation
-        Observation obs = new Observation();
-        obs.setDate(date);
-        obs.setQuantity(quantity);
-        obs.setGeoLocation(sensor.getGeoLocation());
-        obs.setSensorExternalId(externalId);
-        obs.setQualitativeScaleValue(null);
-        obs.setTimeFrame(null); // opcional
-        obs.setQuantity(quantity);
-
-        // Persistencia// Necesario si Quantity tiene su propio ID
-        em.persist(obs);
     }
 
     /**

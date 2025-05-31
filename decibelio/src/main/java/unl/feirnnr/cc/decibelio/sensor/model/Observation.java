@@ -48,6 +48,7 @@ public class Observation implements Serializable {
     @AttributeOverrides({
             @AttributeOverride(name = "value", column = @Column(name = "quantity_value")),
             @AttributeOverride(name = "abbreviation", column = @Column(name = "quantity_abbreviation")),
+            @AttributeOverride(name = "time", column = @Column(name = "quantity_time"))
     })
     private Quantity quantity;
 

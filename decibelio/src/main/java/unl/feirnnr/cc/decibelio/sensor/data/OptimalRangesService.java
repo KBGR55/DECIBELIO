@@ -2,12 +2,15 @@ package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.util.List;
 
+import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.Query;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
 
+
+@Stateless
 public class OptimalRangesService {
     @Inject
     private CrudService crudService;

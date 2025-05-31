@@ -18,6 +18,7 @@ import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;
 
 import java.io.InputStream;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -124,97 +125,131 @@ public class ObservationsResource {
                 }
         }
 
-        @POST
-        @Path("/sensor")
-        @Consumes(MediaType.APPLICATION_JSON)
-        @Produces(MediaType.APPLICATION_JSON)
-        @Operation(summary = "Get observation for a sensor within a date range")
-        @APIResponses(value = {
-                        @APIResponse(responseCode = "200", description = "Successful operation"),
-                        @APIResponse(responseCode = "400", description = "Invalid input"),
-                        @APIResponse(responseCode = "404", description = "Observations not found"),
-        })
-        public Response getMetricsBySensorAndDateRange(JsonObject json, @Context UriInfo uriInfo) {
-                try {
-                        String sensorExternalId = json.containsKey("sensorExternalId")
-                                        ? json.getString("sensorExternalId")
-                                        : "";
-                        String startDate = json.containsKey("startDate") ? json.getString("startDate") : null;
-                        String endDate = json.containsKey("endDate") ? json.getString("endDate") : null;
-                        Integer intervalMinutes = json.containsKey("intervalMinutes") ? json.getInt("intervalMinutes")
-                                        : 30;
+@POST
+@Path("/sensor")
+@Consumes(MediaType.APPLICATION_JSON)
+@Produces(MediaType.APPLICATION_JSON)
+@Operation(summary = "Get observation for a sensor within a date range")
+@APIResponses(value = {
+    @APIResponse(responseCode = "200", description = "Successful operation"),
+    @APIResponse(responseCode = "400", description = "Invalid input"),
+    @APIResponse(responseCode = "404", description = "Observations not found"),
+})
+public Response getMetricsBySensorAndDateRange(JsonObject json, @Context UriInfo uriInfo) {
+    try {
+        // 1. Extraer parámetros JSON
+        String sensorExternalId = json.containsKey("sensorExternalId")
+            ? json.getString("sensorExternalId")
+            : "";
+        String startDateStr = json.containsKey("startDate") ? json.getString("startDate") : null;
+        String endDateStr = json.containsKey("endDate") ? json.getString("endDate") : null;
+        Integer intervalMinutes = json.containsKey("intervalMinutes") ? json.getInt("intervalMinutes") : 30;
 
-                        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now();
 
-                        LocalDateTime start = (startDate == null)
-                                        ? now.withHour(7).withMinute(0).withSecond(0).withNano(0)
-                                        : LocalDateTime.parse(startDate);
-
-                        LocalDateTime end = (endDate == null)
-                                        ? now
-                                        : LocalDateTime.parse(endDate);
-
-                        LOGGER.info(String.format(
-                                        "Fetching observation for sensor: %s from %s to %s with interval of %d minutes",
-                                        sensorExternalId, start, end, intervalMinutes));
-
-                        List<Observation> observation = decibelioFacade.findMetricsBySensorAndDateRangeWithInterval(
-                                        sensorExternalId,
-                                        start.toLocalDate(), end.toLocalDate(), intervalMinutes);
-
-                        if (observation.isEmpty()) {
-                                RestResult result = new RestResult(RestResultStatus.SUCCESS,
-                                                "No observation found for the specified criteria", Observation.class,
-                                                observation);
-                                return Response.status(Response.Status.NOT_FOUND).entity(result).build();
-                        }
-                        // Agrupar las métricas por sensorExternalId
-                        Map<String, List<Observation>> groupedMetrics = observation.stream()
-                                        .collect(Collectors.groupingBy(Observation::getSensorExternalId));
-
-                        // Crear la respuesta
-                        List<Map<String, Object>> responsePayload = new ArrayList<>();
-                        for (Map.Entry<String, List<Observation>> entry : groupedMetrics.entrySet()) {
-                                String sensorId = entry.getKey();
-                                List<Observation> sensorMetrics = entry.getValue();
-
-                                // Obtener detalles del sensor (solo una vez)
-                                Observation firstMetric = sensorMetrics.get(0);
-                                Map<String, Object> geoLocation = new HashMap<>();
-                                geoLocation.put("latitude", firstMetric.getGeoLocation().getLatitude());
-                                geoLocation.put("longitude", firstMetric.getGeoLocation().getLongitude());
-
-                                // Preparar el objeto para la respuesta
-                                Map<String, Object> sensor = new HashMap<>();
-                                sensor.put("sensorExternalId", sensorId);
-                                sensor.put("geoLocation", geoLocation);
-
-                                // Crear la lista de métricas sin los detalles del sensor
-                                List<Map<String, Object>> metricsList = new ArrayList<>();
-                                for (Observation metric : sensorMetrics) {
-                                        Map<String, Object> metricData = new HashMap<>();
-                                        metricData.put("date", metric.getDate());
-                                        metricData.put("id", metric.getId());
-                                        // metricData.put("range", metric.getRange());
-                                        // metricData.put("time", metric.getTime());
-                                       // metricData.put("value", metric.getValue());
-                                        metricsList.add(metricData);
-                                }
-                                sensor.put("observation", metricsList);
-                                responsePayload.add(sensor);
-                        }
-
-                        RestResult result = new RestResult(RestResultStatus.SUCCESS,
-                                        "Observations retrieved successfully",
-                                        Observation.class, responsePayload);
-                        return Response.ok(result).build();
-                } catch (Exception e) {
-                        LOGGER.log(Level.SEVERE, "Error fetching observation", e);
-                        RestResult result = new RestResult(RestResultStatus.FAILURE, "Error fetching observation",
-                                        "Observations", null);
-                        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
-                }
+        // 2. Parse de startDate
+        LocalDateTime start;
+        if (startDateStr == null || startDateStr.isEmpty()) {
+            // Si no se envía, usamos hoy a las 07:00
+            start = now.withHour(7).withMinute(0).withSecond(0).withNano(0);
+        } else if (startDateStr.contains("T")) {
+            // Viene con componente de tiempo "YYYY-MM-DDTHH:MM:SS"
+            start = LocalDateTime.parse(startDateStr);
+        } else {
+            // Solo fecha "YYYY-MM-DD", se añade hora 07:00
+            LocalDate ld = LocalDate.parse(startDateStr);
+            start = ld.atTime(7, 0);
         }
+
+        // 3. Parse de endDate
+        LocalDateTime end;
+        if (endDateStr == null || endDateStr.isEmpty()) {
+            // Si no se envía, usamos hora actual
+            end = now;
+        } else if (endDateStr.contains("T")) {
+            end = LocalDateTime.parse(endDateStr);
+        } else {
+            // Solo fecha "YYYY-MM-DD", se asume hasta las 23:59:59 de ese día
+            LocalDate ld = LocalDate.parse(endDateStr);
+            end = ld.atTime(23, 59, 59);
+        }
+
+        LOGGER.info(String.format(
+            "Fetching observation for sensor: %s from %s to %s with interval of %d minutes",
+            sensorExternalId, start, end, intervalMinutes));
+
+        // 4. Llamar al servicio pasándole solo las fechas (sin horas)
+        List<Observation> observations = decibelioFacade
+            .findMetricsBySensorAndDateRangeWithInterval(
+                sensorExternalId,
+                start.toLocalDate(),
+                end.toLocalDate(),
+                intervalMinutes
+            );
+
+        // 5. Si no hay resultados, devolvemos 404
+        if (observations.isEmpty()) {
+            RestResult result = new RestResult(
+                RestResultStatus.SUCCESS,
+                "No observation found for the specified criteria",
+                Observation.class,
+                observations
+            );
+            return Response.status(Response.Status.NOT_FOUND).entity(result).build();
+        }
+
+        // 6. Agrupar por sensorExternalId
+        Map<String, List<Observation>> groupedMetrics = observations.stream()
+            .collect(Collectors.groupingBy(Observation::getSensorExternalId));
+
+        // 7. Construir payload de respuesta
+        List<Map<String, Object>> responsePayload = new ArrayList<>();
+        for (Map.Entry<String, List<Observation>> entry : groupedMetrics.entrySet()) {
+            String sensorId = entry.getKey();
+            List<Observation> sensorMetrics = entry.getValue();
+
+            Observation firstMetric = sensorMetrics.get(0);
+            Map<String, Object> geoLocation = new HashMap<>();
+            geoLocation.put("latitude", firstMetric.getGeoLocation().getLatitude());
+            geoLocation.put("longitude", firstMetric.getGeoLocation().getLongitude());
+
+            Map<String, Object> sensorMap = new HashMap<>();
+            sensorMap.put("sensorExternalId", sensorId);
+            sensorMap.put("geoLocation", geoLocation);
+
+            List<Map<String, Object>> metricsList = new ArrayList<>();
+            for (Observation metric : sensorMetrics) {
+                Map<String, Object> metricData = new HashMap<>();
+                metricData.put("id", metric.getId());
+                metricData.put("date", metric.getDate());
+                // Extraemos hora y valor desde el embebido Quantity:
+                metricData.put("time", metric.getQuantity().getTime());
+                metricData.put("value", metric.getQuantity().getValue());
+                metricsList.add(metricData);
+            }
+            sensorMap.put("observation", metricsList);
+            responsePayload.add(sensorMap);
+        }
+
+        RestResult result = new RestResult(
+            RestResultStatus.SUCCESS,
+            "Observations retrieved successfully",
+            Observation.class,
+            responsePayload
+        );
+        return Response.ok(result).build();
+    }
+    catch (Exception e) {
+        LOGGER.log(Level.SEVERE, "Error fetching observation", e);
+        RestResult result = new RestResult(
+            RestResultStatus.FAILURE,
+            "Error fetching observation",
+            "Observations",
+            null
+        );
+        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(result).build();
+    }
+}
 
         @GET
         @Path("/max")

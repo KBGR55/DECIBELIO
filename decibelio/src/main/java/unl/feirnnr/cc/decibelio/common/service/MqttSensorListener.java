@@ -64,7 +64,7 @@ public class MqttSensorListener {
                 String topic = topicTemplate.replace("{param}", sensorId);
                 client.subscribe(topic, (t, msg) -> {
                     String payload = new String(msg.getPayload());
-                    System.out.println("Mensaje recibido: " + payload);
+                   // System.out.println("Mensaje recibido: " + payload);
 
                     try {
                         ObjectMapper mapper = new ObjectMapper();
@@ -75,7 +75,6 @@ public class MqttSensorListener {
                         String externalIdPart = parts[2]; // ej. HOPb0a7323594a2_NLO
                         String externalId = externalIdPart.split("_")[0]; // extrae HOPb0a7323594a2
 
-                       // observationService.processAndSaveObservation(externalId, payloadMap);
                         float sonLaeq = Float.parseFloat(payloadMap.getOrDefault("son_laeq", "0").toString());
                         String timeInstant = payloadMap.get("TimeInstant").toString();
                         LocalDate date = LocalDate.parse(timeInstant.substring(0, 10));
@@ -92,7 +91,7 @@ public class MqttSensorListener {
                         e.printStackTrace();
                     }
                 });
-                System.out.println("Suscrito a: " + topic);
+                //System.out.println("Suscrito a: " + topic);
             }
         } catch (MqttException e) {
             e.printStackTrace();

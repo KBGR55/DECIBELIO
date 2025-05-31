@@ -93,9 +93,9 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 if (metricLast != null) {
                   for (var metric in metricLast!.data) {
                     if (metric.sensorExternalId == sensor.externalId) {
-                      value = metric.value.toString();
+                      value = metric.quantity.value.toString();
                       date = metric.date; // Obtener la fecha
-                      time = metric.time; // Obtener la hora
+                      time = metric.quantity.time; // Obtener la hora
                       break;
                     }
                   }

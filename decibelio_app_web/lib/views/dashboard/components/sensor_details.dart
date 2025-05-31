@@ -92,11 +92,11 @@ class SensorDetailsState extends State<SensorDetails> {
                           children: [
                             Text(sensor!.name.toString()),
                             Text("Tipo: ${sensor.sensorType}"),
-                            Text("Nivel de Ruido: ${metric.range}"),
+                            Text("Nivel de Ruido: ${metric.qualitativeScaleValue.name}"),
                             Chart(
-                              range: metric.range.toString(),
+                              range: metric.qualitativeScaleValue.name,
                               value:
-                                  double.parse(metric.value.toStringAsFixed(2)),
+                                  double.parse(metric.quantity.value.toStringAsFixed(2)),
                             ),
                             Align(
                               alignment: Alignment.centerRight,

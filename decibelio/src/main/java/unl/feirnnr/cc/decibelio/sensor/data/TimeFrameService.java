@@ -2,6 +2,7 @@ package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.time.LocalTime;
 
+import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.Query;
@@ -9,6 +10,8 @@ import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
 
+
+@Stateless
 public class TimeFrameService {
 
     @Inject

@@ -6,7 +6,6 @@ import jakarta.ejb.Startup;
 import jakarta.inject.Inject;
 import unl.feirnnr.cc.decibelio.sensor.data.ObservationService;
 import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
-import unl.feirnnr.cc.decibelio.sensor.model.Observation;
 
 import org.eclipse.paho.client.mqttv3.*;
 import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
@@ -14,7 +13,6 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.util.List;
 import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
@@ -42,7 +40,6 @@ public class MqttSensorListener {
     @Inject
     SensorService sensorService;
 
-
     @Inject
     ObservationService observationService; // Servicio de persistencia
 
@@ -55,7 +52,7 @@ public class MqttSensorListener {
             MqttConnectOptions options = new MqttConnectOptions();
             options.setCleanSession(true);
             client.connect(options);
-            
+
             for (String sensorId : sensorService.getAllExternalIds()) {
                 String topic = topicTemplate.replace("{param}", sensorId);
                 client.subscribe(topic, (t, msg) -> {
@@ -67,12 +64,11 @@ public class MqttSensorListener {
                         Map<String, Object> payloadMap = mapper.readValue(payload, new TypeReference<>() {
                         });
 
-                        // Extraer externalId del topic dinámico
                         String[] parts = t.split("/");
                         String externalIdPart = parts[2]; // ej. HOPb0a7323594a2_NLO
                         String externalId = externalIdPart.split("_")[0]; // extrae HOPb0a7323594a2
 
-                        //observationService.processAndSaveObservation(externalId, payloadMap);
+                        observationService.processAndSaveObservation(externalId, payloadMap);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -83,4 +79,5 @@ public class MqttSensorListener {
             e.printStackTrace();
         }
     }
+
 }

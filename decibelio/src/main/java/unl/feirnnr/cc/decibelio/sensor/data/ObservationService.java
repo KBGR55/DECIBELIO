@@ -1,6 +1,7 @@
 package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,10 +9,14 @@ import java.util.Map;
 import jakarta.annotation.Nullable;
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
+import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;
+import unl.feirnnr.cc.decibelio.sensor.model.Quantity;
+import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 import unl.feirnnr.cc.decibelio.sensor.model.SensorStatus;
 
 @Stateless
@@ -19,6 +24,12 @@ public class ObservationService {
 
     @Inject
     CrudService crudService;
+
+    @Inject
+    SensorService sensorService;
+
+    @PersistenceContext(unitName = "decibelioPU")
+    EntityManager em;
 
     /**
      * Guarda una entidad Observation. Si la entidad no tiene un ID, se creará.
@@ -123,6 +134,35 @@ public class ObservationService {
         parameters.put("date", date);
 
         return crudService.findWithQuery(query, parameters);
+    }
+
+    public void processAndSaveObservation(String externalId, Map<String, Object> payloadMap) {
+
+        Sensor sensor = sensorService.findByExternalId(externalId);
+        // Parseo de los valores
+        float sonLaeq = Float.parseFloat(payloadMap.getOrDefault("son_laeq", "0").toString());
+        String timeInstant = payloadMap.get("TimeInstant").toString(); // formato: 2024-05-20T14:45:00.000Z
+        LocalDate date = LocalDate.parse(timeInstant.substring(0, 10));
+        LocalTime time = LocalTime.parse(timeInstant.substring(11, 19));
+
+        // Construcción de Quantity
+        Quantity quantity = new Quantity();
+        quantity.setValue(sonLaeq);
+        quantity.setTime(time);
+        quantity.setAbbreviation("LAeq"); // ← puedes parametrizar esto también
+
+        // Construcción de Observation
+        Observation obs = new Observation();
+        obs.setDate(date);
+        obs.setQuantity(quantity);
+        obs.setGeoLocation(sensor.getGeoLocation());
+        obs.setSensorExternalId(externalId);
+        obs.setQualitativeScaleValue(null);
+        obs.setTimeFrame(null); // opcional
+        obs.setQuantity(quantity);
+
+        // Persistencia// Necesario si Quantity tiene su propio ID
+        em.persist(obs);
     }
 
 }

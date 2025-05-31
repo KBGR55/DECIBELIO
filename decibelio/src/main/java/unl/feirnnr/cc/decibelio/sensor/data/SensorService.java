@@ -1,7 +1,6 @@
 package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -42,13 +41,13 @@ public class SensorService {
     @PersistenceContext
     private EntityManager em;
 
+    @SuppressWarnings("unchecked") // Opción alternativa, no recomendada si no hay conversión explícita
     public List<String> getAllExternalIds() {
-        List<?> results = em.createNativeQuery("SELECT externalid FROM sensor")
-                .getResultList();
-
-        return results.stream()
+        return em.createNativeQuery("SELECT externalid FROM sensor")
+                .getResultList()
+                .stream()
                 .map(Object::toString)
-                .collect(Collectors.toList());
+                .toList(); // Requiere Java 16+. Si usas Java 8–15, usa .collect(Collectors.toList())
     }
 
     /**

@@ -81,4 +81,14 @@ public class UserRolService {
         return user;
     }
 
+     /**
+     * Recupera todas las relaciones UserRol (activas e inactivas) para un usuario.
+     */
+    public List<UserRol> findAllByUser(User user) {
+        String jpql = "SELECT ur FROM UserRol ur WHERE ur.user = :user";
+        Map<String, Object> params = new HashMap<>();
+        params.put("user", user);
+        return crudService.findWithQuery(jpql, params);
+    }
+
 }

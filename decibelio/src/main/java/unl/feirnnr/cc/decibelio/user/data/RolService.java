@@ -61,4 +61,14 @@ public class RolService {
         return findByType(defaulRol);
     }   
 
+    /**
+     * Busca un Rol por su ID.
+     * @param id Identificador de Rol.
+     * @return Rol encontrado, o null si no existe.
+     */
+    public Rol findById(Long id) {
+        return crudService.find(Rol.class, id);
+    }
+    
+
 }

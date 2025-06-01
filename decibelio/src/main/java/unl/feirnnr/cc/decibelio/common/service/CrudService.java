@@ -61,8 +61,8 @@ public class CrudService {
      * @return
      */
     public <T> T findWithEntityGraph(Class<T> type, Object id, String nameNodeGraphMaps, String typeGraph) {
-        EntityGraph graph = this.em.getEntityGraph(nameNodeGraphMaps);
-        Map hints = new HashMap();
+        EntityGraph<?> graph = this.em.getEntityGraph(nameNodeGraphMaps);
+        Map<String, Object> hints = new HashMap<>();
         hints.put(typeGraph, graph);
         return (T) this.em.find(type, id, hints);
     }
@@ -79,31 +79,32 @@ public class CrudService {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> findWithEntityGraph(String namedQueryName, Map<String, Object> parameters, String nameNodeGraphMaps, String typeGraph) {
-        EntityGraph graph = this.em.getEntityGraph(nameNodeGraphMaps);
+        EntityGraph<?> graph = this.em.getEntityGraph(nameNodeGraphMaps);
         Query query = this.em.createNamedQuery(namedQueryName);
         query.setHint(typeGraph, graph);
         if (!parameters.isEmpty()) {
             setParameters(query, parameters, 0, 0);
         }
-        return query.getResultList();
+        TypedQuery<T> typedQuery = query.unwrap(TypedQuery.class);
+        return typedQuery.getResultList();
     }
 
     public <T> List<T> findWithEntityGraph(String namedQueryName, Map<String, Object> parameters,
                                            int pageSize, String nameNodeGraphMaps, String typeGraph) {
-        EntityGraph graph = this.em.getEntityGraph(nameNodeGraphMaps);
+        EntityGraph<?> graph = this.em.getEntityGraph(nameNodeGraphMaps);
         Query query = this.em.createNamedQuery(namedQueryName);
         query.setHint(typeGraph, graph);
         setParameters(query, parameters, 0, pageSize);
-        return query.getResultList();
+        return (List<T>) query.getResultList();
     }
 
     public <T> List<T> findWithEntityGraph(String namedQueryName, Map<String, Object> parameters,
                                            int page, int pageSize, String nameNodeGraphMaps, String typeGraph) {
-        EntityGraph graph = this.em.getEntityGraph(nameNodeGraphMaps);
+        EntityGraph<?> graph = this.em.getEntityGraph(nameNodeGraphMaps);
         Query query = this.em.createNamedQuery(namedQueryName);
         query.setHint(typeGraph, graph);
         setParameters(query, parameters, page, pageSize);
-        return query.getResultList();
+        return (List<T>) query.getResultList();
     }
 
     /**
@@ -118,10 +119,10 @@ public class CrudService {
      */
     @SuppressWarnings("unchecked")
     public <T> List<T> findWithEntityGraph(String namedQueryName ,String nameNodeGraphMaps, String typeGraph) {
-        EntityGraph graph = this.em.getEntityGraph(nameNodeGraphMaps);
+        EntityGraph<?> graph = this.em.getEntityGraph(nameNodeGraphMaps);
         Query query = this.em.createNamedQuery(namedQueryName);
         query.setHint(typeGraph, graph);
-        return query.getResultList();
+        return (List<T>) query.getResultList();
     }
 
     public <T> T findSingleWithEntityGraph(String namedQueryName,
@@ -142,7 +143,8 @@ public class CrudService {
 
     public <T> List<T> findWithQuery(String queryString) {
         Query query = this.em.createQuery(queryString);
-        return query.getResultList();
+        TypedQuery<T> typedQuery = query.unwrap(TypedQuery.class);
+        return typedQuery.getResultList();
     }
 
     @SuppressWarnings("unchecked")
@@ -244,7 +246,7 @@ public class CrudService {
         return em.createNativeQuery(nativeQuery);
     }
 
-    public Query createNativeQuery(String nativeQuery, Class resultClass){
+    public Query createNativeQuery(String nativeQuery, Class<?> resultClass){
         return em.createNativeQuery(nativeQuery, resultClass);
     }
 
@@ -252,7 +254,7 @@ public class CrudService {
         return em.createNativeQuery(nativeQuery, resultSetMapping);
     }
 
-    public EntityGraph getEntityGraph(String nameNodeGraphMaps){
+    public EntityGraph<?> getEntityGraph(String nameNodeGraphMaps){
         return this.em.getEntityGraph(nameNodeGraphMaps);
     }
 
@@ -272,22 +274,22 @@ public class CrudService {
         return query.executeUpdate();
     }
 
-    public <T> T findSingleResultOrNullWithNamedQuery(String namedQueryName, Map<String, Object> parameters)
+    public <T> T findSingleResultOrNullWithNamedQuery(String namedQueryName, Map<String, Object> parameters, Class<T> type)
             throws NonUniqueResultException {
         Query query = this.em.createNamedQuery(namedQueryName);
         setParameters(query, parameters, 0, 0);
-        return (T) getSingleResultOrNull(query);
+        return getSingleResultOrNull(query, type);
     }
 
-    public <T> T findSingleResultOrNullWithNativeQuery(String sql, Class type) {
+    public <T> T findSingleResultOrNullWithNativeQuery(String sql, Class<T> type) {
         Query query = this.em.createNativeQuery(sql, type);
-        return (T) getSingleResultOrNull(query);
+        return type.cast(getSingleResultOrNull(query, type));
     }
 
-    public Object getSingleResultOrNull(Query query) throws NonUniqueResultException{
-        List results = query.getResultList();
+    public <T> T getSingleResultOrNull(Query query, Class<T> type) throws NonUniqueResultException {
+        List<?> results = query.getResultList();
         if (results.isEmpty()) return null;
-        else if (results.size() == 1) return results.get(0);
+        else if (results.size() == 1) return type.cast(results.get(0));
         throw new NonUniqueResultException();
     }
 

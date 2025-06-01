@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
+import 'package:decibelio_app_web/views/manage_user/user_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:decibelio_app_web/services/auth_service.dart';
@@ -74,6 +75,10 @@ class MyApp extends StatelessWidget {
           title: "Create Sensor",
           color: Colors.greenAccent,
         ),
+    '/manage_users': (context) => const UserScreen(
+      title: "Manage User",
+      color: Colors.cyan,
+    ),
   };
 
   @override

@@ -189,6 +189,13 @@ class _SideMenuState extends State<SideMenu> {
               Navigator.pushReplacementNamed(context, '/manage_sensor');
             },
           ),
+          DrawerListTile(
+            title: "Administrar usuarios",
+            svgSrc: "assets/icons/menu_profile.svg",
+            press: () {
+              Navigator.pushReplacementNamed(context, '/manage_users');
+            },
+          ),
           // … otros items …
         ],
       ),

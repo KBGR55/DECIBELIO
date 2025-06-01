@@ -1,21 +1,39 @@
-// lib/services/auth_service.dart
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AuthService {
-  static const _s = FlutterSecureStorage();
-  static const _kToken = 'jwt', _kRoles = 'roles', _kName = 'name';
+  static const _kTokenKey = 'AUTH_TOKEN';
+  static const _kUserKey  = 'AUTH_USER';
 
-  static Future<void> save(
-      String jwt, List<String> roles, String fullName) async {
-    await _s.write(key: _kToken, value: jwt);
-    await _s.write(key: _kRoles, value: roles.join(','));
-    await _s.write(key: _kName, value: fullName);
+  static Future<void> saveToken(String token) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kTokenKey, token);
   }
 
-  static Future<String?> token() => _s.read(key: _kToken);
-  static Future<List<String>> roles() async =>
-      (await _s.read(key: _kRoles))?.split(',') ?? [];
-  static Future<String?> fullName() => _s.read(key: _kName);
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_kTokenKey);
+  }
 
-  static Future<void> clear() => _s.deleteAll();
+  static Future<void> saveUser(String userJson) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_kUserKey, userJson);
+  }
+
+  static Future<Map<String, dynamic>?> getUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_kUserKey);
+    if (raw == null) return null;
+    try {
+      return jsonDecode(raw) as Map<String, dynamic>;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  static Future<void> logout() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_kTokenKey);
+    await prefs.remove(_kUserKey);
+  }
 }

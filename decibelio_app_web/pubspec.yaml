@@ -44,6 +44,7 @@ dependencies:
   flutter_dotenv: ^5.2.1
   geolocator: ^9.0.2
   flutter_secure_storage: ^8.0.0
+  shared_preferences: ^2.0.15
   
 dev_dependencies:
   build_runner: ^2.4.0

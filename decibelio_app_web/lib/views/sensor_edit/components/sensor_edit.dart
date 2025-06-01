@@ -55,7 +55,6 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     _nameController = TextEditingController(text: widget.sensor.name);
     _externalIdController =

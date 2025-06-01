@@ -22,7 +22,6 @@ import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScale;
 import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScaleValue;
 import unl.feirnnr.cc.decibelio.sensor.model.Quantity;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
-import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
 import unl.feirnnr.cc.decibelio.sensor.model.UnitType;
 
 
@@ -33,7 +32,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.logging.Level;
@@ -66,7 +64,7 @@ public class DecibelioFacade {
 
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    //private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
 
     public void insert(@NotNull ObservationDTO  observationDTO) {
         LOGGER.log(Level.INFO, "Inserting observation DTO: {0}", observationDTO);
@@ -241,7 +239,7 @@ public class DecibelioFacade {
      * @param hour   la hora a verificar
      * @param ranges la lista de rangos disponibles
      * @return el TimeFrame correspondiente o null si no se encuentra
-     */
+  
 
     private TimeFrame findTimeFrameForHour(LocalTime hour, List<OptimalRange> ranges) {
         for (OptimalRange range : ranges) {
@@ -252,7 +250,7 @@ public class DecibelioFacade {
             }
         }
         return null;
-    }
+    }   */
 
     /**
      * Verifica si una hora específica está dentro de un rango de tiempo.
@@ -262,14 +260,14 @@ public class DecibelioFacade {
      * @param start el inicio del rango de tiempo
      * @param end   el final del rango de tiempo
      * @return true si la hora está dentro del rango, false en caso contrario
-     */
+    
     private boolean isTimeInRange(LocalTime time, LocalTime start, LocalTime end) {
         if (end.isBefore(start)) {
             return time.isAfter(start) || time.isBefore(end);
         } else {
             return time.isAfter(start) && time.isBefore(end);
         }
-    }
+    }   */
 
     /**
      * Busca un rango basado en el LandUse y el TimeFrame especificados.

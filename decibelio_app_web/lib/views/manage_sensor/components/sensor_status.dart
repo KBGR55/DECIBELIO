@@ -20,7 +20,6 @@ class _SensorChartState extends State<SensorChart> {
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     loadSensorList();
   }

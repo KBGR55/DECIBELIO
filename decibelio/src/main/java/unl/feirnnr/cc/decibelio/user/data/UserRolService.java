@@ -1,6 +1,8 @@
 package unl.feirnnr.cc.decibelio.user.data;
 
-import org.eclipse.microprofile.config.inject.ConfigProperty;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -13,40 +15,70 @@ import unl.feirnnr.cc.decibelio.user.model.UserRol;
 @Stateless
 public class UserRolService {
 
-
     @Inject
     CrudService crudService;
 
     @Inject
-    RolService rolService;  
+    RolService rolService;
 
     @Inject
-    @ConfigProperty(name = "defaulRol", defaultValue = "VISOR_GENERAL")
-    private String defaulRol;
+    UserService userService;
 
-    
     public UserRol save(@NotNull UserRol userRol) {
         return userRol.getId() == null ? crudService.create(userRol) : crudService.update(userRol);
     }
 
+    /**
+     * Recupera todas las relaciones UserRol activas para un usuario específico.
+     * 
+     * @param user Usuario del cual se buscan roles activos.
+     */
+    public List<UserRol> findByUser(User user) {
+        String jpql = "SELECT ur FROM UserRol ur WHERE ur.user = :user AND ur.status = TRUE";
+        Map<String, Object> params = new HashMap<>();
+        params.put("user", user);
+        return crudService.findWithQuery(jpql, params);
+    }
+
+  /**
+     * Crea un usuario (si no existe) y le asigna el rol por defecto (defaulRol).
+     * @param firstName  Nombre del usuario.
+     * @param lastName   Apellido del usuario.
+     * @param email      Correo del usuario.
+     * @return El usuario creado (o existente) con el rol por defecto asignado.
+     */
     public User createUserWithDefaultRole(String firstName, String lastName, String email) {
-        // Crear el nuevo usuario
-        User user = new User(firstName, lastName, email);
-        crudService.create(user);  // Usar CrudService para crear el usuario
-        System.out.println(user);
-
-        // Buscar el rol "VISOR_GENERAL"
-        Rol rol = rolService.findByType(defaulRol);
-        if (rol == null) {
-            throw new IllegalStateException("El rol por defecto 'VISOR_GENERAL' no se encuentra.");
+        // 1. Verificar si ya existe un usuario con ese email
+        User user = userService.findByEmail(email);
+        if (user == null) {
+            // Si no existe, creamos uno nuevo
+            user = new User(firstName, lastName, email);
+            user.setStatus(true);
+            userService.save(user);
         }
-        // Crear la relación entre el usuario y el rol
-        UserRol userRol = new UserRol();
-        userRol.setUser(user);
-        userRol.setRol(rol);
-        crudService.create(userRol);  // Usar CrudService para guardar la relación
 
-        return user;  // Retornar el usuario creado con el rol asignado
+        // 2. Recuperar el rol por defecto (o crearlo si no existe)
+        Rol defaultRol = rolService.getOrCreateDefaultRol();
+        if (defaultRol == null) {
+            throw new IllegalStateException(
+                "No se pudo obtener ni crear el rol por defecto '" + rolService.defaulRol + "'.");
+        }
+
+        // 3. Verificar si el usuario ya tiene asignado ese rol (status = TRUE)
+        List<UserRol> existingRelations = findByUser(user);
+        boolean yaTieneRol = existingRelations.stream()
+                .anyMatch(ur -> ur.getRol().getType().equals(defaultRol.getType()));
+
+        if (!yaTieneRol) {
+            // 4. Crear la relación UserRol (status = TRUE).
+            UserRol userRol = new UserRol();
+            userRol.setUser(user);
+            userRol.setRol(defaultRol);
+            userRol.setStatus(true);
+            crudService.create(userRol);
+        }
+
+        return user;
     }
 
 }

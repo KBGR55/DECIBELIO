@@ -13,3 +13,4 @@ buildNumber.properties
 .idea/
 decibelio.iml
 .docker-env
+.env

@@ -28,6 +28,10 @@ public class User {
     @NotBlank
     private String email;
 
+
+    @Column(columnDefinition = "TEXT")
+    private String photo;
+
     @Column(nullable = false)
     private Boolean status = true;
 
@@ -82,12 +86,26 @@ public class User {
         this.email = email;
     }
 
-    public Boolean getsStatus() {
+    public Boolean getStatus() {
         return status;
     }
 
     public void setStatus(Boolean status) {
         this.status = status;
+    }
+
+    public String getPhoto() {
+        return photo;
+    }
+
+    public void setPhoto(String photo) {
+        this.photo = photo;
+    }
+
+    @Override
+    public String toString() {
+        return "User [id=" + id + ", firstName=" + firstName + ", lastName=" + lastName + ", email=" + email
+                + ", status=" + status + "]";
     }
  
 }

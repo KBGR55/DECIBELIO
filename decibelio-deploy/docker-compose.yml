@@ -44,6 +44,9 @@ services:
       - DB_NAME=decibeliodb
       - DB_USER=postgres
       - DB_PASSWORD=admin@987
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - GOOGLE_REDIRECT_URI=${GOOGLE_REDIRECT_URI}
     ports:
       - "9080:9080"
       - "9443:9443"

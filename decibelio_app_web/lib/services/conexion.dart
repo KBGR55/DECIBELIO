@@ -6,7 +6,7 @@ import 'package:decibelio_app_web/models/respuesta_generica.dart';
 class Conexion {
   final String name = "conexion";
   //static final String urlBase = dotenv.env['URL_BASE'] ?? '';
-  static final String urlBase = 'http://localhost:9080/decibelio/api/';
+  static const String urlBase = 'http://localhost:9080/decibelio/api/';
   static String noToken = "NO";
 
   Future<RespuestaGenerica> solicitudPost(

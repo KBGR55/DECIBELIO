@@ -22,14 +22,6 @@ public class UserService {
         return user.getId() == null ? crudService.create(user) : crudService.update(user);
     }
 
-    /**
-     * Lista todos los usuarios activos.
-     * @return Lista de usuarios activos.
-     */
-    public List<User> findAllActive() {
-       return crudService.findWithNativeQuery("SELECT * FROM User WHERE status = TRUE", User.class);
-    }
-
       /**
      * Busca un usuario por email.
      * @param email Correo electrónico a buscar.
@@ -46,6 +38,44 @@ public class UserService {
         }
         return null;
     }
+
+     /**
+     * Lista todos los usuarios con status = true (activos).
+     * Notar que la tabla se llama "USER" entre comillas (exactamente así).
+     */
+    public List<User> findAllActive() {
+        return crudService.findWithNativeQuery(
+            "SELECT * FROM \"USER\" WHERE status = TRUE",
+            User.class
+        );
+     }
+ 
+     /**
+      * Lista todos los usuarios con status = false (inactivos).
+      */
+     public List<User> findAllInactive() {
+         return crudService.findWithNativeQuery(
+             "SELECT * FROM \"USER\" WHERE status = FALSE",
+             User.class
+         );
+     }
+ 
+     /**
+      * Busca un usuario por email, sin importar su estado.
+      * @param email Correo electrónico a buscar (único).
+      * @return Usuario encontrado o null si no existe.
+      */
+     public User findByEmailTrueFalse(String email) {
+         // JPQL: aquí JPA traduce correctamente la entidad User a la tabla "USER"
+         String jpql = "SELECT u FROM User u WHERE u.email = :email";
+         Map<String, Object> params = new HashMap<>();
+         params.put("email", email);
+         List<User> resultList = crudService.findWithQuery(jpql, params);
+         if (resultList != null && !resultList.isEmpty()) {
+             return resultList.get(0);
+         }
+         return null;
+     }
 
     
 }

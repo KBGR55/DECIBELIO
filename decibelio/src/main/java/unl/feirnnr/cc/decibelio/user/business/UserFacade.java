@@ -29,6 +29,7 @@ public class UserFacade {
     @Inject
     private UserRolService userRolService;
 
+
     public User save(@NotNull @Valid User entity) {
         LOGGER.log(Level.OFF, "Saving User entity: {0}", entity);
         return userService.save(entity);
@@ -60,6 +61,23 @@ public class UserFacade {
      */
     public User createUserWithDefaultRole(String firstName, String lastName, String email) {
         return userRolService.createUserWithDefaultRole(firstName, lastName, email);
+    }
+
+    public List<User> findAllActiveUsers() {
+        return userService.findAllActive();
+    }
+
+    public List<User> findAllInactiveUsers() {
+        return userService.findAllInactive();
+    }
+
+       /**
+     * Busca un usuario por email, sin importar su estado.
+     * @param email Correo electrónico a buscar.
+     * @return Usuario encontrado o null si no existe.
+     */
+    public User findByEmailTrueFalse(String email) {
+        return userService.findByEmailTrueFalse(email);
     }
 
 }

@@ -15,7 +15,6 @@ class SideMenu extends StatefulWidget {
 
 class _SideMenuState extends State<SideMenu> {
   Map<String, dynamic>? _user;
-  String? _token;
 
   @override
   void initState() {
@@ -24,32 +23,11 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   Future<void> _loadSession() async {
-    final user = await AuthService.getUser(); // Map<String,dynamic> o null
-    final token = await AuthService.getToken(); // String? o null
+    final user = await AuthService.getUser(); 
 
     setState(() {
       _user = user;
-      _token = token;
     });
-
-    // ————————————————
-    // DEBUG: imprimimos la URL cruda y su versión "trim()"
-    if (_user != null) {
-      final raw = _user!['photo'] as String?;
-      // 1) Quitamos espacios/saltos de línea en toda la cadena:
-      final noWhites = raw?.replaceAll(RegExp(r'\s+'), '');
-      print("DEBUG → noWhitespacePhoto = [$noWhites]");
-
-      // 2) Transformamos “=s100” a “=s60” para evitar 429 en desarrollo:
-      final small = noWhites?.replaceAllMapped(
-        RegExp(r'=s\d+$'),
-        (m) => '=s60',
-      );
-      print("DEBUG → using smallPhoto = $small");
-
-      // 3) Guardamos la URL depurada en el mapa:
-      _user!['photo'] = small;
-    }
   }
 
   @override
@@ -154,7 +132,6 @@ class _SideMenuState extends State<SideMenu> {
                       await AuthService.logout();
                       setState(() {
                         _user = null;
-                        _token = null;
                       });
                     },
                     child: const Text(

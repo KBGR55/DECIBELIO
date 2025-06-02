@@ -1,13 +1,11 @@
 import 'dart:convert';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:decibelio_app_web/models/respuesta_generica.dart';
 
 class Conexion {
   final String name = "conexion";
-  static final String urlBase = dotenv.env['URL_BASE'] ?? '';
- // static const String urlBase = 'http://localhost:9080/decibelio/api/';
-  static String noToken = "NO";
+  static const String urlBase = "https://computacion.unl.edu.ec/decibelio/api/";
+  static var noToken = "NO";
 
   Future<RespuestaGenerica> solicitudPost(
       String dirRecurso, Map<dynamic, dynamic> data, String token) async {

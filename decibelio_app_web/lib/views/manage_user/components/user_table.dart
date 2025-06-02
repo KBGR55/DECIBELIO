@@ -8,10 +8,6 @@ import 'package:decibelio_app_web/constants.dart';
 import 'package:decibelio_app_web/models/user_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 
-/// Widget que muestra una tabla de usuarios (activos/inactivos),
-/// filtrados por `searchQuery`. Incluye indicador de carga y scroll
-/// horizontal solo si se desborda. En la columna “Acciones” se incluye
-/// un Switch con Tooltip para activar o desactivar al usuario.
 class UserTable extends StatefulWidget {
   final String searchQuery;
 

@@ -1,3 +1,5 @@
+// lib/views/main/components/side_menu.dart
+
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -23,11 +25,19 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   Future<void> _loadSession() async {
-    final user = await AuthService.getUser(); 
-
+    final user = await AuthService.getUser();
     setState(() {
       _user = user;
     });
+  }
+
+  bool get isAdministrador {
+    if (_user == null) return false;
+    final roles = _user!['roles'];
+    if (roles is List) {
+      return roles.contains('ADMINISTRADOR');
+    }
+    return false;
   }
 
   @override
@@ -38,11 +48,12 @@ class _SideMenuState extends State<SideMenu> {
         children: [
           // == DRAWER HEADER == //
           DrawerHeader(
+            
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 if (_user == null) ...[
-                  // Si no hay usuario, muestro avatar genérico + botón para iniciar Google login
+                  // Si no hay usuario, muestro avatar genérico + botón Google login
                   ClipOval(
                     child: SvgPicture.string(
                       '''
@@ -69,7 +80,6 @@ class _SideMenuState extends State<SideMenu> {
                           horizontal: defaultPadding, vertical: 20),
                     ),
                     onPressed: () {
-                      // Llevamos al usuario al endpoint de Google para que Google devuelva ?code=…
                       html.window.location.href =
                           '${Conexion.urlBase}auth/google/login';
                     },
@@ -86,14 +96,13 @@ class _SideMenuState extends State<SideMenu> {
                     ),
                   ),
                 ] else ...[
-                  // Si ya hay user, muestro su foto y nombre
+                  // Si hay usuario autenticado, muestro foto y datos
                   ClipOval(
                     child: Image.network(
-                      // Ya hemos hecho _user!['photo'] = trimmed, así que aquí no habrá saltos ni espacios.
                       _user!['photo']!,
-                      height: 60, // <-- e igual alto fijo
+                      width: 60,
+                      height: 60,
                       fit: BoxFit.cover,
-                      // Si por alguna razón falla la descarga (429, CORS o URL inválida), entra aquí:
                       errorBuilder: (context, error, stackTrace) {
                         return SvgPicture.string(
                           '''
@@ -102,13 +111,13 @@ class _SideMenuState extends State<SideMenu> {
           <path fill-rule="evenodd" d="M0 8a8 8 0 1 1 16 0A8 8 0 0 1 0 8m8-7a7 7 0 0 0-5.468 11.37C3.242 11.226 4.805 10 8 10s4.757 1.225 5.468 2.37A7 7 0 0 0 8 1"/>
         </svg>
         ''',
-                          width: 60,
-                          height: 60,
+                          width: 50,
+                          height: 50,
                         );
                       },
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   Text(
                     '${_user!['firstName']} ${_user!['lastName']}',
                     style: const TextStyle(
@@ -117,7 +126,7 @@ class _SideMenuState extends State<SideMenu> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Text(
                     _user!['email'],
                     style: const TextStyle(
@@ -125,10 +134,9 @@ class _SideMenuState extends State<SideMenu> {
                       fontSize: 12,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4),
                   TextButton(
                     onPressed: () async {
-                      // Cerrar sesión
                       await AuthService.logout();
                       setState(() {
                         _user = null;
@@ -144,7 +152,7 @@ class _SideMenuState extends State<SideMenu> {
             ),
           ),
 
-          // == MENÚ == //
+          // == MENÚ ==
           DrawerListTile(
             title: "Dashboard",
             svgSrc: "assets/icons/menu_dashboard.svg",
@@ -152,6 +160,8 @@ class _SideMenuState extends State<SideMenu> {
               Navigator.pushReplacementNamed(context, '/dashboard');
             },
           ),
+
+          // “Subir datos” siempre visible
           DrawerListTile(
             title: "Subir datos",
             svgSrc: "assets/icons/menu_tran.svg",
@@ -159,21 +169,28 @@ class _SideMenuState extends State<SideMenu> {
               Navigator.pushReplacementNamed(context, '/upload_data');
             },
           ),
-          DrawerListTile(
-            title: "Administrar sensores",
-            svgSrc: "assets/icons/menu_task.svg",
-            press: () {
-              Navigator.pushReplacementNamed(context, '/manage_sensor');
-            },
-          ),
-          DrawerListTile(
-            title: "Administrar usuarios",
-            svgSrc: "assets/icons/menu_profile.svg",
-            press: () {
-              Navigator.pushReplacementNamed(context, '/manage_users');
-            },
-          ),
-          // … otros items …
+
+          // “Administrar Sensores” visible sólo para ADMINISTRADOR
+          if (isAdministrador)
+            DrawerListTile(
+              title: "Administrar Sensores",
+              svgSrc: "assets/icons/menu_task.svg",
+              press: () {
+                Navigator.pushReplacementNamed(context, '/manage_sensor');
+              },
+            ),
+
+          // “Administrar Usuarios” visible sólo para ADMINISTRADOR
+          if (isAdministrador)
+            DrawerListTile(
+              title: "Administrar Usuarios",
+              svgSrc: "assets/icons/menu_profile.svg",
+              press: () {
+                Navigator.pushReplacementNamed(context, '/manage_users');
+              },
+            ),
+
+          // …otros ítems que sean globales o también condicionales…
         ],
       ),
     );

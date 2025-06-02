@@ -23,6 +23,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -104,19 +105,32 @@ public class UserResource {
         @Produces(MediaType.APPLICATION_JSON)
         public Response listAllActiveUsers() {
                 List<User> activos = userFacade.findAllActiveUsers();
-                // Construir JSON de respuesta…
                 JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+
                 for (User u : activos) {
-                        arrayBuilder.add(
-                                        Json.createObjectBuilder()
-                                                        .add("id", u.getId())
-                                                        .add("firstName", u.getFirstName())
-                                                        .add("lastName", u.getLastName())
-                                                        .add("email", u.getEmail())
-                                                        .add("photo", u.getPhoto() == null ? "" : u.getPhoto())
-                                                        .add("status", u.getStatus())
-                                                        .build());
+                        // 1) Obtener lista de tipos de rol para este usuario
+                        List<String> rolesList = userFacade.getRolesForUser(u);
+
+                        // 2) Construir el JsonArray de roles
+                        JsonArrayBuilder rolesArrayBuilder = Json.createArrayBuilder();
+                        for (String tipoRol : rolesList) {
+                                rolesArrayBuilder.add(tipoRol);
+                        }
+                        JsonArray rolesArray = rolesArrayBuilder.build();
+
+                        // 3) Construir el objeto JSON del usuario, incluyendo “roles”
+                        JsonObjectBuilder userJsonBuilder = Json.createObjectBuilder()
+                                        .add("id", u.getId())
+                                        .add("firstName", u.getFirstName())
+                                        .add("lastName", u.getLastName())
+                                        .add("email", u.getEmail())
+                                        .add("photo", u.getPhoto() == null ? "" : u.getPhoto())
+                                        .add("status", u.getStatus())
+                                        .add("roles", rolesArray);
+
+                        arrayBuilder.add(userJsonBuilder.build());
                 }
+
                 JsonArray resultArray = arrayBuilder.build();
                 RestResult result = new RestResult(
                                 RestResultStatus.SUCCESS,
@@ -132,17 +146,31 @@ public class UserResource {
         public Response listAllInactiveUsers() {
                 List<User> inactivos = userFacade.findAllInactiveUsers();
                 JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+
                 for (User u : inactivos) {
-                        arrayBuilder.add(
-                                        Json.createObjectBuilder()
-                                                        .add("id", u.getId())
-                                                        .add("firstName", u.getFirstName())
-                                                        .add("lastName", u.getLastName())
-                                                        .add("email", u.getEmail())
-                                                        .add("photo", u.getPhoto() == null ? "" : u.getPhoto())
-                                                        .add("status", u.getStatus())
-                                                        .build());
+                        // 1) Obtener lista de tipos de rol para este usuario
+                        List<String> rolesList = userFacade.getRolesForUser(u);
+
+                        // 2) Construir el JsonArray de roles
+                        JsonArrayBuilder rolesArrayBuilder = Json.createArrayBuilder();
+                        for (String tipoRol : rolesList) {
+                                rolesArrayBuilder.add(tipoRol);
+                        }
+                        JsonArray rolesArray = rolesArrayBuilder.build();
+
+                        // 3) Construir el objeto JSON del usuario, incluyendo “roles”
+                        JsonObjectBuilder userJsonBuilder = Json.createObjectBuilder()
+                                        .add("id", u.getId())
+                                        .add("firstName", u.getFirstName())
+                                        .add("lastName", u.getLastName())
+                                        .add("email", u.getEmail())
+                                        .add("photo", u.getPhoto() == null ? "" : u.getPhoto())
+                                        .add("status", u.getStatus())
+                                        .add("roles", rolesArray);
+
+                        arrayBuilder.add(userJsonBuilder.build());
                 }
+
                 JsonArray resultArray = arrayBuilder.build();
                 RestResult result = new RestResult(
                                 RestResultStatus.SUCCESS,
@@ -271,54 +299,52 @@ public class UserResource {
         @Path("/assign/role")
         @Produces(MediaType.APPLICATION_JSON)
         public Response assignRoleToUser(
-                @QueryParam("email") String email,
-                @QueryParam("roleId") Long roleId) 
-        {
-            // 1) Validar parámetros
-            if (email == null || email.isBlank() || roleId == null) {
-                JsonObject errorJson = Json.createObjectBuilder()
-                    .add("status", "FAILURE")
-                    .add("message", "Parámetros 'email' y 'roleId' son requeridos")
-                    .build();
-                return Response.status(Response.Status.BAD_REQUEST).entity(errorJson).build();
-            }
-    
-            try {
-                // 2) Delegar en facade
-                UserRol userRol = userFacade.assignRoleToUser(email, roleId);
-    
-                // 3) Construir JSON de la relación
-                JsonObject userRolJson = Json.createObjectBuilder()
-                    .add("id", userRol.getId())
-                    .add("userId", userRol.getUser().getId())
-                    .add("email", userRol.getUser().getEmail())
-                    .add("roleId", userRol.getRol().getId())
-                    .add("roleType", userRol.getRol().getType())
-                    .add("status", userRol.getStatus())
-                    .build();
-    
-                RestResult result = new RestResult(
-                    RestResultStatus.SUCCESS,
-                    "Rol asignado correctamente",
-                    UserRol.class.getSimpleName(),
-                    userRolJson
-                );
-                return Response.ok(result).build();
-    
-            } catch (IllegalArgumentException ex) {
-                // 4) Si usuario o rol no se encontró, o rol inactivo
-                JsonObject errorJson = Json.createObjectBuilder()
-                    .add("status", "FAILURE")
-                    .add("message", ex.getMessage())
-                    .build();
-                return Response.status(Response.Status.BAD_REQUEST).entity(errorJson).build();
-            } catch (Exception ex) {
-                // 5) Cualquier otro error inesperado
-                JsonObject errorJson = Json.createObjectBuilder()
-                    .add("status", "FAILURE")
-                    .add("message", "Error interno al asignar rol: " + ex.getMessage())
-                    .build();
-                return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorJson).build();
-            }
+                        @QueryParam("email") String email,
+                        @QueryParam("roleId") Long roleId) {
+                // 1) Validar parámetros
+                if (email == null || email.isBlank() || roleId == null) {
+                        JsonObject errorJson = Json.createObjectBuilder()
+                                        .add("status", "FAILURE")
+                                        .add("message", "Parámetros 'email' y 'roleId' son requeridos")
+                                        .build();
+                        return Response.status(Response.Status.BAD_REQUEST).entity(errorJson).build();
+                }
+
+                try {
+                        // 2) Delegar en facade
+                        UserRol userRol = userFacade.assignRoleToUser(email, roleId);
+
+                        // 3) Construir JSON de la relación
+                        JsonObject userRolJson = Json.createObjectBuilder()
+                                        .add("id", userRol.getId())
+                                        .add("userId", userRol.getUser().getId())
+                                        .add("email", userRol.getUser().getEmail())
+                                        .add("roleId", userRol.getRol().getId())
+                                        .add("roleType", userRol.getRol().getType())
+                                        .add("status", userRol.getStatus())
+                                        .build();
+
+                        RestResult result = new RestResult(
+                                        RestResultStatus.SUCCESS,
+                                        "Rol asignado correctamente",
+                                        UserRol.class.getSimpleName(),
+                                        userRolJson);
+                        return Response.ok(result).build();
+
+                } catch (IllegalArgumentException ex) {
+                        // 4) Si usuario o rol no se encontró, o rol inactivo
+                        JsonObject errorJson = Json.createObjectBuilder()
+                                        .add("status", "FAILURE")
+                                        .add("message", ex.getMessage())
+                                        .build();
+                        return Response.status(Response.Status.BAD_REQUEST).entity(errorJson).build();
+                } catch (Exception ex) {
+                        // 5) Cualquier otro error inesperado
+                        JsonObject errorJson = Json.createObjectBuilder()
+                                        .add("status", "FAILURE")
+                                        .add("message", "Error interno al asignar rol: " + ex.getMessage())
+                                        .build();
+                        return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(errorJson).build();
+                }
         }
 }

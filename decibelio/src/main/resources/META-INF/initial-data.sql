@@ -2,6 +2,8 @@
 INSERT INTO public.identitygenerator(name, value) VALUES ('TimeFrame', 1);
 INSERT INTO public.identitygenerator(name, value) VALUES ('LandUse', 1);
 INSERT INTO public.identitygenerator(name, value) VALUES ('OptimalRange', 1);
+INSERT INTO public.identitygenerator(name, value) VALUES ('User', 1);
+INSERT INTO public.identitygenerator(name, value) VALUES ('UserRol', 1);
 
 -- INICIACIÓN DE Periodos de Tiempo (UNA SOLA VEZ)
 INSERT INTO public.timeframe(id, name, starttime, endtime) VALUES (1, 'DIURNO', '07:00:00', '19:00:00');
@@ -45,3 +47,9 @@ INSERT INTO public.rol(id, type, status) VALUES (2, 'VISOR_GENERAL', true);
 
 -- ACTUALIZACIÓN DE ID de Roles
 UPDATE public.identitygenerator SET value=(SELECT MAX(id) FROM public.rol) WHERE name LIKE 'Rol';
+
+-- INICIACIÓN DE USUARIOS (UNA SOLA VEZ)
+INSERT INTO public."USER" (id,firstname,lastname, email,photo,status) VALUES ( 1,'Karen Brigith','Gonzaga Rivas','karen.b.gonzaga@unl.edu.ec', NULL, TRUE);
+
+-- 2) Asignar al usuario (user_id = 1) el rol ADMINISTRADOR (rol_id = 1) con ID = 1
+INSERT INTO public.userrol ( id, user_id, rol_id,status) VALUES ( 1, 1, 1, TRUE);

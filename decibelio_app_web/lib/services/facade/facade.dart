@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:decibelio_app_web/models/user_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/services/facade/list/list_metric_dto.dart';
 import 'package:decibelio_app_web/services/facade/list/list_metrics.dart';
@@ -83,4 +84,40 @@ class Facade {
     }
     return sesion;
   }
+ /// Obtiene todos los usuarios activos desde el endpoint `/user/active`.
+  Future<List<UserDTO>> listAllActiveUsers() async {
+    final respuesta = await _conn.solicitudGet('user/active', Conexion.noToken);
+
+    if (respuesta.status == 'SUCCESS') {
+      // La respuesta.payload es un String JSON. Lo decodificamos:
+      final decoded = jsonDecode(respuesta.payload as String) as Map<String, dynamic>;
+
+      // “payload” dentro del JSON es un arreglo de objetos:
+      final List<dynamic> listaJson = decoded['payload'] as List<dynamic>;
+
+      // Convertimos cada JSON a UserDTO
+      return listaJson
+          .map((u) => UserDTO.fromJson(u as Map<String, dynamic>))
+          .toList();
+    }
+
+    // Si falla o no hay payload, devolvemos lista vacía
+    return [];
+  }
+
+  /// Obtiene todos los usuarios inactivos desde el endpoint `/user/inactive`.
+  Future<List<UserDTO>> listAllInactiveUsers() async {
+    final respuesta = await _conn.solicitudGet('user/inactive', Conexion.noToken);
+
+    if (respuesta.status == 'SUCCESS') {
+      final decoded = jsonDecode(respuesta.payload as String) as Map<String, dynamic>;
+      final List<dynamic> listaJson = decoded['payload'] as List<dynamic>;
+      return listaJson
+          .map((u) => UserDTO.fromJson(u as Map<String, dynamic>))
+          .toList();
+    }
+
+    return [];
+  }
+
 }

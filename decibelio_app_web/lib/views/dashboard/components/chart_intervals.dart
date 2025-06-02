@@ -1,10 +1,12 @@
+// lib/views/dashboard/components/sound_chart_view.dart
+
 import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:decibelio_app_web/services/auth_service.dart'; // <<-- Importamos AuthService
 import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
-import 'package:decibelio_app_web/views/dashboard/components/presentation_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
@@ -23,12 +25,12 @@ class _SoundChartView extends State<SoundChartView> {
   DateTime? startDate;
   DateTime? endDate;
   List<SensorDTO> _sensors = [];
+
+  // Para manejar el dropdown de minutos:
   String? selectedText;           // Texto seleccionado en minutos
   int? selectedNumericValue;      // Valor numérico seleccionado en minutos
 
-  // Flag para diferenciar la primera carga de todas las demás
-  bool _isInitialLoad = true;
-
+  // Mapa de opciones de intervalo (texto -> minutos)
   final Map<String, int> valuesMins = {
     "60 minutos": 60,
     "50 minutos": 50,
@@ -38,25 +40,49 @@ class _SoundChartView extends State<SoundChartView> {
     "10 minutos": 10,
   };
 
+  // Flags para habilitar panning / zoom en el gráfico
   late TransformationController _transformationController;
   bool _isPanEnabled = true;
   bool _isScaleEnabled = true;
+
+  // Historial de métricas (lista de pares: [“HH:mm”, valorDouble])
   List<(String, double)>? _metricsHistory;
+
+  // Este flag solo para mostrar el diálogo la primera vez que se obtienen métricas
+  bool _isInitialLoad = true;
+
+  // Para saber si el usuario está logueado:
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
+    // 1) Inicialmente asumimos que solo “30 minutos” está permitido (para todos)
     selectedText = "30 minutos";
     selectedNumericValue = valuesMins[selectedText];
+
+    // 2) Inicializamos fechas (hoy desde 00:00 hasta ahora)
     final now = DateTime.now();
-    startDate = DateTime(now.year, now.month, now.day, 0, 0); // 00:00:00
+    startDate = DateTime(now.year, now.month, now.day, 0, 0);
     endDate = now;
 
+    // 3) Configuramos controlador de transformaciones para el chart
     _transformationController = TransformationController();
 
+    // 4) Cargamos los sensores y estado de autenticación
+    _loadAuthStatus();
     loadSensorNames();
   }
 
+  /// Comprueba si hay usuario guardado en SharedPreferences
+  Future<void> _loadAuthStatus() async {
+    final userMap = await AuthService.getUser();
+    setState(() {
+      _isLoggedIn = (userMap != null);
+    });
+  }
+
+  /// Obtiene la lista de sensores y selecciona el primero por defecto
   Future<void> loadSensorNames() async {
     Facade facade = Facade();
     ListSensorDTO sensorData = await facade.listSensorDTO();
@@ -64,44 +90,50 @@ class _SoundChartView extends State<SoundChartView> {
     setState(() {
       _sensors = sensorData.data;
       if (_sensors.isNotEmpty) {
-          selectedSensor = _sensors.first.externalId;
+        selectedSensor = _sensors.first.externalId;
       }
     });
+
+    // Una vez cargados los sensores, hacemos la primera recarga de métricas
     _reloadData();
   }
 
-  void applyFilter() {
-   if (selectedSensor == null || selectedNumericValue == null) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
+  /// Muestra un AlertDialog de “debes iniciar sesión” si intenta cambiar minutos sin estar logueado
+  void _showLoginRequiredDialog() {
+    showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 30),
+              SizedBox(width: 8),
+              Text('Inicio de sesión requerido'),
+            ],
+          ),
+          content: const Text(
+            'Debes iniciar sesión con tu correo institucional para seleccionar un intervalo diferente de 30 minutos.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Entendido'),
             ),
-            title: const Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.red, size: 30),
-                SizedBox(width: 10),
-                Text('Por favor llena todos los campos'),
-              ],
-            ),
-          );
-        },
-      );
-    } else {
-      _reloadData();
-    }
+          ],
+        );
+      },
+    );
   }
 
-  String shortTime(String timeString) {
-    final parts = timeString.split(":");
-    return "${parts[0]}:${parts[1]}";
-  }
-
+  /// Lanza la consulta al backend para obtener métricas según el filtro actual
   void _reloadData() async {
+    if (selectedSensor == null || selectedNumericValue == null) {
+      // Si no hay sensor o valor numérico, no hacer nada
+      return;
+    }
+
     final data = {
-      "sensorExternalId": selectedSensor.toString(),
+      "sensorExternalId": selectedSensor,
       "startDate": DateFormat("yyyy-MM-ddTHH:mm:ss").format(startDate!),
       "endDate": DateFormat("yyyy-MM-ddTHH:mm:ss").format(endDate!),
       "intervalMinutes": selectedNumericValue,
@@ -109,49 +141,73 @@ class _SoundChartView extends State<SoundChartView> {
 
     try {
       final respuesta =
-          await _conn.solicitudPost('observation/sensor', data, "NO");
-      final observation = jsonDecode(respuesta.payload) as Map<String, dynamic>;
+          await _conn.solicitudPost('observation/sensor', data, Conexion.noToken);
 
-      setState(() {
-        _metricsHistory = (observation['payload'] as List)
-            .expand((item) => (item['observation'] as List).map((metric) =>
-                (shortTime(metric['time']), metric['value'] as double)))
-            .toList();
-      });
+      if (respuesta.status == 'SUCCESS' && respuesta.payload != null) {
+        final observation = jsonDecode(respuesta.payload as String)
+            as Map<String, dynamic>;
 
-      if (!_isInitialLoad) {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              title: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.blue, size: 30),
-                  SizedBox(width: 10),
-                  Text('Métricas obtenidas correctamente'),
+        setState(() {
+          _metricsHistory = (observation['payload'] as List)
+              .expand((item) {
+                return (item['observation'] as List).map((metric) {
+                  final horaString = metric['time'] as String;
+                  final valor = (metric['value'] as num).toDouble();
+                  // Convierte "HH:mm:ss" a "HH:mm"
+                  final parts = horaString.split(":");
+                  final short = "${parts[0]}:${parts[1]}";
+                  return (short, valor);
+                });
+              })
+              .toList();
+        });
+
+        // Si no es la primera carga, mostramos un diálogo de confirmación
+        if (!_isInitialLoad) {
+          showDialog<void>(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                title: const Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.blue, size: 30),
+                    SizedBox(width: 10),
+                    Text('Métricas obtenidas'),
+                  ],
+                ),
+                content: const Text('Se obtuvieron las métricas exitosamente.'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    child: const Text('OK'),
+                  ),
                 ],
-              ),
-            );
-          },
+              );
+            },
+          );
+        }
+      } else {
+        // Si el servidor devolvió FAILURE
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error del servidor: ${respuesta.message}')),
         );
       }
     } catch (e) {
-      // En caso de error, siempre mostramos un SnackBar
+      // Error en la petición HTTP / JSON
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Error al realizar la solicitud: $e")),
       );
     } finally {
-      // Después de la primera carga, desactivamos el flag
       if (_isInitialLoad) {
         _isInitialLoad = false;
       }
     }
   }
 
- @override
+  @override
   Widget build(BuildContext context) {
     const leftReservedSize = 52.0;
 
@@ -172,17 +228,25 @@ class _SoundChartView extends State<SoundChartView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Gráficos Estadísticos', style: TextStyle(fontSize: 18)),
+          // ============================
+          //   Encabezado y filtros
+          // ============================
+          const Text(
+            'Gráficos Estadísticos',
+            style: TextStyle(fontSize: 18),
+          ),
+          const SizedBox(height: 12),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
             child: Column(
               children: [
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                   Expanded(
+                    // Dropdown de Sensores
+                    Expanded(
+                      flex: 3,
                       child: DropdownButtonFormField<String>(
-                        isExpanded: true, // ← Importante para que reserve todo el ancho
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: "Sensores",
                           prefixIcon: Icon(Icons.sensors),
@@ -194,8 +258,8 @@ class _SoundChartView extends State<SoundChartView> {
                             value: sensor.externalId,
                             child: Text(
                               sensor.name,
-                              overflow: TextOverflow.ellipsis, // ← Trunca y pone “…”
-                              maxLines: 1,                       // ← Máximo 1 línea
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
                               style: const TextStyle(color: Colors.white),
                             ),
                           );
@@ -220,12 +284,15 @@ class _SoundChartView extends State<SoundChartView> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 16),
-                Expanded(
+                    const SizedBox(width: 12),
+
+                    // Fecha y Hora inicio
+                    Expanded(
+                      flex: 3,
                       child: TextFormField(
                         readOnly: true,
                         decoration: const InputDecoration(
-                          labelText: "Fecha y Hora de inicio",
+                          labelText: "Fecha/Hora inicio",
                           prefixIcon: Icon(Icons.calendar_today),
                           border: OutlineInputBorder(),
                         ),
@@ -238,8 +305,9 @@ class _SoundChartView extends State<SoundChartView> {
                           );
                           if (pickedDate != null) {
                             TimeOfDay? pickedTime = await showTimePicker(
-                              initialTime: TimeOfDay.fromDateTime(startDate!),
                               context: context,
+                              initialTime:
+                                  TimeOfDay.fromDateTime(startDate!),
                             );
                             if (pickedTime != null) {
                               setState(() {
@@ -262,16 +330,19 @@ class _SoundChartView extends State<SoundChartView> {
                               : "",
                         ),
                         style: const TextStyle(
-                          overflow: TextOverflow.ellipsis, 
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
+
+                    // Fecha y Hora fin
                     Expanded(
+                      flex: 3,
                       child: TextFormField(
                         readOnly: true,
                         decoration: const InputDecoration(
-                          labelText: "Fecha y Hora fin",
+                          labelText: "Fecha/Hora fin",
                           prefixIcon: Icon(Icons.calendar_today),
                           border: OutlineInputBorder(),
                         ),
@@ -284,8 +355,8 @@ class _SoundChartView extends State<SoundChartView> {
                           );
                           if (pickedDate != null) {
                             TimeOfDay? pickedTime = await showTimePicker(
-                              initialTime: TimeOfDay.fromDateTime(endDate!),
                               context: context,
+                              initialTime: TimeOfDay.fromDateTime(endDate!),
                             );
                             if (pickedTime != null) {
                               setState(() {
@@ -308,14 +379,19 @@ class _SoundChartView extends State<SoundChartView> {
                               : "",
                         ),
                         style: const TextStyle(
-                          overflow: TextOverflow.ellipsis, // ← También aquí
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 12),
+
+                    // ----------------------
+                    // Dropdown “Minutos”
+                    // ----------------------
                     Expanded(
+                      flex: 2,
                       child: DropdownButtonFormField<String>(
-                        isExpanded: true, // ← Para que ocupe todo el ancho disponible
+                        isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: "Minutos",
                           prefixIcon: Icon(Icons.access_time),
@@ -327,13 +403,24 @@ class _SoundChartView extends State<SoundChartView> {
                             value: text,
                             child: Text(
                               text,
-                              overflow: TextOverflow.ellipsis, // ← Truncamiento
+                              overflow: TextOverflow.ellipsis,
                               maxLines: 1,
                               style: const TextStyle(color: Colors.white),
                             ),
                           );
                         }).toList(),
                         onChanged: (value) {
+                          // Si no está logueado y no es "30 minutos", mostrar alerta
+                          if (!_isLoggedIn && value != "30 minutos") {
+                            // Forzamos que la selección siga siendo "30 minutos"
+                            setState(() {
+                              selectedText = "30 minutos";
+                              selectedNumericValue = valuesMins["30 minutos"];
+                            });
+                            _showLoginRequiredDialog();
+                            return;
+                          }
+                          // Si está logueado o seleccionó "30 minutos":
                           setState(() {
                             selectedText = value;
                             selectedNumericValue = valuesMins[value];
@@ -354,9 +441,10 @@ class _SoundChartView extends State<SoundChartView> {
                         },
                       ),
                     ),
-                    const SizedBox(width: 16),
+
+                    const SizedBox(width: 12),
                     ElevatedButton(
-                      onPressed: applyFilter,
+                      onPressed: _reloadData,
                       child: const Text("Consultar"),
                     ),
                   ],
@@ -366,8 +454,9 @@ class _SoundChartView extends State<SoundChartView> {
             ),
           ),
 
-
-
+          // ============================
+          // Encabezado del gráfico
+          // ============================
           const Text(
             "Niveles de ruido dB (decibelio)",
             style: TextStyle(
@@ -384,6 +473,10 @@ class _SoundChartView extends State<SoundChartView> {
             ),
           ),
           const SizedBox(height: 16),
+
+          // ============================
+          // Gráfico
+          // ============================
           SizedBox(
             width: double.infinity,
             child: Column(
@@ -538,11 +631,11 @@ class _SoundChartView extends State<SoundChartView> {
                                       ),
                                     ),
                                     TextSpan(
-                                      text: '\n${AppUtils.getFormattedCurrency(
-                                        context,
-                                        price,
-                                        noDecimals: true,
-                                      )}',
+                                      text: '\n${NumberFormat.compactCurrency(
+                                        locale: Localizations.localeOf(context)
+                                            .toString(),
+                                        symbol: '',
+                                      ).format(price)}',
                                       style: const TextStyle(
                                         color: Colors.amber,
                                         fontWeight: FontWeight.bold,
@@ -636,6 +729,7 @@ class _SoundChartView extends State<SoundChartView> {
   }
 }
 
+/// Widget interno para el título del chart
 class _ChartTitle extends StatelessWidget {
   const _ChartTitle();
 
@@ -665,6 +759,7 @@ class _ChartTitle extends StatelessWidget {
   }
 }
 
+/// Botones de transformación (pan/zoom) para el chart
 class _TransformationButtons extends StatelessWidget {
   const _TransformationButtons({
     required this.controller,
@@ -677,52 +772,37 @@ class _TransformationButtons extends StatelessWidget {
     return Row(
       children: [
         Tooltip(
-          message: 'Move left',
+          message: 'Mover izquierda',
           child: IconButton(
-            icon: const Icon(
-              Icons.arrow_back_ios,
-              size: 16,
-            ),
+            icon: const Icon(Icons.arrow_back_ios, size: 16),
             onPressed: _transformationMoveLeft,
           ),
         ),
         Tooltip(
           message: 'Reset zoom',
           child: IconButton(
-            icon: const Icon(
-              Icons.refresh,
-              size: 16,
-            ),
+            icon: const Icon(Icons.refresh, size: 16),
             onPressed: _transformationReset,
           ),
         ),
         Tooltip(
-          message: 'Move right',
+          message: 'Mover derecha',
           child: IconButton(
-            icon: const Icon(
-              Icons.arrow_forward_ios,
-              size: 16,
-            ),
+            icon: const Icon(Icons.arrow_forward_ios, size: 16),
             onPressed: _transformationMoveRight,
           ),
         ),
         Tooltip(
           message: 'Zoom in',
           child: IconButton(
-            icon: const Icon(
-              Icons.add,
-              size: 16,
-            ),
+            icon: const Icon(Icons.add, size: 16),
             onPressed: _transformationZoomIn,
           ),
         ),
         Tooltip(
           message: 'Zoom out',
           child: IconButton(
-            icon: const Icon(
-              Icons.minimize,
-              size: 16,
-            ),
+            icon: const Icon(Icons.minimize, size: 16),
             onPressed: _transformationZoomOut,
           ),
         ),

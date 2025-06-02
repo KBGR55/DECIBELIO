@@ -3,6 +3,7 @@ package unl.feirnnr.cc.decibelio.user.business;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -128,4 +129,12 @@ public class UserFacade {
         nueva.setStatus(true);
         return userRolService.save(nueva);
     }
+
+      public List<String> getRolesForUser(User user) {
+        List<UserRol> relaciones = userRolService.findByUser(user);
+        return relaciones.stream()
+                         .map(ur -> ur.getRol().getType())
+                         .collect(Collectors.toList());
+    }
+
 }

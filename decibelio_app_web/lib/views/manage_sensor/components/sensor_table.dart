@@ -144,7 +144,7 @@ DataRow sensorsDataRow(SensorDTO sensor, BuildContext context) {
             const Icon(Icons.sensors),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(sensor.name),
+              child: Text(sensor.name,   overflow: TextOverflow.ellipsis,),
             ),
           ],
         ),

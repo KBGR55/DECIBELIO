@@ -1,5 +1,4 @@
-// lib/views/dashboard/components/sound_chart_view.dart
-
+import 'dart:async';
 import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/services/auth_service.dart'; // <<-- Importamos AuthService
@@ -25,10 +24,11 @@ class _SoundChartView extends State<SoundChartView> {
   DateTime? startDate;
   DateTime? endDate;
   List<SensorDTO> _sensors = [];
+  Timer? _pollingTimer;
 
   // Para manejar el dropdown de minutos:
-  String? selectedText;           // Texto seleccionado en minutos
-  int? selectedNumericValue;      // Valor numérico seleccionado en minutos
+  String? selectedText; // Texto seleccionado en minutos
+  int? selectedNumericValue; // Valor numérico seleccionado en minutos
 
   // Mapa de opciones de intervalo (texto -> minutos)
   final Map<String, int> valuesMins = {
@@ -72,6 +72,10 @@ class _SoundChartView extends State<SoundChartView> {
     // 4) Cargamos los sensores y estado de autenticación
     _loadAuthStatus();
     loadSensorNames();
+    _pollingTimer = Timer.periodic(
+      const Duration(minutes: 5),
+      (timer) => _reloadData(),
+    );
   }
 
   /// Comprueba si hay usuario guardado en SharedPreferences
@@ -140,26 +144,24 @@ class _SoundChartView extends State<SoundChartView> {
     };
 
     try {
-      final respuesta =
-          await _conn.solicitudPost('observation/sensor', data, Conexion.noToken);
+      final respuesta = await _conn.solicitudPost(
+          'observation/sensor', data, Conexion.noToken);
 
       if (respuesta.status == 'SUCCESS' && respuesta.payload != null) {
-        final observation = jsonDecode(respuesta.payload as String)
-            as Map<String, dynamic>;
+        final observation =
+            jsonDecode(respuesta.payload as String) as Map<String, dynamic>;
 
         setState(() {
-          _metricsHistory = (observation['payload'] as List)
-              .expand((item) {
-                return (item['observation'] as List).map((metric) {
-                  final horaString = metric['time'] as String;
-                  final valor = (metric['value'] as num).toDouble();
-                  // Convierte "HH:mm:ss" a "HH:mm"
-                  final parts = horaString.split(":");
-                  final short = "${parts[0]}:${parts[1]}";
-                  return (short, valor);
-                });
-              })
-              .toList();
+          _metricsHistory = (observation['payload'] as List).expand((item) {
+            return (item['observation'] as List).map((metric) {
+              final horaString = metric['time'] as String;
+              final valor = (metric['value'] as num).toDouble();
+              // Convierte "HH:mm:ss" a "HH:mm"
+              final parts = horaString.split(":");
+              final short = "${parts[0]}:${parts[1]}";
+              return (short, valor);
+            });
+          }).toList();
         });
 
         // Si no es la primera carga, mostramos un diálogo de confirmación
@@ -306,8 +308,7 @@ class _SoundChartView extends State<SoundChartView> {
                           if (pickedDate != null) {
                             TimeOfDay? pickedTime = await showTimePicker(
                               context: context,
-                              initialTime:
-                                  TimeOfDay.fromDateTime(startDate!),
+                              initialTime: TimeOfDay.fromDateTime(startDate!),
                             );
                             if (pickedTime != null) {
                               setState(() {
@@ -325,8 +326,8 @@ class _SoundChartView extends State<SoundChartView> {
                         controller: TextEditingController(
                           text: startDate != null
                               ? "${startDate!.month}/${startDate!.day}/${startDate!.year} "
-                                "${startDate!.hour.toString().padLeft(2, '0')}:"
-                                "${startDate!.minute.toString().padLeft(2, '0')}"
+                                  "${startDate!.hour.toString().padLeft(2, '0')}:"
+                                  "${startDate!.minute.toString().padLeft(2, '0')}"
                               : "",
                         ),
                         style: const TextStyle(
@@ -374,8 +375,8 @@ class _SoundChartView extends State<SoundChartView> {
                         controller: TextEditingController(
                           text: endDate != null
                               ? "${endDate!.month}/${endDate!.day}/${endDate!.year} "
-                                "${endDate!.hour.toString().padLeft(2, '0')}:"
-                                "${endDate!.minute.toString().padLeft(2, '0')}"
+                                  "${endDate!.hour.toString().padLeft(2, '0')}:"
+                                  "${endDate!.minute.toString().padLeft(2, '0')}"
                               : "",
                         ),
                         style: const TextStyle(
@@ -635,7 +636,7 @@ class _SoundChartView extends State<SoundChartView> {
                                         locale: Localizations.localeOf(context)
                                             .toString(),
                                         symbol: '',
-                                      ).format(price)}',
+                                      ).format(price)} dB',
                                       style: const TextStyle(
                                         color: Colors.amber,
                                         fontWeight: FontWeight.bold,
@@ -658,23 +659,31 @@ class _SoundChartView extends State<SoundChartView> {
                           topTitles: const AxisTitles(
                             sideTitles: SideTitles(showTitles: false),
                           ),
-                          leftTitles: const AxisTitles(
-                            drawBelowEverything: true,
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: leftReservedSize,
-                              maxIncluded: false,
-                              minIncluded: false,
-                            ),
-                          ),
+                          leftTitles: AxisTitles(
+    drawBelowEverything: true,
+    sideTitles: SideTitles(
+      showTitles: true,
+      reservedSize: leftReservedSize,
+      maxIncluded: false,
+      minIncluded: false,
+      getTitlesWidget: (double value, TitleMeta meta) {
+        return Text(
+          '${value.toInt()} dB',
+          style: const TextStyle(
+            color: Colors.white, 
+            fontSize: 12,
+          ),
+        );
+      },
+    ),
+  ),
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
                               reservedSize: 38,
                               maxIncluded: false,
                               getTitlesWidget: (double value, TitleMeta meta) {
-                                final time =
-                                    _metricsHistory![value.toInt()].$1;
+                                final time = _metricsHistory![value.toInt()].$1;
                                 return SideTitleWidget(
                                   meta: meta,
                                   child: Transform.rotate(
@@ -724,6 +733,7 @@ class _SoundChartView extends State<SoundChartView> {
 
   @override
   void dispose() {
+    _pollingTimer?.cancel();
     _transformationController.dispose();
     super.dispose();
   }

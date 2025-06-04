@@ -7,13 +7,11 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.TableGenerator;
 
 @Entity
-@TableGenerator(name = "UserRolGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "UserRol", initialValue = 1, allocationSize = 1)
 public class UserRol {
     @Id
-    @GeneratedValue(generator = "UserRolGenerator", strategy = GenerationType.TABLE)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne

@@ -88,6 +88,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 String? value;
                 String? date;
                 String? time;
+                String? escala;
 
                 // Buscar la métrica correspondiente al sensor
                 if (metricLast != null) {
@@ -96,6 +97,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                       value = metric.quantity.value.toString();
                       date = metric.date; // Obtener la fecha
                       time = metric.quantity.time; // Obtener la hora
+                      escala = metric.qualitativeScaleValue.name;
                       break;
                     }
                   }
@@ -144,7 +146,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Text(
-                                        value ?? 'No disponible',
+                                        '${value} dB' ?? 'No disponible',
                                         style: const TextStyle(
                                             color: Colors.white,
                                             fontWeight: FontWeight.bold),
@@ -153,100 +155,13 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                   ],
                                 ),
                                 const SizedBox(height: 8),
+                                Text('Escala: ${ escala?? 'No disponible'}'),
+                                const SizedBox(height: 8),
                                 Text('Fecha: ${date ?? 'No disponible'}'),
                                 const SizedBox(height: 8),
                                 Text('Hora: ${time ?? 'No disponible'}'),
                                 const SizedBox(height: 8),
-
-                                // Botón para mostrar más info
-                                TextButton(
-                                  child: Text(
-                                      showMore ? 'Ver menos...' : 'Ver más...'),
-                                  onPressed: () {
-                                    setState(() {
-                                      showMore = !showMore;
-                                    });
-                                  },
-                                ),
-
-                                if (showMore)
-                                  // Tabla con UnitType y QualitativeScales
-                                  Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      // Mostrar UnitType
-                                      // en tabla
-                                      if (sensor.unitType != null) ...[
-                                        const Text('Unidad de medida:'),
-                                        Text(
-                                          '${sensor.unitType?.name} (${sensor.unitType?.abbreviation ?? ''})',
-                                          style: const TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        const SizedBox(height: 8),
-                                      ],
-                                      const SizedBox(height: 16),
-
-                                      // Tabla con escalas cualitativas
-                                      const Text('Escalas Cualitativas:',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold)),
-                                      if (sensor.qualitativeScales.isNotEmpty)
-                                        Table(
-                                          columnWidths: const {
-                                            0: FlexColumnWidth(2),
-                                            1: FlexColumnWidth(4),
-                                          },
-                                          border: TableBorder.all(),
-                                          children: [
-                                            // Header
-                                            const TableRow(children: [
-                                              Padding(
-                                                padding: EdgeInsets.all(8.0),
-                                                child: Text('Nombre',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                              Padding(
-                                                padding: EdgeInsets.all(8.0),
-                                                child: Text('Descripción',
-                                                    style: TextStyle(
-                                                        fontWeight:
-                                                            FontWeight.bold)),
-                                              ),
-                                            ]),
-                                            // Filas de escalas
-                                            ...sensor.qualitativeScales.map(
-                                                (scale) => TableRow(children: [
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Text(scale.name),
-                                                      ),
-                                                      Padding(
-                                                        padding:
-                                                            const EdgeInsets
-                                                                .all(8.0),
-                                                        child: Text(scale
-                                                                .description ??
-                                                            'Sin descripción'),
-                                                      ),
-                                                    ])),
-                                          ],
-                                        )
-                                      else
-                                        const Padding(
-                                          padding: EdgeInsets.symmetric(
-                                              vertical: 8.0),
-                                          child: Text(
-                                              'No hay escalas cualitativas asociadas.'),
-                                        ),
-                                    ],
-                                  )
-                              ],
+                                   ],
                             ),
                           ),
                           actions: [

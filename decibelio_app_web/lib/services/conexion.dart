@@ -5,6 +5,7 @@ import 'package:decibelio_app_web/models/respuesta_generica.dart';
 class Conexion {
   final String name = "conexion";
   static const String urlBase = "https://computacion.unl.edu.ec/decibelio/api/";
+  // static const String urlBase = 'http://localhost:9080/decibelio/api/';
   static var noToken = "NO";
 
   Future<RespuestaGenerica> solicitudPost(
@@ -18,7 +19,7 @@ class Conexion {
     try {
       final response =
           await http.post(uri, headers: header, body: jsonEncode(data));
-     if (response.statusCode == 200 || response.statusCode == 201) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         return _responseJson(
             'SUCCESS',
             response.body,
@@ -44,7 +45,7 @@ class Conexion {
     final uri = Uri.parse(url);
     try {
       final response =
-      await http.put(uri, headers: header, body: jsonEncode(data));
+          await http.put(uri, headers: header, body: jsonEncode(data));
       if (response.statusCode == 200 || response.statusCode == 201) {
         return _responseJson(
             'SUCCESS',
@@ -63,7 +64,10 @@ class Conexion {
 
   Future<RespuestaGenerica> solicitudPatch(
       String dirRecurso, Map<dynamic, dynamic>? data, String token) async {
-    Map<String, String> header = {'Content-Type': 'application/json', 'accept': '*/*'};
+    Map<String, String> header = {
+      'Content-Type': 'application/json',
+      'accept': '*/*'
+    };
     if (token != noToken) {
       header = {'Content-Type': 'application/json', 'accept': '*/*'};
     }
@@ -71,7 +75,7 @@ class Conexion {
     final uri = Uri.parse(url);
     try {
       final response =
-      await http.patch(uri, headers: header, body: jsonEncode(data));
+          await http.patch(uri, headers: header, body: jsonEncode(data));
       if (response.statusCode == 200 || response.statusCode == 201) {
         return _responseJson(
             'SUCCESS',

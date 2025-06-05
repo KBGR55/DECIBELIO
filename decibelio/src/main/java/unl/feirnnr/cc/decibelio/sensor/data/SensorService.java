@@ -44,7 +44,16 @@ public class SensorService {
 
     @SuppressWarnings("unchecked") // Opción alternativa, no recomendada si no hay conversión explícita
     public List<String> getAllExternalIds() {
-        return em.createNativeQuery("SELECT externalid FROM sensor")
+        return em.createNativeQuery("SELECT externalid FROM sensor WHERE externalid IS NOT NULL")
+                .getResultList()
+                .stream()
+                .map(Object::toString)
+                .toList(); // Requiere Java 16+. Si usas Java 8–15, usa .collect(Collectors.toList())
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getAllExternalIdsActive() {
+        return em.createNativeQuery("SELECT externalid FROM sensor WHERE sensorstatus = 0")
                 .getResultList()
                 .stream()
                 .map(Object::toString)

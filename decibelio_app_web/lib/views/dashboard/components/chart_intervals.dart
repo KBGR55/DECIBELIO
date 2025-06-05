@@ -248,6 +248,7 @@ class _SoundChartView extends State<SoundChartView> {
                     Expanded(
                       flex: 3,
                       child: DropdownButtonFormField<String>(
+                        
                         isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: "Sensores",
@@ -262,7 +263,7 @@ class _SoundChartView extends State<SoundChartView> {
                               sensor.name,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
-                              style: const TextStyle(color: Colors.white),
+                    
                             ),
                           );
                         }).toList(),

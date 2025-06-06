@@ -59,6 +59,21 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     _animatedMapMove(location, zoom);
   }
 
+  Color getValueColor(double? v) {
+    if (v == null) return Colors.grey;
+    if (v <= 20) return const Color(0xFF13E500);
+    if (v <= 30) return const Color(0xFF64E900);
+    if (v <= 40) return const Color(0xFF8FEC00);
+    if (v <= 50) return const Color(0xFFBAEE00);
+    if (v <= 60) return const Color(0xFFE5F000);
+    if (v <= 70) return const Color(0xFFF3D300);
+    if (v <= 80) return const Color(0xFFF5AB00);
+    if (v <= 90) return const Color(0xFFF78100);
+    if (v <= 100) return const Color(0xFFFA5700);
+    if (v <= 110) return const Color(0xFFFC2C00);
+    return const Color(0xFFFF0000);
+  }
+
   void _fetchSensors() async {
     try {
       ListSensorDTO sensorData = await _facade.listSensorDTO();
@@ -226,6 +241,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 'assets/icons/map-marker-svgrepo-com.svg',
                 width: 35,
                 height: 35,
+                color: getValueColor(metricLast!.data.last.quantity.value),
               ),
             ));
         _markers.add(marker);

@@ -263,7 +263,7 @@ class _SoundChartView extends State<SoundChartView> {
                               sensor.name,
                               overflow: TextOverflow.ellipsis,
                               maxLines: 1,
-                    
+                              style: const TextStyle(color: Colors.white),
                             ),
                           );
                         }).toList(),
@@ -280,7 +280,6 @@ class _SoundChartView extends State<SoundChartView> {
                                 sensor.name,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                                style: const TextStyle(color: Colors.white),
                               ),
                             );
                           }).toList();
@@ -436,7 +435,6 @@ class _SoundChartView extends State<SoundChartView> {
                                 text,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 1,
-                                style: const TextStyle(color: Colors.white),
                               ),
                             );
                           }).toList();
@@ -671,7 +669,7 @@ class _SoundChartView extends State<SoundChartView> {
         return Text(
           '${value.toInt()} dB',
           style: const TextStyle(
-            color: Colors.white, 
+            //color: Colors.white,
             fontSize: 12,
           ),
         );

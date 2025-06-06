@@ -21,8 +21,8 @@ import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@Singleton
-@Startup
+//@Singleton
+//@Startup
 public class MqttSensorListener implements MqttCallback {
 
     private static final int QOS = 1;

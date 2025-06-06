@@ -47,11 +47,16 @@ services:
 
   decibelio-api:
     container_name: decibelio-api-container
-    build: .
+    build: 
+      context: .
+      args:
+        # Usa variable del archivo .env o del sistema
+        - ENV_DRIVER_JDBC_DIR=${DRIVER_JDBC_DIR}
     image: decibelio-api:latest
     environment:
       #- NAMESPACE=
-      - DRIVER_JDBC_DIR=/config/
+         #- DRIVER_JDBC_DIR=/config/
+      - DRIVER_JDBC_DIR=${DRIVER_JDBC_DIR} 
       - DB_SERVER_NAME=decibelio-db
       - DB_PORT_NUMBER=5432
       - DB_NAME=decibeliodb

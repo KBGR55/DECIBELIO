@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 import 'package:decibelio_app_web/views/dashboard/components/globals.dart';
 import 'package:flutter/material.dart';
@@ -89,6 +91,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 String? date;
                 String? time;
                 String? escala;
+                Timer? dialogTimer;
 
                 // Buscar la métrica correspondiente al sensor
                 if (metricLast != null) {
@@ -106,25 +109,27 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    Color getValueColor(double? value) {
-                      if (value == null) return Colors.grey;
-                      if (value <= 20) return const Color(0xFF13E500);
-                      if (value <= 30) return const Color(0xFF64E900);
-                      if (value <= 40) return const Color(0xFF8FEC00);
-                      if (value <= 50) return const Color(0xFFBAEE00);
-                      if (value <= 60) return const Color(0xFFE5F000);
-                      if (value <= 70) return const Color(0xFFF3D300);
-                      if (value <= 80) return const Color(0xFFF5AB00);
-                      if (value <= 90) return const Color(0xFFF78100);
-                      if (value <= 100) return const Color(0xFFFA5700);
-                      if (value <= 110) return const Color(0xFFFC2C00);
+                    late void Function(void Function()) innerSetState;
+
+                    Color getValueColor(double? v) {
+                      if (v == null) return Colors.grey;
+                      if (v <= 20) return const Color(0xFF13E500);
+                      if (v <= 30) return const Color(0xFF64E900);
+                      if (v <= 40) return const Color(0xFF8FEC00);
+                      if (v <= 50) return const Color(0xFFBAEE00);
+                      if (v <= 60) return const Color(0xFFE5F000);
+                      if (v <= 70) return const Color(0xFFF3D300);
+                      if (v <= 80) return const Color(0xFFF5AB00);
+                      if (v <= 90) return const Color(0xFFF78100);
+                      if (v <= 100) return const Color(0xFFFA5700);
+                      if (v <= 110) return const Color(0xFFFC2C00);
                       return const Color(0xFFFF0000);
                     }
 
-                    bool showMore = false;
-
+                    // —————— 1) Inicia el StatefulBuilder ——————
                     return StatefulBuilder(
                       builder: (context, setState) {
+                        innerSetState = setState;
                         return AlertDialog(
                           title: Text(sensor.name),
                           content: SingleChildScrollView(
@@ -132,6 +137,17 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                               mainAxisSize: MainAxisSize.min,
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.access_time, size: 20),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Fecha: ${date ?? 'No disponible'} a las ${time ?? 'No disponible'}',
+                                      style: const TextStyle(fontSize: 16),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
                                 Text('Tipo de sensor: ${sensor.sensorType}'),
                                 const SizedBox(height: 8),
                                 Row(
@@ -145,23 +161,20 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                             double.tryParse(value ?? '')),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
+                                      // ← Interpolación corregida:
                                       child: Text(
-                                        '${value} dB' ?? 'No disponible',
+                                        '${value ?? 'No disponible'} dB',
                                         style: const TextStyle(
-                                            color: Colors.white,
-                                            fontWeight: FontWeight.bold),
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
+                                    Text(' - ${escala ?? 'No disponible'}'),
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                Text('Escala: ${ escala?? 'No disponible'}'),
-                                const SizedBox(height: 8),
-                                Text('Fecha: ${date ?? 'No disponible'}'),
-                                const SizedBox(height: 8),
-                                Text('Hora: ${time ?? 'No disponible'}'),
-                                const SizedBox(height: 8),
-                                   ],
+                              ],
                             ),
                           ),
                           actions: [
@@ -175,8 +188,39 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                         );
                       },
                     );
+                    // —————— 1) Cierra el StatefulBuilder aquí ——————
+
+                    // —————— 2) Fuera del StatefulBuilder, pero dentro del mismo builder de showDialog:
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      dialogTimer = Timer.periodic(
+                        const Duration(minutes: 1),
+                        (_) async {
+                          try {
+                            ListMetricDTO nuevaMetricLast =
+                                await _facade.listMetricLastDTO();
+                            for (var m in nuevaMetricLast.data) {
+                              if (m.sensorExternalId == sensor.externalId) {
+                                value = m.quantity.value.toString();
+                                date = m.date;
+                                time = m.quantity.time;
+                                escala = m.qualitativeScaleValue.name;
+                                break;
+                              }
+                            }
+                            // Refresca solo el contenido del diálogo:
+                            innerSetState(() {});
+                          } catch (e) {
+                            debugPrint("Error al refrescar métricas: $e");
+                          }
+                        },
+                      );
+                    });
+                    // —————— 2) Fin del addPostFrameCallback ——————
                   },
-                );
+                ).then((_) {
+                  // —————— 3) Cancelar el Timer al cerrar el diálogo ——————
+                  dialogTimer?.cancel();
+                });
               },
               child: SvgPicture.asset(
                 'assets/icons/map-marker-svgrepo-com.svg',

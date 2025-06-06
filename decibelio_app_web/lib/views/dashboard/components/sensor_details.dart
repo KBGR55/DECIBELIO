@@ -128,6 +128,19 @@ class SensorDetailsState extends State<SensorDetails> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (sensor != null) ...[
+                               Row(
+        children: [
+          const Icon(Icons.access_time, size: 20),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              'Fecha: ${metric.date ?? 'No disponible'} a las ${metric.quantity.time ?? 'No disponible'}',
+              style: const TextStyle(fontSize: 16),
+              overflow: TextOverflow.ellipsis, // Evita que el texto se desborde
+            ),
+          ),
+        ],
+      ),
                               Text(sensor.name.toString()),
                               Text("Tipo: ${sensor.sensorType}"),
                               Text("Nivel de Ruido: ${metric.qualitativeScaleValue.name}"),

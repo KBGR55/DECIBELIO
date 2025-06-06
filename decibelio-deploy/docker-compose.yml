@@ -42,8 +42,7 @@ services:
     restart: unless-stopped
     environment:
       #- NAMESPACE=
-      #- DRIVER_JDBC_DIR=/config/
-      - DRIVER_JDBC_DIR=${DRIVER_JDBC_DIR} 
+      - DRIVER_JDBC_DIR=/config/
       - DB_SERVER_NAME=decibelio-db
       - DB_PORT_NUMBER=5432
       - DB_NAME=decibeliodb

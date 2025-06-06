@@ -69,8 +69,6 @@ class MyApp extends StatelessWidget {
           title: "Dashboard",
           color: Colors.redAccent,
         ),
-    '/upload_data': (context) =>
-        const UploadScreen(title: "upload", color: Colors.white70),
     '/manage_sensor': (context) => const SensorScreen(
           title: "Create Sensor",
           color: Colors.greenAccent,

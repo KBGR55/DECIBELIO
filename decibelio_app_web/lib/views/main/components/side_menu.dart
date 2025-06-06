@@ -161,15 +161,6 @@ class _SideMenuState extends State<SideMenu> {
             },
           ),
 
-          // “Subir datos” siempre visible
-          DrawerListTile(
-            title: "Subir datos",
-            svgSrc: "assets/icons/menu_tran.svg",
-            press: () {
-              Navigator.pushReplacementNamed(context, '/upload_data');
-            },
-          ),
-
           // “Administrar Sensores” visible sólo para ADMINISTRADOR
           if (isAdministrador)
             DrawerListTile(

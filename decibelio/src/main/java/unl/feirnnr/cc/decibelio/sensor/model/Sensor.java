@@ -34,6 +34,9 @@ public class Sensor implements Serializable {
     private SensorType sensorType;
 
     @Column
+    private String referenceLocation;
+
+    @Column
     @NotNull
     private SensorStatus sensorStatus;
 

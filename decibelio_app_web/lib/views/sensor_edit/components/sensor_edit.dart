@@ -31,6 +31,10 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
   final Conexion _con = Conexion();
   late TextEditingController _nameController = TextEditingController();
   late TextEditingController _externalIdController = TextEditingController();
+  TextEditingController _nameUnitTypeController = TextEditingController();
+  TextEditingController _abbreviationUnitTypeController =
+      TextEditingController();
+  TextEditingController _referenceLocationController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final MapController _mapController = MapController();
 
@@ -61,53 +65,62 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
         TextEditingController(text: widget.sensor.externalId);
     _selectedLocation = LatLng(widget.sensor.latitude, widget.sensor.longitude);
     _selectedSensorType = widget.sensor.sensorType;
-    _selectedLandUse = getLandUseValue(utf8.decode(widget.sensor.landUseName.runes.toList()))!;
+    _selectedLandUse =
+        getLandUseValue(utf8.decode(widget.sensor.landUseName.runes.toList()))!;
+    _nameUnitTypeController =
+        TextEditingController(text: widget.sensor.unitTypeName);
+    _abbreviationUnitTypeController =
+        TextEditingController(text: widget.sensor.unitTypeAbbreviation);
+    _referenceLocationController =
+        TextEditingController(text: widget.sensor.referenceLocation);
   }
 
   String? getLandUseValue(String key) {
     return landUseValues[key.toUpperCase()];
   }
 
- Future<void> _getCurrentLocation() async {
-  bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-  if (!serviceEnabled) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Por favor, habilita el servicio de ubicación')),
-    );
-    return;
-  }
-
-  LocationPermission permission = await Geolocator.checkPermission();
-  if (permission == LocationPermission.denied) {
-    permission = await Geolocator.requestPermission();
-    if (permission == LocationPermission.denied) {
+  Future<void> _getCurrentLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Permiso de ubicación denegado')),
+        const SnackBar(
+            content: Text('Por favor, habilita el servicio de ubicación')),
       );
       return;
     }
-  }
 
-  if (permission == LocationPermission.deniedForever) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Permiso de ubicación denegado permanentemente.')),
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Permiso de ubicación denegado')),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+            content: Text('Permiso de ubicación denegado permanentemente.')),
+      );
+      return;
+    }
+
+    Position position = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
     );
-    return;
+
+    if (!mounted) return;
+    setState(() {
+      _selectedLocation = LatLng(position.latitude, position.longitude);
+      _mapController.move(_selectedLocation, _currentZoom);
+    });
   }
-
-  Position position = await Geolocator.getCurrentPosition(
-    desiredAccuracy: LocationAccuracy.high,
-  );
-
-  if (!mounted) return;
-  setState(() {
-    _selectedLocation = LatLng(position.latitude, position.longitude);
-    _mapController.move(_selectedLocation, _currentZoom);
-  });
-}
 
   // Función para aumentar el zoom
   void _zoomIn() {
@@ -142,7 +155,13 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
         },
         "sensorType": _selectedSensorType,
         "sensorStatus": _selectedSensorStatus,
-        "landUse": {"id": int.parse(_selectedLandUse)}
+        "landUse": {"id": int.parse(_selectedLandUse)},
+        "unitType": {
+          "name": _nameUnitTypeController.text,
+          "abbreviation": _abbreviationUnitTypeController.text
+        },
+        "unitTypeName": _nameUnitTypeController.text,
+        "referenceLocation": _referenceLocationController.text,
       };
 
       final respuesta = await _con.solicitudPut(
@@ -161,23 +180,35 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
         });
 
         if (!mounted) return;
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              title: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.blue, size: 30),
-                  SizedBox(width: 10),
-                  Text('Datos actualizados correctamente'),
-                ],
-              ),
-            );
-          },
-        );
+    showDialog(
+    context: context,
+    barrierDismissible: false,  // no se cierra tocando fuera
+    builder: (BuildContext dialogContext) {
+      // Al construir el diálogo, programamos su cierre + refresh
+      Future.delayed(const Duration(seconds: 2), () {
+        // 1) cerramos el diálogo
+        Navigator.of(dialogContext).pop();
+        // 2) cerramos esta pantalla y devolvemos 'true' para que el
+        //    caller (lista de sensores) sepa que debe recargar.
+        Navigator.of(context).pop(true);
+      });
+
+      return AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        content: Row(
+          children: const [
+            Icon(Icons.check_circle, color: Colors.blue, size: 30),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text('Datos actualizados correctamente'),
+            ),
+          ],
+        ),
+      );
+    },
+  );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -225,7 +256,6 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                         ),
                       ),
                       const SizedBox(height: 24),
-
                       // Identificador Externo
                       TextFormField(
                         controller: _externalIdController,
@@ -237,6 +267,51 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                           prefixIcon: const Icon(Icons.perm_identity),
                         ),
                       ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          // Campo para nombre del tipo de unidad
+                          Expanded(
+                            child: TextFormField(
+                              controller: _nameUnitTypeController,
+                              decoration: InputDecoration(
+                                labelText: 'Nombre del tipo de unidad',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                prefixIcon: const Icon(Icons.straighten),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor ingresa el nombre del tipo de unidad';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Campo para abreviación del tipo de unidad
+                          Expanded(
+                            child: TextFormField(
+                              controller: _abbreviationUnitTypeController,
+                              decoration: InputDecoration(
+                                labelText: 'Abreviación del tipo de unidad',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                prefixIcon: const Icon(Icons.short_text),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor ingresa la abreviación del tipo de unidad';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+
                       const SizedBox(height: 24),
 
                       // Mapa con la localización
@@ -324,6 +399,30 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                           ),
                         ],
                       ),
+                      // Campo para referencia de ubicación (máx. 50 caracteres)
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _referenceLocationController,
+                        decoration: InputDecoration(
+                          labelText: 'Referencia de localización',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          prefixIcon: const Icon(Icons.location_on),
+                          counterText: '', // oculta el contador si prefieres
+                        ),
+                        maxLength: 50,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa una referencia de ubicación';
+                          }
+                          if (value.length > 50) {
+                            return 'Máximo 50 caracteres';
+                          }
+                          return null;
+                        },
+                      ),
+
                       const SizedBox(height: 24),
                       // Tipo de Sensor
                       DropdownButtonFormField<String>(

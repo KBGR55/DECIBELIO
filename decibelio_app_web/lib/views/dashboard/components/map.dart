@@ -165,6 +165,8 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                 const SizedBox(height: 8),
                                 Text('Tipo de sensor: ${sensor.sensorType}'),
                                 const SizedBox(height: 8),
+                                Text('Uso de suelo: ${sensor.landUseName}'),
+                                const SizedBox(height: 8),
                                 Row(
                                   children: [
                                     const Text('Valor: '),
@@ -189,6 +191,8 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                   ],
                                 ),
                                 const SizedBox(height: 8),
+                                Text(
+                                    'Referencia: ${sensor.referenceLocation ?? 'No disponible'}'),
                               ],
                             ),
                           ),

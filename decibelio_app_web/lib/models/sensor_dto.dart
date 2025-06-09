@@ -12,6 +12,9 @@ class SensorDTO {
   String sensorType = '';
   String sensorStatus = '';
   String landUseName = '';
+  String referenceLocation = '';
+  String unitTypeAbbreviation = '';
+  String unitTypeName = '';
 
   UnitTypeDTO? unitType;
   List<QualitativeScaleDTO> qualitativeScales = [];
@@ -27,6 +30,10 @@ class SensorDTO {
     sensorType = mapa['sensorType'] ?? '';
     sensorStatus = mapa['sensorStatus'] ?? 'NO INFO';
     landUseName = mapa['landUseName'] ?? '';
+    unitTypeAbbreviation = mapa['unitTypeAbbreviation'] ?? '';
+    unitTypeName = mapa['unitTypeName'] ?? '';
+    referenceLocation = mapa["referenceLocation"] ?? '';
+
 
     if (mapa['unitType'] != null) {
       unitType = UnitTypeDTO.fromMap(Map<String, dynamic>.from(mapa['unitType']));
@@ -53,8 +60,11 @@ class SensorDTO {
         "sensorType": model.sensorType,
         "sensorStatus": model.sensorStatus,
         "landUse": model.landUseName,
-        "unitType": model.unitType?.toMap(),
+        "referenceLocation": model.referenceLocation,
         "qualitativeScale": model.qualitativeScales.map((e) => e.toMap()).toList(),
+        "unitType": model.unitType?.toMap(),
+        "unitTypeName": model.unitTypeName,
+        "unitTypeAbbreviation": model.unitTypeAbbreviation
       };
 
   static String serialize(SensorDTO model) => json.encode(SensorDTO.toMap(model));

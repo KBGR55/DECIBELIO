@@ -1,4 +1,4 @@
-import 'dart:async';   // <– Import necesario para Timer
+import 'dart:async'; // <– Import necesario para Timer
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/models/observation.dart';
 import 'package:decibelio_app_web/models/sensor_dto.dart';
@@ -24,13 +24,13 @@ class SensorDetailsState extends State<SensorDetails> {
   List<SensorDTO> _sensors = [];
   bool _isLoading = true;
 
-  Timer? _pollingTimer;  // <– Campo para el Timer periódico
+  Timer? _pollingTimer; // <– Campo para el Timer periódico
 
   @override
   void initState() {
     super.initState();
-    _loadGraphics();     // Carga inicial de datos
-    _startPolling();     // Inicia el polling para recarga cada 5 min
+    _loadGraphics(); // Carga inicial de datos
+    _startPolling(); // Inicia el polling para recarga cada 5 min
   }
 
   /// Crea un Timer que cada 5 minutos llama a `_loadGraphics()`
@@ -123,30 +123,35 @@ class SensorDetailsState extends State<SensorDetails> {
                   : Column(
                       children: _metrics.map((metric) {
                         // Para cada métrica, buscamos el sensor asociado
-                        SensorDTO? sensor = findSensor(metric.sensorExternalId.toString());
+                        SensorDTO? sensor =
+                            findSensor(metric.sensorExternalId.toString());
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (sensor != null) ...[
-                               Row(
-        children: [
-          const Icon(Icons.access_time, size: 20),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Text(
-              'Fecha: ${metric.date ?? 'No disponible'} a las ${metric.quantity.time ?? 'No disponible'}',
-              style: const TextStyle(fontSize: 16),
-              overflow: TextOverflow.ellipsis, // Evita que el texto se desborde
-            ),
-          ),
-        ],
-      ),
+                              Row(
+                                children: [
+                                  const Icon(Icons.access_time, size: 20),
+                                  const SizedBox(width: 4),
+                                  Expanded(
+                                    child: Text(
+                                      'Fecha: ${metric.date ?? 'No disponible'} a las ${metric.quantity.time ?? 'No disponible'}',
+                                      style: const TextStyle(fontSize: 16),
+                                      overflow: TextOverflow
+                                          .ellipsis, // Evita que el texto se desborde
+                                    ),
+                                  ),
+                                ],
+                              ),
                               Text(sensor.name.toString()),
                               Text("Tipo: ${sensor.sensorType}"),
-                              Text("Nivel de Ruido: ${metric.qualitativeScaleValue.name}"),
+                              Text("Uso de suelo: ${sensor.landUseName}"),
+                              Text(
+                                  "Nivel de Ruido: ${metric.qualitativeScaleValue.name}"),
                               Chart(
                                 range: metric.qualitativeScaleValue.name,
-                                value: double.parse(metric.quantity.value.toStringAsFixed(2)),
+                                value: double.parse(
+                                    metric.quantity.value.toStringAsFixed(2)),
                               ),
                               Align(
                                 alignment: Alignment.centerRight,

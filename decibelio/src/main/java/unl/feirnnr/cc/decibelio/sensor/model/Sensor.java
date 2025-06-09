@@ -111,6 +111,13 @@ public class Sensor implements Serializable {
         this.geoLocation = geoLocation;
     }
 
+    public String getReferenceLocation() {
+        return referenceLocation;
+    }
+
+    public void setReferenceLocation(String referenceLocation) {
+        this.referenceLocation = referenceLocation;
+    }
     public String getExternalId() {
         return externalId;
     }
@@ -146,7 +153,6 @@ public class Sensor implements Serializable {
         return qualitativeScale;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -160,7 +166,7 @@ public class Sensor implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, sensorType, sensorStatus, geoLocation, externalId);
+        return Objects.hash(id, name, sensorType, sensorStatus, geoLocation, referenceLocation,externalId);
     }
 
     @Override
@@ -171,6 +177,7 @@ public class Sensor implements Serializable {
         sb.append(", sensorType=").append(sensorType);
         sb.append(", sensorStatus=").append(sensorStatus);
         sb.append(", geoLocation=").append(geoLocation);
+        sb.append(", referenceLocation='").append(referenceLocation).append('\'');
         sb.append(", externalId='").append(externalId).append('\'');
         sb.append(", landUse=").append(landUse);
         sb.append(", territorialReference=").append(territorialReference);

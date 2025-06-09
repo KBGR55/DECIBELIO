@@ -9,7 +9,6 @@ import 'package:decibelio_app_web/models/respuesta_generica.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
 import 'package:decibelio_app_web/views/main/main_screen.dart';
-import 'package:decibelio_app_web/views/upload_data/upload_screen.dart';
 import 'package:decibelio_app_web/views/sensor_create/sensor_screen.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:decibelio_app_web/views/navigation/navigation_bloc.dart';

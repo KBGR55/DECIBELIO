@@ -15,14 +15,18 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Map;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-//@Singleton
-//@Startup
+@Singleton
+@Startup
 public class MqttSensorListener implements MqttCallback {
 
     private static final int QOS = 1;
@@ -106,9 +110,11 @@ public class MqttSensorListener implements MqttCallback {
             String externalId = externalIdPart.split("_")[0];
 
             float sonLaeq = Float.parseFloat(payloadMap.getOrDefault("son_laeq", "0").toString());
-            String timeInstant = payloadMap.get("TimeInstant").toString();
-            LocalDate date = LocalDate.parse(timeInstant.substring(0, 10));
-            LocalTime time = LocalTime.parse(timeInstant.substring(11, 19));
+            String timeInstantStr = payloadMap.get("TimeInstant").toString();
+            Instant instant = Instant.parse(timeInstantStr);
+            ZonedDateTime ecuadorZdt = instant.atZone(ZoneId.of("America/Guayaquil"));
+            LocalDate date = ecuadorZdt.toLocalDate(); 
+            LocalTime time = ecuadorZdt.toLocalTime();
 
             ObservationDTO observationDTO = new ObservationDTO();
             observationDTO.setDate(date);

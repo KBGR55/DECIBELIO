@@ -48,7 +48,7 @@ public class SensorResource {
             return Response.ok().entity(result).build();
     }
 
-    @PUT
+    @PUT 
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     @Operation(summary = "Update a sensor")

@@ -24,6 +24,7 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
+import jakarta.json.JsonObjectBuilder;
 import jakarta.json.JsonValue;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
@@ -99,6 +100,7 @@ public class SensorsResource {
             @SchemaProperty(name = "nameUnitType", type = SchemaType.STRING, description = "Name of the unit type"),
             @SchemaProperty(name = "abbreviationUnitType", type = SchemaType.STRING, description = "Abbreviation of the unit type"),
             @SchemaProperty(name = "externalID", type = SchemaType.STRING, description = "External ID of the sensor"),
+            @SchemaProperty(name = "referenceLocation", type = SchemaType.STRING, description = "Reference location of the sensor"),
             @SchemaProperty(name = "landUseID", type = SchemaType.INTEGER, format = "int64", description = "ID of the land use"),
 
     })))
@@ -106,6 +108,7 @@ public class SensorsResource {
     public Response create(JsonObject json, @Context UriInfo uriInfo) {
         Sensor sensor = new Sensor();
         sensor.setName(json.getString("name"));
+        sensor.setReferenceLocation(json.getString("referenceLocation"));
         sensor.setSensorStatus(SensorStatus.valueOf(json.getString("sensorStatus")));
         sensor.setSensorType(SensorType.valueOf(json.getString(SENSOR_TYPE)));
 
@@ -223,80 +226,127 @@ public class SensorsResource {
     @GET
     @Path("/active")
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get all sensors with ACTIVE status")
-    @APIResponses(value = {
-            @APIResponse(responseCode = "200", description = "Successful operation")
-    })
     public Response getAllSensorsActive() {
         List<Sensor> sensors = decibelioFacade.findAllSensorsActive();
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
 
         for (Sensor sensor : sensors) {
-            JsonArrayBuilder qualitativeScaleArrayBuilder = Json.createArrayBuilder();
+            // Escalas cualitativas
+            JsonArrayBuilder qualitativeScaleArray = Json.createArrayBuilder();
             if (sensor.getQualitativeScale() != null) {
                 for (QualitativeScale scale : sensor.getQualitativeScale()) {
-                    JsonObject scaleJson = Json.createObjectBuilder()
-                            .add("name", scale.getName() != null ? scale.getName() : "")
-                            .add("description", scale.getDescription() != null ? scale.getDescription() : "")
-                            .build();
-                    qualitativeScaleArrayBuilder.add(scaleJson);
+                    qualitativeScaleArray.add(
+                            Json.createObjectBuilder()
+                                    .add("name", scale.getName() != null ? scale.getName() : "")
+                                    .add("description", scale.getDescription() != null ? scale.getDescription() : "")
+                                    .build());
                 }
             }
-            JsonObject sensorJson = Json.createObjectBuilder()
+
+            // Construcción del JSON de sensor con valores por defecto si vienen nulos
+            JsonObjectBuilder b = Json.createObjectBuilder()
                     .add("id", sensor.getId())
-                    .add("name", sensor.getName())
-                    .add("externalID", sensor.getExternalId())
-                    .add(LATITUDE_TYPE, ((float) sensor.getGeoLocation().getLatitude()))
-                    .add(LONGITUDE_TYPE, ((float) sensor.getGeoLocation().getLongitude()))
-                    .add(SENSOR_TYPE, sensor.getSensorType().name())
-                    .add("landUseName", sensor.getLandUse().getName())
-                    .add("qualitativeScale", qualitativeScaleArrayBuilder.build())
-                    .add("unitType", sensor.getUnitType() != null ? Json.createObjectBuilder()
-                            .add("name", sensor.getUnitType().getName())
-                            .add("abbreviation",
-                                    sensor.getUnitType().getAbbreviation() == null ? ""
-                                            : sensor.getUnitType().getAbbreviation())
-                            .build()
-                            : JsonValue.NULL)
-                    .build();
-            arrayBuilder.add(sensorJson);
+                    .add("name", sensor.getName() != null ? sensor.getName() : "")
+                    .add("externalID", sensor.getExternalId() != null ? sensor.getExternalId() : "")
+                    .add("latitude", sensor.getGeoLocation() != null
+                            ? sensor.getGeoLocation().getLatitude()
+                            : 0.0f)
+                    .add("longitude", sensor.getGeoLocation() != null
+                            ? sensor.getGeoLocation().getLongitude()
+                            : 0.0f)
+                    .add("sensorType", sensor.getSensorType() != null
+                            ? sensor.getSensorType().name()
+                            : "")
+                    .add("landUseName", sensor.getLandUse() != null && sensor.getLandUse().getName() != null
+                            ? sensor.getLandUse().getName()
+                            : "")
+                    .add("qualitativeScale", qualitativeScaleArray.build())
+                    .add("referenceLocation", sensor.getReferenceLocation() != null
+                            ? sensor.getReferenceLocation()
+                            : "");
+                            
+
+            // UnitType (puede ser null)
+            if (sensor.getUnitType() != null) {
+                b.add("unitTypeName",
+                        sensor.getUnitType().getName()!= null
+
+                                ? sensor.getUnitType().getName()
+                                : "");
+                b.add("unitTypeAbbreviation",
+                        sensor.getUnitType().getAbbreviation() != null
+                                ? sensor.getUnitType().getAbbreviation()
+                                : "");
+            } else {
+                b.add("unitTypeName", "")
+                        .add("unitTypeAbbreviation", "");
+            }
+
+            arrayBuilder.add(b.build());
         }
 
         JsonArray sensorArray = arrayBuilder.build();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of active Sensors",
-                Sensor.class.getSimpleName(), sensorArray);
-        return Response.ok().entity(result).build();
+        RestResult result = new RestResult(
+                RestResultStatus.SUCCESS,
+                "List of active Sensors",
+                Sensor.class.getSimpleName(),
+                sensorArray);
+        return Response.ok(result).build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get all sensors")
-    @APIResponses(value = {
-            @APIResponse(responseCode = "200", description = "Successful operation")
-    })
     public Response getAllSensors() {
         List<Sensor> sensors = decibelioFacade.findAllSensors();
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
 
         for (Sensor sensor : sensors) {
-
-            JsonObject sensorJson = Json.createObjectBuilder()
+            JsonObjectBuilder b = Json.createObjectBuilder()
                     .add("id", sensor.getId())
-                    .add("name", sensor.getName())
-                    .add("externalID", sensor.getExternalId())
-                    .add(LATITUDE_TYPE, ((float) sensor.getGeoLocation().getLatitude()))
-                    .add(LONGITUDE_TYPE, ((float) sensor.getGeoLocation().getLongitude()))
-                    .add(SENSOR_TYPE, sensor.getSensorType().name())
-                    .add("sensorStatus", sensor.getSensorStatus().toString())
-                    .add("landUseName", sensor.getLandUse().getName())
-                    .build();
-            arrayBuilder.add(sensorJson);
+                    .add("name", sensor.getName() != null ? sensor.getName() : "")
+                    .add("externalID", sensor.getExternalId() != null ? sensor.getExternalId() : "")
+                    .add("latitude", sensor.getGeoLocation() != null
+                            ? sensor.getGeoLocation().getLatitude()
+                            : 0.0f)
+                    .add("longitude", sensor.getGeoLocation() != null
+                            ? sensor.getGeoLocation().getLongitude()
+                            : 0.0f)
+                    .add("sensorType", sensor.getSensorType() != null
+                            ? sensor.getSensorType().name()
+                            : "")
+                    .add("referenceLocation", sensor.getReferenceLocation() != null
+                            ? sensor.getReferenceLocation()
+                            : "")
+                    .add("sensorStatus", sensor.getSensorStatus() != null
+                            ? sensor.getSensorStatus().toString()
+                            : "")
+                    .add("landUseName", sensor.getLandUse() != null && sensor.getLandUse().getName() != null
+                            ? sensor.getLandUse().getName()
+                            : "");
+            if (sensor.getUnitType() != null) {
+                b.add("unitTypeName",
+                        sensor.getUnitType().getName() != null
+                                ? sensor.getUnitType().getName()
+                                : "")
+                        .add("unitTypeAbbreviation",
+                                sensor.getUnitType().getAbbreviation() != null
+                                        ? sensor.getUnitType().getAbbreviation()
+                                        : "");
+            } else {
+                b.add("unitTypeName", "")
+                        .add("unitTypeAbbreviation", "");
+            }
+
+            arrayBuilder.add(b.build());
         }
 
         JsonArray sensorArray = arrayBuilder.build();
-        RestResult result = new RestResult(RestResultStatus.SUCCESS, "List of all Sensors",
-                Sensor.class.getSimpleName(), sensorArray);
-        return Response.ok().entity(result).build();
+        RestResult result = new RestResult(
+                RestResultStatus.SUCCESS,
+                "List of all Sensors",
+                Sensor.class.getSimpleName(),
+                sensorArray);
+        return Response.ok(result).build();
     }
 
     @GET

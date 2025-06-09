@@ -26,8 +26,8 @@ class SensorCreateControllerPageState
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _externalIdController = TextEditingController();
   final TextEditingController _nameUnitTypeController = TextEditingController();
-  final TextEditingController _abbreviationUnitTypeController =
-      TextEditingController();
+  final TextEditingController _abbreviationUnitTypeController =   TextEditingController();
+  final TextEditingController _referenceLocationController =  TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final MapController _mapController = MapController();
 
@@ -116,6 +116,7 @@ class SensorCreateControllerPageState
         "landUseID": int.parse(_selectedLandUse),
         "nameUnitType": _nameUnitTypeController.text,
         "abbreviationUnitType": _abbreviationUnitTypeController.text,
+        "referenceLocation": _referenceLocationController.text,
       };
 
       final respuesta =
@@ -137,22 +138,30 @@ class SensorCreateControllerPageState
 
         if (!mounted) return;
         showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              title: const Row(
-                children: [
-                  Icon(Icons.check_circle, color: Colors.blue, size: 30),
-                  SizedBox(width: 10),
-                  Text('Sensor agregado correctamente'),
-                ],
-              ),
-            );
-          },
-        );
+   context: context,
+  builder: (context) {
+    return AlertDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      title: const Row(
+        children: [
+          Icon(Icons.check_circle, color: Colors.blue, size: 30),
+          SizedBox(width: 10),
+          Text('Sensor agregado correctamente'),
+        ],
+      ),
+      content: const Text(
+        'El sensor se ha registrado exitosamente en el sistema.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Aceptar'),
+        ),
+      ],
+    );
+  }, );
       } else {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -186,7 +195,6 @@ class SensorCreateControllerPageState
                           style: TextStyle(
                               fontSize: 24, fontWeight: FontWeight.bold)),
                       const SizedBox(height: 24),
-
                       // Nombre del Sensor
                       TextFormField(
                         controller: _nameController,
@@ -199,45 +207,6 @@ class SensorCreateControllerPageState
                         ),
                       ),
                       const SizedBox(height: 24),
-
-// Campo para nombre del tipo de unidad
-                      TextFormField(
-                        controller: _nameUnitTypeController,
-                        decoration: InputDecoration(
-                          labelText: 'Nombre del tipo de unidad',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          prefixIcon: const Icon(Icons.straighten),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa el nombre del tipo de unidad';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
-// Campo para abreviación del tipo de unidad
-                      TextFormField(
-                        controller: _abbreviationUnitTypeController,
-                        decoration: InputDecoration(
-                          labelText: 'Abreviación del tipo de unidad',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          prefixIcon: const Icon(Icons.short_text),
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Por favor ingresa la abreviación del tipo de unidad';
-                          }
-                          return null;
-                        },
-                      ),
-                      const SizedBox(height: 24),
-
                       // Identificador Externo
                       TextFormField(
                         controller: _externalIdController,
@@ -248,6 +217,51 @@ class SensorCreateControllerPageState
                           ),
                           prefixIcon: const Icon(Icons.perm_identity),
                         ),
+                      ),
+                      const SizedBox(height: 24),
+                      // Nombre y Abreviación del tipo de unidad en la misma línea
+                      Row(
+                        children: [
+                          // Campo para nombre del tipo de unidad
+                          Expanded(
+                            child: TextFormField(
+                              controller: _nameUnitTypeController,
+                              decoration: InputDecoration(
+                                labelText: 'Nombre del tipo de unidad',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                prefixIcon: const Icon(Icons.straighten),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor ingresa el nombre del tipo de unidad';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          // Campo para abreviación del tipo de unidad
+                          Expanded(
+                            child: TextFormField(
+                              controller: _abbreviationUnitTypeController,
+                              decoration: InputDecoration(
+                                labelText: 'Abreviación del tipo de unidad',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                prefixIcon: const Icon(Icons.short_text),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor ingresa la abreviación del tipo de unidad';
+                                }
+                                return null;
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 24),
 
@@ -335,6 +349,29 @@ class SensorCreateControllerPageState
                             ),
                           ),
                         ],
+                      ),
+                      // Campo para referencia de ubicación (máx. 50 caracteres)
+                      const SizedBox(height: 8),
+                      TextFormField(
+                        controller: _referenceLocationController,
+                        decoration: InputDecoration(
+                          labelText: 'Referencia de localización',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          prefixIcon: const Icon(Icons.location_on),
+                          counterText: '', // oculta el contador si prefieres
+                        ),
+                        maxLength: 50,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor ingresa una referencia de ubicación';
+                          }
+                          if (value.length > 50) {
+                            return 'Máximo 50 caracteres';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 24),
                       // Tipo de Sensor

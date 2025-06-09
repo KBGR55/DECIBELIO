@@ -6,13 +6,6 @@ import jakarta.validation.constraints.NotEmpty;
 import java.io.Serializable;
 import java.util.Objects;
 
-/**
- * @author wduck
- *         Clase que representa el Uso de Suelo para establecer los rangos
- *         permitidos
- *         de acuerdo a las leyes de la República del Ecuador
- *
- */
 @Entity
 @TableGenerator(name = "QualitativeScaleGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "QualitativeScale", initialValue = 1, allocationSize = 1)
 public class QualitativeScale implements Serializable {
@@ -20,7 +13,7 @@ public class QualitativeScale implements Serializable {
     @GeneratedValue(generator = "QualitativeScaleGenerator", strategy = GenerationType.TABLE)
     private Long id;
 
-    @Column
+    @Column(nullable = false, unique = false)
     @NotEmpty
     private String name;
 
@@ -54,17 +47,16 @@ public class QualitativeScale implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o)
-            return true;
-        if (!(o instanceof QualitativeScale qualitativeScale))
-            return false;
-        return Objects.equals(id, qualitativeScale.id) && Objects.equals(name, qualitativeScale.name);
+        if (this == o) return true;
+        if (!(o instanceof QualitativeScale)) return false;
+        QualitativeScale that = (QualitativeScale) o;
+        return Objects.equals(name, that.name);
     }
-
+    
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
-    }
+        return Objects.hash(name);
+    }    
 
     @Override
     public String toString() {

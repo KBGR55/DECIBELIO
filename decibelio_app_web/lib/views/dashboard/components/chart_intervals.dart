@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html' as html;
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/services/auth_service.dart'; // <<-- Importamos AuthService
 import 'package:decibelio_app_web/models/sensor_dto.dart';
@@ -9,6 +10,7 @@ import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
+import 'package:http/http.dart' as http;
 
 class SoundChartView extends StatefulWidget {
   const SoundChartView({super.key});
@@ -130,9 +132,8 @@ class _SoundChartView extends State<SoundChartView> {
   }
 
   /// Lanza la consulta al backend para obtener métricas según el filtro actual
-  void _reloadData() async {
+  void _reloadData({bool showConfirmation = false}) async {
     if (selectedSensor == null || selectedNumericValue == null) {
-      // Si no hay sensor o valor numérico, no hacer nada
       return;
     }
 
@@ -165,30 +166,28 @@ class _SoundChartView extends State<SoundChartView> {
         });
 
         // Si no es la primera carga, mostramos un diálogo de confirmación
-        if (!_isInitialLoad) {
-          showDialog<void>(
+        if (showConfirmation) {
+          await showDialog<void>(
             context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                title: const Row(
-                  children: [
-                    Icon(Icons.check_circle, color: Colors.blue, size: 30),
-                    SizedBox(width: 10),
-                    Text('Métricas obtenidas'),
-                  ],
-                ),
-                content: const Text('Se obtuvieron las métricas exitosamente.'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    child: const Text('OK'),
-                  ),
+            builder: (_) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              title: const Row(
+                children: [
+                  Icon(Icons.check_circle, color: Colors.blue, size: 30),
+                  SizedBox(width: 10),
+                  Text('Métricas obtenidas'),
                 ],
-              );
-            },
+              ),
+              content: const Text('Se obtuvieron las métricas exitosamente.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
           );
         }
       } else {
@@ -206,6 +205,74 @@ class _SoundChartView extends State<SoundChartView> {
       if (_isInitialLoad) {
         _isInitialLoad = false;
       }
+    }
+  }
+
+  Future<void> _exportCsv() async {
+    if (startDate == null || endDate == null) return;
+
+    final start = DateFormat('yyyy-MM-dd').format(startDate!);
+    final end = DateFormat('yyyy-MM-dd').format(endDate!);
+    final sensorId = selectedSensor ?? _sensors.first.externalId;
+    final url =
+        '${Conexion.urlBase}observation/export?sensorExternalId=$sensorId&startDate=$start&endDate=$end';
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        // Crea un Blob con el CSV y dispara la descarga
+        final blob = html.Blob([response.body], 'text/csv');
+        final blobUrl = html.Url.createObjectUrlFromBlob(blob);
+        html.AnchorElement(href: blobUrl)
+          ..setAttribute('download', 'observations_${start}_to_${end}.csv')
+          ..click();
+        html.Url.revokeObjectUrl(blobUrl);
+      } else {
+        if (!mounted) return;
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Row(
+              children: [
+                Icon(Icons.error_outline, color: Colors.red, size: 28),
+                SizedBox(width: 8),
+                Text('Error de Exportación'),
+              ],
+            ),
+            content: Text(
+              'No se pudo exportar el CSV.\nCódigo de respuesta: ${response.statusCode}',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cerrar'),
+              ),
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.error_outline, color: Colors.red, size: 28),
+              SizedBox(width: 8),
+              Text('Excepción'),
+            ],
+          ),
+          content: Text(
+            'Ocurrió un error al exportar:\n$e',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cerrar'),
+            ),
+          ],
+        ),
+      );
     }
   }
 
@@ -230,9 +297,6 @@ class _SoundChartView extends State<SoundChartView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ============================
-          //   Encabezado y filtros
-          // ============================
           const Text(
             'Gráficos Estadísticos',
             style: TextStyle(fontSize: 18),
@@ -248,7 +312,6 @@ class _SoundChartView extends State<SoundChartView> {
                     Expanded(
                       flex: 3,
                       child: DropdownButtonFormField<String>(
-                        
                         isExpanded: true,
                         decoration: const InputDecoration(
                           labelText: "Sensores",
@@ -444,7 +507,9 @@ class _SoundChartView extends State<SoundChartView> {
 
                     const SizedBox(width: 12),
                     ElevatedButton(
-                      onPressed: _reloadData,
+                      onPressed: () {
+                        _reloadData(showConfirmation: true);
+                      },
                       child: const Text("Consultar"),
                     ),
                   ],
@@ -659,23 +724,23 @@ class _SoundChartView extends State<SoundChartView> {
                             sideTitles: SideTitles(showTitles: false),
                           ),
                           leftTitles: AxisTitles(
-    drawBelowEverything: true,
-    sideTitles: SideTitles(
-      showTitles: true,
-      reservedSize: leftReservedSize,
-      maxIncluded: false,
-      minIncluded: false,
-      getTitlesWidget: (double value, TitleMeta meta) {
-        return Text(
-          '${value.toInt()} dB',
-          style: const TextStyle(
-            //color: Colors.white,
-            fontSize: 12,
-          ),
-        );
-      },
-    ),
-  ),
+                            drawBelowEverything: true,
+                            sideTitles: SideTitles(
+                              showTitles: true,
+                              reservedSize: leftReservedSize,
+                              maxIncluded: false,
+                              minIncluded: false,
+                              getTitlesWidget: (double value, TitleMeta meta) {
+                                return Text(
+                                  '${value.toInt()} dB',
+                                  style: const TextStyle(
+                                    //color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
                           bottomTitles: AxisTitles(
                             sideTitles: SideTitles(
                               showTitles: true,
@@ -715,16 +780,15 @@ class _SoundChartView extends State<SoundChartView> {
             style: TextStyle(fontSize: 12, color: Colors.grey),
           ),
           const SizedBox(height: 16),
-          Align(
-            alignment: Alignment.centerRight,
-            child: ElevatedButton.icon(
-              onPressed: () {
-                // Lógica para exportar datos
-              },
-              icon: const Icon(Icons.download),
-              label: const Text("Exportar datos (.xls)"),
+          if (_isLoggedIn)
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: _exportCsv,
+                icon: const Icon(Icons.download),
+                label: const Text("Exportar datos (.csv)"),
+              ),
             ),
-          ),
         ],
       ),
     );

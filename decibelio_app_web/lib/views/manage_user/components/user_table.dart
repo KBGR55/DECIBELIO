@@ -12,9 +12,9 @@ class UserTable extends StatefulWidget {
   final String searchQuery;
 
   const UserTable({
-    Key? key,
+    super.key,
     required this.searchQuery,
-  }) : super(key: key);
+  });
 
   @override
   State<UserTable> createState() => _UserTableState();

@@ -1,12 +1,14 @@
 import 'package:decibelio_app_web/responsive.dart';
 import 'package:decibelio_app_web/views/dashboard/components/chart_intervals.dart';
 import 'package:decibelio_app_web/views/dashboard/components/map_view.dart';
+import 'package:decibelio_app_web/views/dashboard/components/noise_table.dart';
 import 'package:decibelio_app_web/views/dashboard/components/sensor_details.dart';
 import 'package:flutter/material.dart';
 
 import '../../constants.dart';
 import 'components/header.dart';
 import 'components/max_levels_table.dart';
+
 
 class DashboardScreen extends StatelessWidget {
 
@@ -45,6 +47,8 @@ class DashboardScreen extends StatelessWidget {
                               //const NoiseLevelTable(),
                               //const SizedBox(height: 16),
                               SensorDetails(),
+                              SizedBox(height: 16),
+                              NoiseTable(),
                             ]
                         )
                     ],
@@ -54,13 +58,15 @@ class DashboardScreen extends StatelessWidget {
                   const SizedBox(width: defaultPadding),
                 // On Mobile means if the screen is less than 850 we don't want to show it
                 if (!Responsive.isMobile(context))
-                  const Expanded(
+                  Expanded(
                     flex: 2,
                     child: Column(
                       children: [
                         //const NoiseLevelTable(),
                         //const SizedBox(height: 16),
-                        SensorDetails(),
+                        const SensorDetails(),
+                        const SizedBox(height: 16),
+                        NoiseTable(),
                       ],
                     ),
                   ),

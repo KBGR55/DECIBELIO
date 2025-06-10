@@ -11,7 +11,7 @@ class ExpandableButton extends StatefulWidget {
     super.key,
     required this.titleExpanded,
     required this.titleCollapsed,
-    required this.expandedContent,
+    required this.expandedContent, 
   });
 
   @override
@@ -46,6 +46,7 @@ class _ExpandableButtonState extends State<ExpandableButton> {
             children: [
               Text(
                 _isExpanded ? widget.titleExpanded : widget.titleCollapsed,
+                overflow: TextOverflow.ellipsis,
               ),
               const Icon(Icons.arrow_drop_down)
             ],

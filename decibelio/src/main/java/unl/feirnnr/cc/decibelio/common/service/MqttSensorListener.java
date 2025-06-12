@@ -83,7 +83,7 @@ public class MqttSensorListener implements MqttCallback {
 
             for (String sensorId : sensorService.getAllExternalIdsActive()) {
                 String topic = topicTemplate.replace("{param}", sensorId);
-                client.subscribe(topic, qos, this::handleMessage);
+                client.subscribe(topic, qos);
                 //client.subscribe(topic, qos, this::handleMessage);
                 System.out.println("Suscrito al topic: " + topic);
             }

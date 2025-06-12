@@ -35,6 +35,10 @@ public class HistoricalObservationResource {
     @Path("/{sensorExternalId}")
     @Produces(MediaType.APPLICATION_JSON)
     @Operation(summary = "Retrieve historical observations for a specific sensor")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Historical observations retrieved successfully"),
+            @APIResponse(responseCode = "500", description = "Internal server error")
+    })
     public RestResult getHistoricalObservations(
             @PathParam("sensorExternalId") String sensorExternalId) {
         

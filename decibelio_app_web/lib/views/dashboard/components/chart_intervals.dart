@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
+import 'package:logger/logger.dart';
 
 class SoundChartView extends StatefulWidget {
   const SoundChartView({super.key});
@@ -21,6 +22,7 @@ class SoundChartView extends StatefulWidget {
 
 class _SoundChartView extends State<SoundChartView> {
   final Conexion _conn = Conexion();
+  final logger = Logger();
 
   String? selectedSensor;
   DateTime? startDate;
@@ -191,16 +193,10 @@ class _SoundChartView extends State<SoundChartView> {
           );
         }
       } else {
-        // Si el servidor devolvió FAILURE
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error del servidor: ${respuesta.message}')),
-        );
+        logger.e('Error del servidor: ${respuesta.message}');
       }
     } catch (e) {
-      // Error en la petición HTTP / JSON
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error al realizar la solicitud: $e")),
-      );
+      logger.e('Error al realizar la solicitud: $e');
     } finally {
       if (_isInitialLoad) {
         _isInitialLoad = false;
@@ -539,241 +535,255 @@ class _SoundChartView extends State<SoundChartView> {
           ),
           const SizedBox(height: 16),
 
-          // ============================
-          // Gráfico
-          // ============================
-          SizedBox(
-            width: double.infinity,
-            child: Column(
-              children: [
-                LayoutBuilder(
-                  builder: (context, constraints) {
-                    final width = constraints.maxWidth;
-                    return width >= 380
-                        ? Row(
-                            children: [
-                              const SizedBox(width: leftReservedSize),
-                              const _ChartTitle(),
-                              const Spacer(),
-                              Center(
-                                child: _TransformationButtons(
+          if (_metricsHistory == null || _metricsHistory!.isEmpty)
+            Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  const SizedBox(height: 10),
+                  const Text('No hay datos disponibles'),
+                ],
+              ),
+            )
+          else
+            SizedBox(
+              width: double.infinity,
+              child: Column(
+                children: [
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final width = constraints.maxWidth;
+                      return width >= 380
+                          ? Row(
+                              children: [
+                                const SizedBox(width: leftReservedSize),
+                                const _ChartTitle(),
+                                const Spacer(),
+                                Center(
+                                  child: _TransformationButtons(
+                                    controller: _transformationController,
+                                  ),
+                                ),
+                              ],
+                            )
+                          : Column(
+                              children: [
+                                const _ChartTitle(),
+                                const SizedBox(height: 16),
+                                _TransformationButtons(
                                   controller: _transformationController,
                                 ),
-                              ),
-                            ],
-                          )
-                        : Column(
-                            children: [
-                              const _ChartTitle(),
-                              const SizedBox(height: 16),
-                              _TransformationButtons(
-                                controller: _transformationController,
-                              ),
-                            ],
-                          );
-                  },
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      const Text('Fijar'),
-                      Switch(
-                        value: _isPanEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            _isPanEnabled = value;
-                          });
-                        },
-                      ),
-                      const Text('Zoom'),
-                      Switch(
-                        value: _isScaleEnabled,
-                        onChanged: (value) {
-                          setState(() {
-                            _isScaleEnabled = value;
-                          });
-                        },
-                      ),
-                    ],
+                              ],
+                            );
+                    },
                   ),
-                ),
-                AspectRatio(
-                  aspectRatio: 2.5,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 18.0),
-                    child: LineChart(
-                      transformationConfig: FlTransformationConfig(
-                        scaleAxis: FlScaleAxis.horizontal,
-                        minScale: 1.0,
-                        maxScale: 25.0,
-                        panEnabled: _isPanEnabled,
-                        scaleEnabled: _isScaleEnabled,
-                        transformationController: _transformationController,
-                      ),
-                      LineChartData(
-                        lineBarsData: [
-                          LineChartBarData(
-                            spots: _metricsHistory?.asMap().entries.map((e) {
-                                  final index = e.key;
-                                  final item = e.value;
-                                  final value = item.$2;
-                                  return FlSpot(index.toDouble(), value);
-                                }).toList() ??
-                                [],
-                            dotData: const FlDotData(show: false),
-                            color: Colors.blue,
-                            barWidth: 1,
-                            shadow: const Shadow(
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        const Text('Fijar'),
+                        Switch(
+                          value: _isPanEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              _isPanEnabled = value;
+                            });
+                          },
+                        ),
+                        const Text('Zoom'),
+                        Switch(
+                          value: _isScaleEnabled,
+                          onChanged: (value) {
+                            setState(() {
+                              _isScaleEnabled = value;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  AspectRatio(
+                    aspectRatio: 2.5,
+                    child: Padding(
+                      padding: const EdgeInsets.only(right: 18.0),
+                      child: LineChart(
+                        transformationConfig: FlTransformationConfig(
+                          scaleAxis: FlScaleAxis.horizontal,
+                          minScale: 1.0,
+                          maxScale: 25.0,
+                          panEnabled: _isPanEnabled,
+                          scaleEnabled: _isScaleEnabled,
+                          transformationController: _transformationController,
+                        ),
+                        LineChartData(
+                          lineBarsData: [
+                            LineChartBarData(
+                              spots: _metricsHistory?.asMap().entries.map((e) {
+                                    final index = e.key;
+                                    final item = e.value;
+                                    final value = item.$2;
+                                    return FlSpot(index.toDouble(), value);
+                                  }).toList() ??
+                                  [],
+                              dotData: const FlDotData(show: false),
                               color: Colors.blue,
-                              blurRadius: 2,
-                            ),
-                            belowBarData: BarAreaData(
-                              show: true,
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.blue.withOpacity(0.2),
-                                  Colors.blue.withOpacity(0.0)
-                                ],
-                                stops: const [0.5, 1.0],
-                                begin: Alignment.topCenter,
-                                end: Alignment.bottomCenter,
+                              barWidth: 1,
+                              shadow: const Shadow(
+                                color: Colors.blue,
+                                blurRadius: 2,
+                              ),
+                              belowBarData: BarAreaData(
+                                show: true,
+                                gradient: LinearGradient(
+                                  colors: [
+                                    Colors.blue.withOpacity(0.2),
+                                    Colors.blue.withOpacity(0.0)
+                                  ],
+                                  stops: const [0.5, 1.0],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
                               ),
                             ),
-                          ),
-                        ],
-                        lineTouchData: LineTouchData(
-                          touchSpotThreshold: 5,
-                          getTouchLineStart: (_, __) => -double.infinity,
-                          getTouchLineEnd: (_, __) => double.infinity,
-                          getTouchedSpotIndicator: (
-                            LineChartBarData barData,
-                            List<int> spotIndexes,
-                          ) {
-                            return spotIndexes.map((spotIndex) {
-                              return TouchedSpotIndicatorData(
-                                const FlLine(
-                                  color: Colors.red,
-                                  strokeWidth: 1.5,
-                                  dashArray: [8, 2],
-                                ),
-                                FlDotData(
-                                  show: true,
-                                  getDotPainter:
-                                      (spot, percent, barData, index) {
-                                    return FlDotCirclePainter(
-                                      radius: 6,
-                                      color: Colors.amber,
-                                      strokeWidth: 0,
-                                      strokeColor: Colors.amber,
-                                    );
-                                  },
-                                ),
-                              );
-                            }).toList();
-                          },
-                          touchTooltipData: LineTouchTooltipData(
-                            getTooltipItems:
-                                (List<LineBarSpot> touchedBarSpots) {
-                              return touchedBarSpots.map((barSpot) {
-                                final price = barSpot.y;
-                                final time =
-                                    _metricsHistory![barSpot.x.toInt()].$1;
-                                return LineTooltipItem(
-                                  '',
-                                  const TextStyle(
-                                    color: Colors.black,
-                                    fontWeight: FontWeight.bold,
+                          ],
+                          lineTouchData: LineTouchData(
+                            touchSpotThreshold: 5,
+                            getTouchLineStart: (_, __) => -double.infinity,
+                            getTouchLineEnd: (_, __) => double.infinity,
+                            getTouchedSpotIndicator: (
+                              LineChartBarData barData,
+                              List<int> spotIndexes,
+                            ) {
+                              return spotIndexes.map((spotIndex) {
+                                return TouchedSpotIndicatorData(
+                                  const FlLine(
+                                    color: Colors.red,
+                                    strokeWidth: 1.5,
+                                    dashArray: [8, 2],
                                   ),
-                                  children: [
-                                    TextSpan(
-                                      text: time,
-                                      style: const TextStyle(
-                                        color: Colors.green,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    TextSpan(
-                                      text: '\n${NumberFormat.compactCurrency(
-                                        locale: Localizations.localeOf(context)
-                                            .toString(),
-                                        symbol: '',
-                                      ).format(price)} dB',
-                                      style: const TextStyle(
+                                  FlDotData(
+                                    show: true,
+                                    getDotPainter:
+                                        (spot, percent, barData, index) {
+                                      return FlDotCirclePainter(
+                                        radius: 6,
                                         color: Colors.amber,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
-                                  ],
+                                        strokeWidth: 0,
+                                        strokeColor: Colors.amber,
+                                      );
+                                    },
+                                  ),
                                 );
                               }).toList();
                             },
-                            getTooltipColor: (LineBarSpot barSpot) =>
-                                Colors.black,
-                          ),
-                        ),
-                        titlesData: FlTitlesData(
-                          show: true,
-                          rightTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          topTitles: const AxisTitles(
-                            sideTitles: SideTitles(showTitles: false),
-                          ),
-                          leftTitles: AxisTitles(
-                            drawBelowEverything: true,
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: leftReservedSize,
-                              maxIncluded: false,
-                              minIncluded: false,
-                              getTitlesWidget: (double value, TitleMeta meta) {
-                                return Text(
-                                  '${value.toInt()} dB',
-                                  style: const TextStyle(
-                                    //color: Colors.white,
-                                    fontSize: 12,
-                                  ),
-                                );
+                            touchTooltipData: LineTouchTooltipData(
+                              getTooltipItems:
+                                  (List<LineBarSpot> touchedBarSpots) {
+                                return touchedBarSpots.map((barSpot) {
+                                  final price = barSpot.y;
+                                  final time =
+                                      _metricsHistory![barSpot.x.toInt()].$1;
+                                  return LineTooltipItem(
+                                    '',
+                                    const TextStyle(
+                                      color: Colors.black,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    children: [
+                                      TextSpan(
+                                        text: time,
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: '\n${NumberFormat.compactCurrency(
+                                          locale:
+                                              Localizations.localeOf(context)
+                                                  .toString(),
+                                          symbol: '',
+                                        ).format(price)} dB',
+                                        style: const TextStyle(
+                                          color: Colors.amber,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                }).toList();
                               },
+                              getTooltipColor: (LineBarSpot barSpot) =>
+                                  Colors.black,
                             ),
                           ),
-                          bottomTitles: AxisTitles(
-                            sideTitles: SideTitles(
-                              showTitles: true,
-                              reservedSize: 38,
-                              maxIncluded: false,
-                              getTitlesWidget: (double value, TitleMeta meta) {
-                                final time = _metricsHistory![value.toInt()].$1;
-                                return SideTitleWidget(
-                                  meta: meta,
-                                  child: Transform.rotate(
-                                    angle: -45 * 3.14 / 180,
-                                    child: Text(
-                                      time,
-                                      style: const TextStyle(
-                                        color: Colors.green,
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.bold,
+                          titlesData: FlTitlesData(
+                            show: true,
+                            rightTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            topTitles: const AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                            leftTitles: AxisTitles(
+                              drawBelowEverything: true,
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: leftReservedSize,
+                                maxIncluded: false,
+                                minIncluded: false,
+                                getTitlesWidget:
+                                    (double value, TitleMeta meta) {
+                                  return Text(
+                                    '${value.toInt()} dB',
+                                    style: const TextStyle(
+                                      //color: Colors.white,
+                                      fontSize: 12,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                reservedSize: 38,
+                                maxIncluded: false,
+                                getTitlesWidget:
+                                    (double value, TitleMeta meta) {
+                                  final time =
+                                      _metricsHistory![value.toInt()].$1;
+                                  return SideTitleWidget(
+                                    meta: meta,
+                                    child: Transform.rotate(
+                                      angle: -45 * 3.14 / 180,
+                                      child: Text(
+                                        time,
+                                        style: const TextStyle(
+                                          color: Colors.green,
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
+                                  );
+                                },
+                              ),
                             ),
                           ),
                         ),
+                        duration: Duration.zero,
                       ),
-                      duration: Duration.zero,
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+
           const SizedBox(height: 16),
           const Text(
             "Descripción: Cualquier cosa",
@@ -813,7 +823,7 @@ class _ChartTitle extends StatelessWidget {
       children: [
         SizedBox(height: 14),
         Text(
-          'History',
+          'Mediciones en tiempo real',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 18,

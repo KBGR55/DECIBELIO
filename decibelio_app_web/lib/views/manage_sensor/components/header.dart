@@ -4,8 +4,6 @@ import 'package:decibelio_app_web/responsive.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../../../constants.dart';
-
 class Header extends StatelessWidget {
   const Header({
     super.key,
@@ -61,17 +59,32 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool esTemaOscuro = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
         Image.asset(
-          "assets/logos/favicon.png",
+          esTemaOscuro
+              ? 'assets/logos/favicon-oscuro.png'
+              : 'assets/logos/favicon.png',
           height: 85,
         ),
         if (!Responsive.isMobile(context))
-          const Padding(
-            padding:
-            EdgeInsets.symmetric(horizontal: defaultPadding / 2),
-            child: Text("Carrera de Computación"),
+          Row(spacing: 10,
+            children: [
+              Image.asset(
+                "assets/logos/logo_automotriz.png",
+                height: 40,
+              ),
+              Image.asset(
+                "assets/logos/LogoCarreraNombre.png",
+                height: 40,
+              ),
+              Image.asset(
+                "assets/logos/logoUNL-HD.png",
+                height: 40,
+              ),
+            ],
           ),
       ],
     );

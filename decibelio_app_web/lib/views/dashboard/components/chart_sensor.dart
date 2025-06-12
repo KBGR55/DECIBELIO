@@ -56,7 +56,7 @@ class ChartState extends State<Chart> {
                 Text(
                   widget.value.toString(),
                   style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                    color: Theme.of(context).cardColor,
+                    color: Theme.of(context).unselectedWidgetColor,
                     fontWeight: FontWeight.w600,
                     height: 0.5,
                   ),

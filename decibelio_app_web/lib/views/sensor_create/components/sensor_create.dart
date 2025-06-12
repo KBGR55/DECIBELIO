@@ -1,3 +1,4 @@
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:flutter/material.dart';
@@ -28,6 +29,8 @@ class SensorCreateControllerPageState
   final TextEditingController _nameUnitTypeController = TextEditingController();
   final TextEditingController _abbreviationUnitTypeController =   TextEditingController();
   final TextEditingController _referenceLocationController =  TextEditingController();
+  final TextEditingController latitudeController = TextEditingController();
+  final TextEditingController longitudeController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   final MapController _mapController = MapController();
 
@@ -264,6 +267,69 @@ class SensorCreateControllerPageState
                         ],
                       ),
                       const SizedBox(height: 24),
+                      // Ingreso manual de coordenadas
+                      const Text('Ubicar manualmente con coordenadas',
+                          style: TextStyle(fontSize: 16)),
+                      const SizedBox(height: 8),
+
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: latitudeController,
+                              decoration: InputDecoration(
+                                labelText: 'Latitud',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                prefixIcon: const Icon(Icons.map),
+                              ),
+                              keyboardType:
+                              const TextInputType.numberWithOptions(
+                                  signed: true, decimal: true),
+                              onChanged: (value) {
+                                final lat = double.tryParse(value);
+                                if (lat != null) {
+                                  setState(() {
+                                    _selectedLocation = LatLng(
+                                        lat, _selectedLocation.longitude);
+                                    _mapController.move(
+                                        _selectedLocation, _currentZoom);
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: TextFormField(
+                              controller: longitudeController,
+                              decoration: InputDecoration(
+                                labelText: 'Longitud',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                prefixIcon: const Icon(Icons.map),
+                              ),
+                              keyboardType:
+                              const TextInputType.numberWithOptions(
+                                  signed: true, decimal: true),
+                              onChanged: (value) {
+                                final lng = double.tryParse(value);
+                                if (lng != null) {
+                                  setState(() {
+                                    _selectedLocation = LatLng(
+                                        _selectedLocation.latitude, lng);
+                                    _mapController.move(
+                                        _selectedLocation, _currentZoom);
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 24),
 
                       // Mapa con la localización
                       const Text('Ubicación del Sensor',
@@ -284,6 +350,8 @@ class SensorCreateControllerPageState
                                 onTap: (tapPosition, latlng) {
                                   setState(() {
                                     _selectedLocation = latlng;
+                                    latitudeController.text = latlng.latitude.toStringAsFixed(6);
+                                    longitudeController.text = latlng.longitude.toStringAsFixed(6);
                                   });
                                 },
                               ),
@@ -376,6 +444,7 @@ class SensorCreateControllerPageState
                       const SizedBox(height: 24),
                       // Tipo de Sensor
                       DropdownButtonFormField<String>(
+                        dropdownColor: AdaptiveTheme.of(context).theme.cardColor,
                         value: _selectedSensorType,
                         decoration: InputDecoration(
                           labelText: 'Tipo de Sensor',
@@ -399,6 +468,7 @@ class SensorCreateControllerPageState
 
                       // Estado del Sensor
                       DropdownButtonFormField<String>(
+                        dropdownColor: AdaptiveTheme.of(context).theme.cardColor,
                         value: _selectedSensorStatus,
                         decoration: InputDecoration(
                           labelText: 'Estado del Sensor',
@@ -422,6 +492,7 @@ class SensorCreateControllerPageState
 
                       // Uso del Suelo
                       DropdownButtonFormField<String>(
+                        dropdownColor: AdaptiveTheme.of(context).theme.cardColor,
                         value: _selectedLandUse,
                         decoration: InputDecoration(
                           labelText: 'Uso de suelo',

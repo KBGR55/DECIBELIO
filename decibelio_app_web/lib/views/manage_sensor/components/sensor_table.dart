@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
@@ -42,12 +40,13 @@ class _SensorTable extends State<SensorTable> {
   Widget build(BuildContext context) {
     // Filtramos en base a widget.searchQuery
     final query = widget.searchQuery.toLowerCase();
+    final ScrollController horizontalController = ScrollController();
 
     final filteredSensors = _sensors.where((sensor) {
       final name = sensor.name.toLowerCase();
       final type = sensor.sensorType.toLowerCase();
       final landUse =
-          utf8.decode(sensor.landUseName.runes.toList()).toLowerCase();
+      sensor.landUseName.toLowerCase();
       final external = sensor.externalId.toLowerCase();
 
       return name.contains(query) ||
@@ -111,23 +110,36 @@ class _SensorTable extends State<SensorTable> {
               )
             ],
           ),
-          SizedBox(
-            width: double.infinity,
-            child: DataTable(
-              columnSpacing: defaultPadding,
-              columns: const [
-                DataColumn(label: Text("Nombre")),
-                DataColumn(label: Text("External ID")),
-                DataColumn(label: Text("Tipo")),
-                DataColumn(label: Text("Uso de Suelo")),
-                DataColumn(label: Text("Acciones")),
-              ],
-              // En vez de _sensors, ahora usamos filteredSensors
-              rows: List.generate(
-                filteredSensors.length,
-                (index) => sensorsDataRow(filteredSensors[index], context),
-              ),
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              return SizedBox(
+                width: double.infinity,
+                child: Scrollbar(
+                  controller: horizontalController,
+                  thumbVisibility: true,
+                  trackVisibility: true,
+                  child: SingleChildScrollView(
+                    controller: horizontalController,
+                    scrollDirection: Axis.horizontal,
+                    child: DataTable(
+                      columnSpacing: defaultPadding,
+                      columns: const [
+                        DataColumn(label: Text("Nombre")),
+                        DataColumn(label: Text("External ID")),
+                        DataColumn(label: Text("Tipo")),
+                        DataColumn(label: Text("Uso de Suelo")),
+                        DataColumn(label: Text("Acciones")),
+                      ],
+                      // En vez de _sensors, ahora usamos filteredSensors
+                      rows: List.generate(
+                        filteredSensors.length,
+                            (index) => sensorsDataRow(filteredSensors[index], context),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ],
       ),
@@ -144,14 +156,29 @@ DataRow sensorsDataRow(SensorDTO sensor, BuildContext context) {
             const Icon(Icons.sensors),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: defaultPadding),
-              child: Text(sensor.name,   overflow: TextOverflow.ellipsis,),
+              child: SizedBox(
+                width: 200, // ajusta según sea necesario
+                child: Text(sensor.name, overflow: TextOverflow.ellipsis),
+              ),
             ),
           ],
         ),
       ),
-      DataCell(Text(sensor.externalId)),
-      DataCell(Text(sensor.sensorType)),
-      DataCell(Text(utf8.decode(sensor.landUseName.runes.toList()))),
+      DataCell( SizedBox(
+        width: 150, // ajusta según sea necesario
+        child: Text(sensor.externalId, overflow: TextOverflow.ellipsis),
+      ),
+      ),
+      DataCell( SizedBox(
+        width: 150, // ajusta según sea necesario
+        child: Text(sensor.sensorType, overflow: TextOverflow.ellipsis),
+      ),
+      ),
+      DataCell( SizedBox(
+        width: 150, // ajusta según sea necesario
+        child: Text(sensor.landUseName, overflow: TextOverflow.ellipsis),
+      ),
+      ),
       DataCell(
         Row(
           children: [

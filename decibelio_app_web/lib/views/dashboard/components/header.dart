@@ -18,7 +18,8 @@ class Header extends StatelessWidget {
         if (!Responsive.isDesktop(context))
           IconButton(
             icon: const Icon(Icons.menu),
-            onPressed: () => context.read<MenuAppController>().controlMenu(context),
+            onPressed: () =>
+                context.read<MenuAppController>().controlMenu(context),
           ),
         if (!Responsive.isMobile(context))
           Text(
@@ -31,12 +32,11 @@ class Header extends StatelessWidget {
         Align(
           alignment: Alignment.centerRight, // Alineación a la izquierda
           child: Switch(
-              value:
-              AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light,
+              value: AdaptiveTheme.of(context).mode == AdaptiveThemeMode.light,
               activeThumbImage:
-              const AssetImage('assets/images/sun-svgrepo-com.png'),
-              inactiveThumbImage: const AssetImage(
-                  'assets/images/moon-stars-svgrepo-com.png'),
+                  const AssetImage('assets/images/sun-svgrepo-com.png'),
+              inactiveThumbImage:
+                  const AssetImage('assets/images/moon-stars-svgrepo-com.png'),
               activeColor: Colors.white,
               activeTrackColor: Colors.amber,
               inactiveThumbColor: Colors.black,
@@ -61,17 +61,32 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool esTemaOscuro = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
         Image.asset(
-          "assets/logos/favicon.png",
+          esTemaOscuro
+              ? 'assets/logos/favicon-oscuro.png'
+              : 'assets/logos/favicon.png',
           height: 85,
         ),
         if (!Responsive.isMobile(context))
-          const Padding(
-            padding:
-            EdgeInsets.symmetric(horizontal: defaultPadding / 2),
-            child: Text("Carrera de Computación"),
+          Row(spacing: 10,
+            children: [
+              Image.asset(
+                "assets/logos/logo_automotriz.png",
+                height: 40,
+              ),
+              Image.asset(
+                "assets/logos/LogoCarreraNombre.png",
+                height: 40,
+              ),
+              Image.asset(
+                "assets/logos/logoUNL-HD.png",
+                height: 40,
+              ),
+            ],
           ),
       ],
     );

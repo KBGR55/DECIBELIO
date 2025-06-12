@@ -61,17 +61,32 @@ class ProfileCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool esTemaOscuro = Theme.of(context).brightness == Brightness.dark;
+
     return Row(
       children: [
         Image.asset(
-          "assets/logos/favicon.png",
-          height: 85,
+          esTemaOscuro
+              ? 'assets/logos/favicon-oscuro.png'
+              : 'assets/logos/favicon.png',
+          height: 100,
         ),
         if (!Responsive.isMobile(context))
-          const Padding(
-            padding:
-            EdgeInsets.symmetric(horizontal: defaultPadding / 2),
-            child: Text("Carrera de Computación"),
+          Row(spacing: 10,
+            children: [
+              Image.asset(
+                "assets/logos/logo_automotriz.png",
+                height: 60,
+              ),
+              Image.asset(
+                "assets/logos/LogoCarreraNombre.png",
+                height: 60,
+              ),
+              Image.asset(
+                "assets/logos/logoUNL-HD.png",
+                height: 60,
+              ),
+            ],
           ),
       ],
     );

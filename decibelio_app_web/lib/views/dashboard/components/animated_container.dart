@@ -23,6 +23,7 @@ class _ExpandableButtonState extends State<ExpandableButton> {
 
   @override
   Widget build(BuildContext context) {
+    final bool esTemaOscuro = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -31,7 +32,7 @@ class _ExpandableButtonState extends State<ExpandableButton> {
           ElevatedButton.styleFrom(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(5),
-              side: BorderSide(color: AdaptiveTheme.of(context).theme.cardColor, width: 1)),
+              side: BorderSide(color: esTemaOscuro?Colors.white:Colors.black, width: 1)),
           elevation: 0,
           backgroundColor: Colors.transparent,
           foregroundColor: AdaptiveTheme.of(context).theme.cardColor,
@@ -46,8 +47,13 @@ class _ExpandableButtonState extends State<ExpandableButton> {
             children: [
               Text(
                 _isExpanded ? widget.titleExpanded : widget.titleCollapsed,
+                style: TextStyle(
+                  color: Theme.of(context).unselectedWidgetColor,
+                  fontWeight: FontWeight.w600,
+                  height: 0.5,
+                )
               ),
-              const Icon(Icons.arrow_drop_down)
+              Icon(Icons.arrow_drop_down, color: esTemaOscuro?Colors.white:Colors.black)
             ],
           )
         ),

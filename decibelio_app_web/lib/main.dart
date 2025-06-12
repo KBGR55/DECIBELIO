@@ -89,7 +89,7 @@ class MyApp extends StatelessWidget {
       child: AdaptiveTheme(
         dark: ThemeData.dark().copyWith(
           primaryColor: const Color(0xFF2A2D3E),
-          cardColor: Colors.white70,
+          cardColor: const Color(0xFF1D1B20),
           scaffoldBackgroundColor: const Color(0xFF212332),
           textTheme:
               GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
@@ -98,7 +98,7 @@ class MyApp extends StatelessWidget {
         ),
         light: ThemeData.light().copyWith(
           primaryColor: Colors.white,
-          cardColor: Colors.black,
+          cardColor: Colors.white,
           scaffoldBackgroundColor: Colors.white70,
           textTheme:
               GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)

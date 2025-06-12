@@ -152,9 +152,9 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
 
     private void handleMessage(String topic, MqttMessage message) throws JsonProcessingException {
         String payload = new String(message.getPayload());
-        LOGGER.log(Level.INFO, "--- Mensaje recibido desde [" + topic + "]: " + payload);
-        LOGGER.info("--- Mensaje con payload:\n" + payload);
-        System.out.println("--- Mensaje recibido desde [" + topic + "]: " + payload);
+        //LOGGER.log(Level.INFO, "--- Mensaje recibido desde [" + topic + "]");
+        //LOGGER.info("--- Mensaje con payload:\n" + payload);
+        System.out.println("--- Mensaje recibido desde [" + topic + "] ");
         System.out.println("--- Mensaje con payload:\n" + payload);
 
         ObjectMapper mapper = new ObjectMapper();
@@ -191,10 +191,10 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 if (!client.isConnected()) {
-                    LOGGER.info("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
+                    //LOGGER.info("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
+                    System.out.println("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
                     client.reconnect();
-                    LOGGER.info("Reconexión exitosa");
-                    LOGGER.log(Level.INFO, "RECONEXION EXITOSA");
+                    //LOGGER.log(Level.INFO, "RECONEXION EXITOSA");
                     System.out.println("RECONEXION EXITOSA");
                     return;
                 }

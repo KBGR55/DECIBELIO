@@ -8,14 +8,7 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
-@TableGenerator(
-        name = "ObservationGenerator",
-        table = "IdentityGenerator",
-        pkColumnName = "name",
-        valueColumnName = "value",
-        pkColumnValue = "Observation",
-        initialValue = 1, allocationSize = 1
-)
+@TableGenerator(name = "ObservationGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "Observation", initialValue = 1, allocationSize = 1)
 public class Observation implements Serializable {
 
     @Id
@@ -34,13 +27,12 @@ public class Observation implements Serializable {
     @JoinColumn(name = "time_frame_id")
     private TimeFrame timeFrame;
 
-
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "latitude", column = @Column(name = "geo_latitude")),
             @AttributeOverride(name = "longitude", column = @Column(name = "geo_longitude"))
     })
-    
+
     @NotNull
     private GeoLocation geoLocation;
 
@@ -58,7 +50,6 @@ public class Observation implements Serializable {
             @AttributeOverride(name = "name", column = @Column(name = "qualitative_scale_value_name"))
     })
     private QualitativeScaleValue qualitativeScaleValue;
-
 
     public Long getId() {
         return id;
@@ -83,7 +74,6 @@ public class Observation implements Serializable {
     public void setGeoLocation(GeoLocation geoLocation) {
         this.geoLocation = geoLocation;
     }
-
 
     public void setQuantity(Quantity quantity) {
         this.quantity = quantity;
@@ -119,12 +109,13 @@ public class Observation implements Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o)
+            return true;
+        if (o == null || getClass() != o.getClass())
+            return false;
         Observation that = (Observation) o;
         return Objects.equals(id, that.id);
     }
-
 
     @Override
     public int hashCode() {

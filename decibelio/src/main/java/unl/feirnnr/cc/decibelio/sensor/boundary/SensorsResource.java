@@ -25,7 +25,6 @@ import jakarta.json.JsonArray;
 import jakarta.json.JsonArrayBuilder;
 import jakarta.json.JsonObject;
 import jakarta.json.JsonObjectBuilder;
-import jakarta.json.JsonValue;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -90,6 +89,7 @@ public class SensorsResource {
     @Operation(summary = "Create a sensor")
     @APIResponses(value = {
             @APIResponse(responseCode = "201", description = "Successful operation"),
+            @APIResponse(responseCode = "400", description = "Invalid input"),
     })
     @RequestBody(description = "JSON object containing the sensor details", required = true, content = @Content(schema = @Schema(type = SchemaType.OBJECT, properties = {
             @SchemaProperty(name = "name", type = SchemaType.STRING, description = "Name of the sensor"),
@@ -226,6 +226,11 @@ public class SensorsResource {
     @GET
     @Path("/active")
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get all sensors active")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successful operation"),
+            @APIResponse(responseCode = "404", description = "Error: Not found"),
+    })
     public Response getAllSensorsActive() {
         List<Sensor> sensors = decibelioFacade.findAllSensorsActive();
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
@@ -296,6 +301,11 @@ public class SensorsResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Get all sensors")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successful operation"),
+            @APIResponse(responseCode = "404", description = "Error: Not found"),
+    })
     public Response getAllSensors() {
         List<Sensor> sensors = decibelioFacade.findAllSensors();
         JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
@@ -378,6 +388,11 @@ public class SensorsResource {
     @Path("/{id}/qualitativeScales")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Add a qualitative scale to a sensor")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "Successful operation"),
+            @APIResponse(responseCode = "404", description = "Error: Not found"),
+    })
     public Response addQualitativeScale(@PathParam("id") Long sensorId, @Valid QualitativeScale qualitativeScale) {
         Sensor sensor = decibelioFacade.findBySensorId(sensorId);
         if (sensor == null) {

@@ -1,6 +1,8 @@
 import 'package:decibelio_app_web/responsive.dart';
 import 'package:decibelio_app_web/views/dashboard/components/chart_intervals.dart';
 import 'package:decibelio_app_web/views/dashboard/components/map_view.dart';
+import 'package:decibelio_app_web/views/dashboard/components/noise_measurement_details.dart';
+import 'package:decibelio_app_web/views/dashboard/components/noise_table.dart';
 import 'package:decibelio_app_web/views/dashboard/components/sensor_details.dart';
 import 'package:flutter/material.dart';
 
@@ -9,7 +11,6 @@ import 'components/header.dart';
 import 'components/max_levels_table.dart';
 
 class DashboardScreen extends StatelessWidget {
-
   const DashboardScreen({super.key});
 
   @override
@@ -40,13 +41,14 @@ class DashboardScreen extends StatelessWidget {
                       if (Responsive.isMobile(context))
                         const SizedBox(height: defaultPadding),
                       if (Responsive.isMobile(context))
-                        const Column(
-                            children: [
-                              //const NoiseLevelTable(),
-                              //const SizedBox(height: 16),
-                              SensorDetails(),
-                            ]
-                        )
+                        const Column(children: [
+                          //const NoiseLevelTable(),
+                          NoiseTable(),
+                          SizedBox(height: 16),
+                          SensorDetails(),
+                          SizedBox(height: 16),
+                          NoiseMeasurementDetails(),
+                        ])
                     ],
                   ),
                 ),
@@ -60,7 +62,11 @@ class DashboardScreen extends StatelessWidget {
                       children: [
                         //const NoiseLevelTable(),
                         //const SizedBox(height: 16),
+                        NoiseTable(),
+                        SizedBox(height: 16),
                         SensorDetails(),
+                        SizedBox(height: 16),
+                        NoiseMeasurementDetails(),
                       ],
                     ),
                   ),

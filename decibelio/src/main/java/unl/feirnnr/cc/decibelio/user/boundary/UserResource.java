@@ -103,6 +103,11 @@ public class UserResource {
         @GET
         @Path("/active")
         @Produces(MediaType.APPLICATION_JSON)
+        @Operation(summary = "Get all active users")
+        @APIResponses(value = {
+                @APIResponse(responseCode = "200", description = "Successful operation"),
+                @APIResponse(responseCode = "404", description = "Error: Not found"),
+        })
         public Response listAllActiveUsers() {
                 List<User> activos = userFacade.findAllActiveUsers();
                 JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
@@ -142,6 +147,11 @@ public class UserResource {
 
         @GET
         @Path("/inactive")
+        @Operation(summary = "List all inactive users")
+        @APIResponses(value = {
+                @APIResponse(responseCode = "200", description = "Successful operation"),
+                @APIResponse(responseCode = "404", description = "Error: Not found"),
+        })
         @Produces(MediaType.APPLICATION_JSON)
         public Response listAllInactiveUsers() {
                 List<User> inactivos = userFacade.findAllInactiveUsers();
@@ -188,6 +198,12 @@ public class UserResource {
         @PUT
         @Path("/deactivate")
         @Produces(MediaType.APPLICATION_JSON)
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Operation(summary = "Deactivate a user by email")
+        @APIResponses({
+                        @APIResponse(responseCode = "200", description = "User deactivated successfully"),
+                        @APIResponse(responseCode = "404", description = "User not found")
+        })
         public Response deactivateUser(@QueryParam("email") String email) {
                 if (email == null || email.isBlank()) {
                         JsonObject errorJson = Json.createObjectBuilder()
@@ -246,6 +262,11 @@ public class UserResource {
         @PUT
         @Path("/activate")
         @Produces(MediaType.APPLICATION_JSON)
+        @Operation(summary = "Activate a user by email")
+        @APIResponses(value = {
+                        @APIResponse(responseCode = "200", description = "Successful operation"),
+                        @APIResponse(responseCode = "400", description = "Invalid input")
+        })
         public Response activateUser(@QueryParam("email") String email) {
                 if (email == null || email.isBlank()) {
                         JsonObject errorJson = Json.createObjectBuilder()
@@ -298,6 +319,11 @@ public class UserResource {
         @PUT
         @Path("/assign/role")
         @Produces(MediaType.APPLICATION_JSON)
+        @Operation(summary = "Assign a role to a user")
+        @APIResponses(value = {
+                        @APIResponse(responseCode = "200", description = "Role assigned successfully"),
+                        @APIResponse(responseCode = "400", description = "Invalid input")
+        })
         public Response assignRoleToUser(
                         @QueryParam("email") String email,
                         @QueryParam("roleId") Long roleId) {

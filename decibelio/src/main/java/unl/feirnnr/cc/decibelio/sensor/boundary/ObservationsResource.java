@@ -249,59 +249,13 @@ public class ObservationsResource {
     }
 
     @GET
-    @Path("/max")
-    @Produces(MediaType.APPLICATION_JSON)
-    @Operation(summary = "Get observation by day or night")
-    @APIResponses(value = {
-            @APIResponse(responseCode = "200", description = "Successful operation"),
-            @APIResponse(responseCode = "404", description = "Error: Not found")
-    })
-    public Response getMetricsByDayOrNight() {
-        List<Observation> observation = decibelioFacade.findMetricsByDayOrNight();
-
-        Map<String, List<Observation>> groupedMetrics = observation.stream()
-                .collect(Collectors.groupingBy(Observation::getSensorExternalId));
-
-        List<Map<String, Object>> responsePayload = new ArrayList<>();
-        for (Map.Entry<String, List<Observation>> entry : groupedMetrics.entrySet()) {
-            String sensorId = entry.getKey();
-            List<Observation> sensorMetrics = entry.getValue();
-
-            Observation firstMetric = sensorMetrics.get(0);
-            Map<String, Object> geoLocation = new HashMap<>();
-            geoLocation.put("latitude", firstMetric.getGeoLocation().getLatitude());
-            geoLocation.put("longitude", firstMetric.getGeoLocation().getLongitude());
-
-            Map<String, Object> sensor = new HashMap<>();
-            sensor.put("sensorExternalId", sensorId);
-            sensor.put("geoLocation", geoLocation);
-
-            List<Map<String, Object>> metricsList = new ArrayList<>();
-            for (Observation metric : sensorMetrics) {
-                Map<String, Object> metricData = new HashMap<>();
-                metricData.put("date", metric.getDate());
-                metricData.put("id", metric.getId());
-                metricData.put("max", metric.getQuantity().getValue());
-                metricData.put("range", metric.getQualitativeScaleValue());
-                metricData.put("time", metric.getQuantity().getTime());
-                metricsList.add(metricData);
-            }
-            sensor.put("observation", metricsList);
-            responsePayload.add(sensor);
-        }
-
-        RestResult result = new RestResult(
-                RestResultStatus.SUCCESS,
-                "Observations retrieved successfully",
-                Observation.class,
-                responsePayload);
-        return Response.ok(result).build();
-    }
-
-    @GET
     @Path("/export")
     @Produces("text/csv")
     @Operation(summary = "Export observations between dates as CSV")
+    @APIResponses({
+            @APIResponse(responseCode = "200", description = "Observations exported successfully"),
+            @APIResponse(responseCode = "404", description = "No observations found for the specified criteria")
+    })
     public Response exportCsv(
             @QueryParam("sensorExternalId") String sensorExternalId,
             @QueryParam("startDate") String startDateStr,
@@ -351,4 +305,22 @@ public class ObservationsResource {
                 .build();
     }
 
+        @GET
+        @Path("/timeframe/{sensorExternalId}")
+        @Consumes(MediaType.APPLICATION_JSON)
+        @Produces(MediaType.APPLICATION_JSON)
+        @Operation(summary = "Create a new observation")
+        @APIResponses(value = {
+                @APIResponse(responseCode = "201", description = "Observation successfully"),
+                @APIResponse(responseCode = "400", description = "Error: Bad request"),
+        })
+        public Response findMetricsByTimeFrame( @PathParam("sensorExternalId") String sensorExternalId        ) {
+           List<Map<String, Object>> responsePayload = decibelioFacade.findMetricsByTimeFrame(sensorExternalId);
+            RestResult result = new RestResult(
+                    RestResultStatus.SUCCESS,
+                    "Observations retrieved successfully",
+                    Observation.class,
+                    responsePayload);
+            return Response.ok(result).build();
+        }
 }

@@ -48,7 +48,6 @@ class _SideMenuState extends State<SideMenu> {
         children: [
           // == DRAWER HEADER == //
           DrawerHeader(
-            
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -180,8 +179,23 @@ class _SideMenuState extends State<SideMenu> {
                 Navigator.pushReplacementNamed(context, '/manage_users');
               },
             ),
-
           // …otros ítems que sean globales o también condicionales…
+          const Divider(color: Colors.white54),
+          const ListTile(
+            title: Text(
+              "Proyectos de Vinculación con la Sociedad:",
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+              ),
+            ),
+          ),
+          const ListTile(
+            title: Text(
+              "Estrategias para la gestión sostenible del ruido vehicular en la ciudad de Loja: Un enfoque innovador para ciudades urbanas.",
+              textAlign: TextAlign.justify,
+            ),
+          ),
         ],
       ),
     );

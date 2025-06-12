@@ -6,7 +6,6 @@ import jakarta.annotation.PreDestroy;
 import jakarta.ejb.Singleton;
 import jakarta.ejb.Startup;
 import jakarta.inject.Inject;
-import org.eclipse.paho.client.mqttv3.logging.LoggerFactory;
 import unl.feirnnr.cc.decibelio.dto.ObservationDTO;
 import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
 import unl.feirnnr.cc.decibelio.sensor.data.ObservationService;
@@ -20,13 +19,14 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.*;
 import java.util.Map;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Singleton
 @Startup
-public class MqttSensorListener implements MqttCallback {
+public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallback
 
     private static final Logger LOGGER = Logger.getLogger(MqttSensorListener.class.getName());
 
@@ -73,28 +73,59 @@ public class MqttSensorListener implements MqttCallback {
 
     private MqttClient client;
 
+    static {
+        System.setProperty("org.eclipse.paho.client.mqttv3.trace", "true");
+    }
+
     @PostConstruct
     public void init() {
         try {
-
-            System.setProperty("org.eclipse.paho.client.mqttv3.trace", "true");
-
             client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
             MqttConnectOptions options = buildMqttConnectOptions();
-            client.setCallback(this);
             client.connect(options);
-
+            //client.setCallback(this);
             for (String sensorId : sensorService.getAllExternalIdsActive()) {
                 String topic = topicTemplate.replace("{param}", sensorId);
                 client.subscribe(topic, qos);
                 //client.subscribe(topic, qos, this::handleMessage);
                 LOGGER.info(":) :) Suscrito al topic: " + topic);
+                System.out.println(":) :) Suscrito al topic: " + topic);
             }
+            client.setCallback(this);
         } catch (MqttException e) {
             LOGGER.severe("Error al conectar al broker MQTT: " + e.getMessage());
             e.printStackTrace();
             handleConnectionFailure(e);
         }
+    }
+
+    @Override
+    public void messageArrived(String topic, MqttMessage message) {
+        try {
+            handleMessage(topic,message);
+        } catch (JsonProcessingException e) {
+            LOGGER.severe("Error al procesar el tópico a Json: " + e.getMessage());
+            //e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void connectionLost(Throwable cause) {
+        LOGGER.severe("CONEXIÓN MQTT PERDIDA: " + cause.getMessage());
+        //cause.printStackTrace();
+        // Lógica de reconexión automática
+        reconnect();
+    }
+
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken token) {
+        // No necesario para suscripciones
+    }
+
+    @Override
+    public void connectComplete(boolean reconnect, String serverUri) {
+        LOGGER.log(Level.CONFIG, "Conectado a: " + serverUri + " (Reconexión: " + reconnect + ")");
+        System.out.println("Conectado a: " + serverUri + " (Reconexión: " + reconnect + ")");
     }
 
     private MqttConnectOptions buildMqttConnectOptions() {
@@ -118,18 +149,13 @@ public class MqttSensorListener implements MqttCallback {
         // Podrías agregar aquí notificaciones o reintentos programados
     }
 
-    @Override
-    public void connectionLost(Throwable cause) {
-        LOGGER.severe("CONEXIÓN MQTT PERDIDA: " + cause.getMessage());
-        //cause.printStackTrace();
-        // Lógica de reconexión automática
-        reconnect();
-    }
 
     private void handleMessage(String topic, MqttMessage message) throws JsonProcessingException {
         String payload = new String(message.getPayload());
-        LOGGER.info("--- Mensaje recibido desde [" + topic + "]: " + payload);
+        LOGGER.log(Level.INFO, "--- Mensaje recibido desde [" + topic + "]: " + payload);
         LOGGER.info("--- Mensaje con payload:\n" + payload);
+        System.out.println("--- Mensaje recibido desde [" + topic + "]: " + payload);
+        System.out.println("--- Mensaje con payload:\n" + payload);
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> payloadMap = mapper.readValue(payload, new TypeReference<>() {});
@@ -160,21 +186,6 @@ public class MqttSensorListener implements MqttCallback {
         return observationDTO;
     }
 
-    @Override
-    public void messageArrived(String topic, MqttMessage message) {
-        try {
-            handleMessage(topic,message);
-        } catch (JsonProcessingException e) {
-            LOGGER.severe("Error al procesar el tópico a Json: " + e.getMessage());
-            //e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void deliveryComplete(IMqttDeliveryToken token) {
-        // No necesario para suscripciones
-    }
-
     private void reconnect() {
         int maxAttempts = 5;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -183,6 +194,8 @@ public class MqttSensorListener implements MqttCallback {
                     LOGGER.info("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
                     client.reconnect();
                     LOGGER.info("Reconexión exitosa");
+                    LOGGER.log(Level.INFO, "RECONEXION EXITOSA");
+                    System.out.println("RECONEXION EXITOSA");
                     return;
                 }
             } catch (MqttException e) {

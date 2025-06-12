@@ -5,4 +5,4 @@ cd ../decibelio
 # Config Java 17
 export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 
-mvn clean package
+mvnw clean package

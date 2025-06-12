@@ -1,7 +1,10 @@
 package unl.feirnnr.cc.decibelio.sensor.model;
 
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+
 
 public class HistoricalObservation extends Observation {
 

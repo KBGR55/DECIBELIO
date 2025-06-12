@@ -69,6 +69,12 @@ public class GoogleAuth {
 
         @GET
         @Path("/google/login")
+        @Operation(summary = "Inicia el flujo de autenticación con Google")
+        @APIResponses({
+                        @APIResponse(responseCode = "200", description = "Redirige al usuario a la pantalla de login de Google"),
+                        @APIResponse(responseCode = "303", description = "Redirige al usuario a la pantalla de login de Google"),
+                        @APIResponse(responseCode = "500", description = "CLIENT_ID o REDIRECT_URI no definidos")
+        })
         public Response googleLogin() {
                 if (clientId == null || clientId.isBlank() || redirectUri == null || redirectUri.isBlank()) {
                         return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
@@ -89,9 +95,9 @@ public class GoogleAuth {
         @Path("/google/callback")
         @Produces(MediaType.APPLICATION_JSON)
         @Operation(summary = "Google authentication callback")
-        @APIResponses(value = {
-                        @APIResponse(responseCode = "200", description = "User authenticated successfully"),
-                        @APIResponse(responseCode = "500", description = "Internal server error"),
+        @APIResponses({
+                        @APIResponse(responseCode = "200", description = "Usuario autenticado correctamente"),
+                        @APIResponse(responseCode = "500", description = "Error interno durante la autenticación")
         })
         public Response googleCallback(@QueryParam("code") String code) {
                 try {
@@ -206,7 +212,10 @@ public class GoogleAuth {
         @GET
         @Path("/google/logout")
         @Produces(MediaType.APPLICATION_JSON)
-        @Operation(summary = "Logout user")
+        @Operation(summary = "Cierra la sesión del usuario")
+        @APIResponses({
+                        @APIResponse(responseCode = "200", description = "User logged out successfully")
+        })
         public Response googleLogout() {
                 RestResult result = new RestResult(
                                 RestResultStatus.SUCCESS,

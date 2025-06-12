@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,101 +106,179 @@ public class ObservationService {
         return crudService.findWithQuery(jpql, parameters);
     }
 
-     /**
-     * Busca observaciones en un rango de fechas, filtrando cada hora a múltiplos de intervalMinutes,
-     * para un sensor (opcional). Se usa consulta nativa para manejar EXTRACT(...) y MOD(...).
+    /**
+     * Busca observaciones en un rango de fechas, filtrando cada hora a múltiplos de
+     * intervalMinutes,
+     * para un sensor (opcional). Se usa consulta nativa para manejar EXTRACT(...) y
+     * MOD(...).
      *
      * @param sensorExternalId Opcional, si se quiere filtrar por sensor.
-     * @param startDate Fecha inicial (inclusive).
-     * @param endDate   Fecha final (inclusive).
-     * @param intervalMinutes Intervalo en minutos (e.g. 30 para cada media hora).
+     * @param startDate        Fecha inicial (inclusive).
+     * @param endDate          Fecha final (inclusive).
+     * @param intervalMinutes  Intervalo en minutos (e.g. 30 para cada media hora).
      * @return Lista de Observation que cumplen el criterio.
      */
     public List<Observation> findMetricsBySensorAndDateRangeWithInterval(
-        @Nullable String sensorExternalId,
-        @NotNull LocalDate startDate,
-        @NotNull LocalDate endDate,
-        @NotNull Integer intervalMinutes) {
+            @Nullable String sensorExternalId,
+            @NotNull LocalDate startDate,
+            @NotNull LocalDate endDate,
+            @NotNull Integer intervalMinutes) {
 
-    StringBuilder sql = new StringBuilder();
-    sql.append("SELECT * ")
-       .append("FROM public.observation o ")
-       .append("WHERE o.date BETWEEN ? AND ? ")
-       .append("  AND MOD(EXTRACT(MINUTE FROM o.quantity_time), ?) = 0 ");
+        StringBuilder sql = new StringBuilder();
+        sql.append("SELECT * ")
+                .append("FROM public.observation o ")
+                .append("WHERE o.date BETWEEN ? AND ? ")
+                .append("  AND MOD(EXTRACT(MINUTE FROM o.quantity_time), ?) = 0 ");
 
-    // Usamos 'o.sensorexternalid' en lugar de 'o.sensor_external_id'
-    if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
-        sql.append("AND o.sensorexternalid = ? ");
+        // Usamos 'o.sensorexternalid' en lugar de 'o.sensor_external_id'
+        if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
+            sql.append("AND o.sensorexternalid = ? ");
+        }
+
+        sql.append("ORDER BY o.date ASC, o.quantity_time ASC");
+
+        Query nativeQuery = crudService.getEntityManager()
+                .createNativeQuery(sql.toString(), Observation.class);
+
+        int index = 1;
+        nativeQuery.setParameter(index++, Date.valueOf(startDate)); // primer '?'
+        nativeQuery.setParameter(index++, Date.valueOf(endDate)); // segundo '?'
+        nativeQuery.setParameter(index++, intervalMinutes); // tercer '?'
+
+        if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
+            nativeQuery.setParameter(index++, sensorExternalId); // cuarto '?'
+        }
+
+        @SuppressWarnings("unchecked")
+        List<Observation> resultados = nativeQuery.getResultList();
+        return resultados;
     }
-
-    sql.append("ORDER BY o.date ASC, o.quantity_time ASC");
-
-    Query nativeQuery = crudService.getEntityManager()
-        .createNativeQuery(sql.toString(), Observation.class);
-
-    int index = 1;
-    nativeQuery.setParameter(index++, Date.valueOf(startDate));  // primer '?'
-    nativeQuery.setParameter(index++, Date.valueOf(endDate));    // segundo '?'
-    nativeQuery.setParameter(index++, intervalMinutes);          // tercer '?'
-
-    if (sensorExternalId != null && !sensorExternalId.isEmpty()) {
-        nativeQuery.setParameter(index++, sensorExternalId);      // cuarto '?'
-    }
-
-    @SuppressWarnings("unchecked")
-    List<Observation> resultados = nativeQuery.getResultList();
-    return resultados;
-}
-
-
 
     /**
-     * Encuentra las métricas máximas por día y noche para una fecha dada.
+     * Recupera las métricas de observación (maximo) según si la
+     * hora es diurna o nocturna
+     * agrupado por la hora en cada periodo (diurno/nocturno).
      * 
-     * @param date Fecha a consultar
-     * @return Lista de métricas máximas agrupadas por día y noche
+     * @param date Fecha a consultar.
+     * @return Lista de métricas agrupadas por TimeFrame (diurno/nocturno)
      */
-    public List<Observation> findMaxMetricsByDayAndNight(@NotNull LocalDate date) {
-        String query = "SELECT m FROM Observation m WHERE m.id IN (" +
-                "    SELECT m1.id FROM Observation m1 WHERE m1.date = :date AND " +
-                "    EXTRACT(HOUR FROM m1.time) BETWEEN 7 AND 20 AND " +
-                "    m1.value = (SELECT MAX(m2.value) FROM Observation m2 WHERE m2.sensorExternalId = m1.sensorExternalId "
+    public List<Observation> findMaxMetricsByDayAndNight(@NotNull LocalDate date, @NotNull String sensorExternalId) {
+        String query = "SELECT o " +
+                "FROM Observation o " +
+                "JOIN o.timeFrame tf " +
+                "WHERE o.date = :date " +
+                "AND tf.name IN ('DIURNO', 'NOCTURNO') " +
+                "AND o.sensorExternalId = :sensorExternalId " +
+                "AND o.quantity.value = (SELECT MAX(o2.quantity.value) FROM Observation o2 WHERE o2.timeFrame.id = o.timeFrame.id AND o2.date = :date AND o2.sensorExternalId = :sensorExternalId) "
                 +
-                "               AND m2.date = :date AND EXTRACT(HOUR FROM m2.time) BETWEEN 7 AND 20) " +
-                ") " +
-                "OR m.id IN (" +
-                "    SELECT m3.id FROM Observation m3 WHERE m3.date = :date AND " +
-                "    (EXTRACT(HOUR FROM m3.time) BETWEEN 21 AND 23 OR EXTRACT(HOUR FROM m3.time) BETWEEN 0 AND 6) AND "
-                +
-                "    m3.value = (SELECT MAX(m4.value) FROM Observation m4 WHERE m4.sensorExternalId = m3.sensorExternalId "
-                +
-                "               AND m4.date = :date AND (EXTRACT(HOUR FROM m4.time) BETWEEN 21 AND 23 OR EXTRACT(HOUR FROM m4.time) BETWEEN 0 AND 6)) "
-                +
-                ")";
-
+                "ORDER BY tf.name, o.quantity.time";
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("date", date);
-
+        parameters.put("sensorExternalId", sensorExternalId);
+    
         return crudService.findWithQuery(query, parameters);
     }
-
+    
+    public List<Observation> findMinMetricsByDayAndNight(@NotNull LocalDate date, @NotNull String sensorExternalId) {
+        String query = "SELECT o " +
+                "FROM Observation o " +
+                "JOIN o.timeFrame tf " +
+                "WHERE o.date = :date " +
+                "AND tf.name IN ('DIURNO', 'NOCTURNO') " +
+                "AND o.sensorExternalId = :sensorExternalId " +
+                "AND o.quantity.value = (SELECT MIN(o2.quantity.value) FROM Observation o2 WHERE o2.timeFrame.id = o.timeFrame.id AND o2.date = :date AND o2.sensorExternalId = :sensorExternalId) "
+                +
+                "ORDER BY tf.name, o.quantity.time";
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("date", date);
+        parameters.put("sensorExternalId", sensorExternalId);
+    
+        return crudService.findWithQuery(query, parameters);
+    }
+    
+    public List<Map<String, Object>> findAvgByTimeFrame(@NotNull LocalDate date, @NotNull String sensorExternalId) {
+        String query = "SELECT " +
+                "   tf.name AS timeFrame, " +
+                "   AVG(o.quantity.value) AS avgValue, " +
+                "   o.sensorExternalId, " +
+                "   o.geoLocation.latitude AS geo_latitude, " +
+                "   o.geoLocation.longitude AS geo_longitude " +
+                "FROM Observation o " +
+                "JOIN o.timeFrame tf " +
+                "WHERE o.date = :date " +
+                "AND o.sensorExternalId = :sensorExternalId " +
+                "AND tf.name IN ('DIURNO', 'NOCTURNO') " +
+                "GROUP BY tf.name, o.sensorExternalId, o.geoLocation.latitude, o.geoLocation.longitude";
+    
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("date", date);
+        parameters.put("sensorExternalId", sensorExternalId);
+    
+        List<Object[]> results = crudService.findWithQuery(query, parameters);
+    
+        // Transforming the result into a List of Maps with more descriptive keys
+        List<Map<String, Object>> response = new ArrayList<>();
+        for (Object[] result : results) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("timeFrame", result[0]);
+            map.put("avgValue", result[1]);
+            map.put("sensorExternalId", result[2]);
+            map.put("geoLatitude", result[3]);
+            map.put("geoLongitude", result[4]);
+            response.add(map);
+        }
+    
+        return response;
+    }
+    
+    public List<Map<String, Object>> findMetricsByTimeFrame(@NotNull LocalDate date, @NotNull String sensorExternalId) {
+        String query = "SELECT " +
+                "   tf.name AS timeFrame, " +
+                "   MIN(o.quantity.value) AS minValue, " +
+                "   MAX(o.quantity.value) AS maxValue, " +
+                "   AVG(o.quantity.value) AS avgValue, " +
+                "   o.sensorExternalId, " +
+                "   o.geoLocation.latitude AS geo_latitude, " +
+                "   o.geoLocation.longitude AS geo_longitude, " +
+                "   tf.startTime AS startTime, " +  // Agregado startTime
+                "   tf.endTime AS endTime " +      // Agregado endTime
+                "FROM Observation o " +
+                "JOIN o.timeFrame tf " +
+                "WHERE o.date = :date " +
+                "AND o.sensorExternalId = :sensorExternalId " +
+                "AND tf.name IN ('DIURNO', 'NOCTURNO') " +
+                "GROUP BY tf.name, o.sensorExternalId, o.geoLocation.latitude, o.geoLocation.longitude, tf.startTime, tf.endTime";  // Asegurarme de incluir startTime y endTime en el GROUP BY
+    
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("date", date);
+        parameters.put("sensorExternalId", sensorExternalId);
+    
+        List<Object[]> results = crudService.findWithQuery(query, parameters);
+    
+        // Transforming the result into a List of Maps with more descriptive keys
+        List<Map<String, Object>> response = new ArrayList<>();
+        for (Object[] result : results) {
+            Map<String, Object> map = new HashMap<>();
+            map.put("timeFrame", result[0]);
+            map.put("minValue", result[1]);
+            map.put("maxValue", result[2]);
+            map.put("avgValue", result[3]);
+            map.put("sensorExternalId", result[4]);
+            map.put("geoLatitude", result[5]);
+            map.put("geoLongitude", result[6]);
+            map.put("startTime", result[7]);  // Se añade el valor de startTime
+            map.put("endTime", result[8]);    // Se añade el valor de endTime
+            response.add(map);
+        }    
+        return response;
+    }
+    
+    
     /**
      * Genera "ALTO" / "BAJO" para una observación, dado un Sensor y su Quantity.
-     * <p>
-     * 1. Obtiene el LandUse del sensor.
-     * 2. Obtiene la hora de la cantidad (Quantity).
-     * 3. Busca el TimeFrame apropiado (usando timeFrameService).
-     * 4. Busca el OptimalRange que corresponde a (landUseId, timeFrameId).
-     * 5. Compara quantity.getValue() (asumimos double o BigDecimal) contra
-     * range.getValue().
-     * 6. Devuelve "ALTO" si value &gt; rango; en otro caso "BAJO".
-     *
-     * @param sensor   Sensor al cual pertenece la medición (ya debe estar cargado
-     *                 con LandUse).
-     * @param quantity Objeto Quantity que contiene getValue() (número) y getTime()
-     *                 (LocalTime).
-     * @return "ALTO" o "BAJO" según la comparación, o null si no se pudo
-     *         determinar.
+     * @param sensor   Sensor al cual pertenece la medición (ya debe estar cargado con LandUse).
+     * @param quantity Objeto Quantity que contiene getValue() (número) y getTime() (LocalTime).
+     * @return "ALTO" o "BAJO" según la comparación, o null si no se pudodeterminar.
      */
     public String generateRange(@NotNull Sensor sensor, @NotNull Quantity quantity) {
         var landUse = sensor.getLandUse();

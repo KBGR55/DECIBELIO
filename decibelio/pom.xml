@@ -158,8 +158,8 @@
                         <copyDependencies>
                             <dependencyGroup>
                                 <!--Funcionando con docker-compose-->
-                                <!--<location>lib/global</location>-->
-                                <location>${project.build.directory}/lib</location>
+                                <location>lib/global</location>
+                               <!-- <location>${project.build.directory}/lib</location>-->
                                 <!--<location>${project.build.directory}/liberty/wlp/${shared.jdbc.dir}</location>-->
                                 <dependency>
                                     <groupId>org.postgresql</groupId>

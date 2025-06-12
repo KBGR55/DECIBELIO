@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.dto.ObservationDTO;
+import unl.feirnnr.cc.decibelio.sensor.data.HistoricalObservationService;
 import unl.feirnnr.cc.decibelio.sensor.data.LandUseService;
 import unl.feirnnr.cc.decibelio.sensor.data.ObservationService;
 import unl.feirnnr.cc.decibelio.sensor.data.QualitativeScaleService;
@@ -15,23 +16,27 @@ import unl.feirnnr.cc.decibelio.sensor.data.SensorService;
 import unl.feirnnr.cc.decibelio.sensor.data.TimeFrameService;
 import unl.feirnnr.cc.decibelio.sensor.data.UnitTypeService;
 import unl.feirnnr.cc.decibelio.sensor.model.LandUse;
+import unl.feirnnr.cc.decibelio.sensor.model.MeasurementType;
 import unl.feirnnr.cc.decibelio.sensor.model.GeoLocation;
+import unl.feirnnr.cc.decibelio.sensor.model.HistoricalObservation;
 import unl.feirnnr.cc.decibelio.sensor.model.Observation;
 import unl.feirnnr.cc.decibelio.sensor.model.OptimalRange;
 import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScale;
 import unl.feirnnr.cc.decibelio.sensor.model.QualitativeScaleValue;
 import unl.feirnnr.cc.decibelio.sensor.model.Quantity;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
+import unl.feirnnr.cc.decibelio.sensor.model.TimeFrame;
 import unl.feirnnr.cc.decibelio.sensor.model.UnitType;
 
-
 import java.util.List;
+import java.util.Map;
 import java.util.ArrayList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.logging.Level;
@@ -60,30 +65,31 @@ public class DecibelioFacade {
     QualitativeScaleService qualitativeScaleService;
     @Inject
     TimeFrameService timeFrameService;
-
-
+    @Inject
+    HistoricalObservationService historicalObservationService;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-    //private static final DateTimeFormatter TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm:ss");
+    // private static final DateTimeFormatter TIME_FORMATTER =
+    // DateTimeFormatter.ofPattern("HH:mm:ss");
 
-    public void insert(@NotNull ObservationDTO  observationDTO) {
+    public void insert(@NotNull ObservationDTO observationDTO) {
         LOGGER.log(Level.INFO, "Inserting observation DTO: {0}", observationDTO);
         Sensor sensor = sensorService.findByExternalId(observationDTO.getSensorExternalId());
         Observation observation = new Observation();
         observation.setDate(observationDTO.getDate());
         observation.setSensorExternalId(observationDTO.getSensorExternalId());
-        //Guardar quantity
+        // Guardar quantity
         Quantity quantity = new Quantity();
         quantity.setValue(observationDTO.getValue());
         quantity.setTime(observationDTO.getTime());
         String abreviatura = sensorService.findUnitTypeAbbreviationByExternalId(observationDTO.getSensorExternalId());
         quantity.setAbbreviation(abreviatura);
         observation.setQuantity(quantity);
-        //TimeFrame
+        // TimeFrame
         observation.setTimeFrame(timeFrameService.findByTime(observationDTO.getTime()));
-        //Guardar GeoLocation
+        // Guardar GeoLocation
         observation.setGeoLocation(sensor.getGeoLocation());
-        //Guardar QualitativeScaleValue 
+        // Guardar QualitativeScaleValue
         QualitativeScaleValue qualitativeScaleValue = new QualitativeScaleValue();
         qualitativeScaleValue.setName(observationService.generateRange(sensor, quantity));
         observation.setQualitativeScaleValue(qualitativeScaleValue);
@@ -189,12 +195,12 @@ public class DecibelioFacade {
                 try {
                     metric.setDate(LocalDate.parse(csvRecord.get("Fecha"), DATE_FORMATTER));
                     // metric.setTime(LocalTime.parse(csvRecord.get("Time/No."), TIME_FORMATTER));
-                   // metric.setValue(Float.parseFloat(csvRecord.get("Value").replace(",", ".")));
+                    // metric.setValue(Float.parseFloat(csvRecord.get("Value").replace(",", ".")));
                     metric.setGeoLocation(new GeoLocation(
                             Float.parseFloat(csvRecord.get("Latitud_y").replace(",", ".")),
                             Float.parseFloat(csvRecord.get("Longitud_x").replace(",", "."))));
                     metric.setSensorExternalId(csvRecord.get("Sensor_externalId"));
-                    //metric = generateRange(metric);
+                    // metric = generateRange(metric);
                     observation.add(metric);
                 } catch (DateTimeParseException e) {
                     String errorMessage = "Error parsing date or time: " + e.getMessage() + " in record: "
@@ -239,18 +245,20 @@ public class DecibelioFacade {
      * @param hour   la hora a verificar
      * @param ranges la lista de rangos disponibles
      * @return el TimeFrame correspondiente o null si no se encuentra
-  
-
-    private TimeFrame findTimeFrameForHour(LocalTime hour, List<OptimalRange> ranges) {
-        for (OptimalRange range : ranges) {
-            LocalTime startTime = range.getTimeFrame().getStartTime();
-            LocalTime endTime = range.getTimeFrame().getEndTime();
-            if (isTimeInRange(hour, startTime, endTime)) {
-                return range.getTimeFrame();
-            }
-        }
-        return null;
-    }   */
+     * 
+     * 
+     *         private TimeFrame findTimeFrameForHour(LocalTime hour,
+     *         List<OptimalRange> ranges) {
+     *         for (OptimalRange range : ranges) {
+     *         LocalTime startTime = range.getTimeFrame().getStartTime();
+     *         LocalTime endTime = range.getTimeFrame().getEndTime();
+     *         if (isTimeInRange(hour, startTime, endTime)) {
+     *         return range.getTimeFrame();
+     *         }
+     *         }
+     *         return null;
+     *         }
+     */
 
     /**
      * Verifica si una hora específica está dentro de un rango de tiempo.
@@ -260,14 +268,16 @@ public class DecibelioFacade {
      * @param start el inicio del rango de tiempo
      * @param end   el final del rango de tiempo
      * @return true si la hora está dentro del rango, false en caso contrario
-    
-    private boolean isTimeInRange(LocalTime time, LocalTime start, LocalTime end) {
-        if (end.isBefore(start)) {
-            return time.isAfter(start) || time.isBefore(end);
-        } else {
-            return time.isAfter(start) && time.isBefore(end);
-        }
-    }   */
+     * 
+     *         private boolean isTimeInRange(LocalTime time, LocalTime start,
+     *         LocalTime end) {
+     *         if (end.isBefore(start)) {
+     *         return time.isAfter(start) || time.isBefore(end);
+     *         } else {
+     *         return time.isAfter(start) && time.isBefore(end);
+     *         }
+     *         }
+     */
 
     /**
      * Busca un rango basado en el LandUse y el TimeFrame especificados.
@@ -308,10 +318,94 @@ public class DecibelioFacade {
                 intervalMinutes);
     }
 
-    public List<Observation> findMetricsByDayOrNight() {
-        LocalDate today = LocalDate.now();
-        return observationService.findMaxMetricsByDayAndNight(today);
+    public List<Map<String, Object>> findMetricsByTimeFrame(String sensorExternalId) {
+        LocalDate today = LocalDate.now(); 
+        return observationService.findMetricsByTimeFrame(today, sensorExternalId);
     }
+
+    public List<HistoricalObservation> findMetricsByDayOrNight(String sensorExternalId) {
+        LocalDate today = LocalDate.now(); // Obtener la fecha de hoy
+        List<HistoricalObservation> historicalObservations = new ArrayList<>();
+        // Llamar al método de la consulta MAX
+        List<Observation> maxMetrics = observationService.findMaxMetricsByDayAndNight(today, sensorExternalId);
+        // recorrer la lista
+        for (Observation observation : maxMetrics) {
+            HistoricalObservation historicalObservation = new HistoricalObservation();
+            historicalObservation.setDate(observation.getDate());
+            historicalObservation.setSensorExternalId(observation.getSensorExternalId());
+            historicalObservation.setQuantity(observation.getQuantity());
+            historicalObservation.setGeoLocation(observation.getGeoLocation());
+            historicalObservation.setTimeFrame(observation.getTimeFrame());
+            historicalObservation.setQualitativeScaleValue(observation.getQualitativeScaleValue());
+            historicalObservation.setMeasurementType(MeasurementType.MAX);
+            historicalObservations.add(historicalObservation);
+        }
+        // Llamar al método de la consulta MIN
+        List<Observation> minMetrics = observationService.findMinMetricsByDayAndNight(today, sensorExternalId);
+        // recorrer la lista
+        for (Observation observation : minMetrics) {
+            HistoricalObservation historicalObservation = new HistoricalObservation();
+            historicalObservation.setDate(observation.getDate());
+            historicalObservation.setSensorExternalId(observation.getSensorExternalId());
+            historicalObservation.setQuantity(observation.getQuantity());
+            historicalObservation.setGeoLocation(observation.getGeoLocation());
+            historicalObservation.setTimeFrame(observation.getTimeFrame());
+            historicalObservation.setQualitativeScaleValue(observation.getQualitativeScaleValue());
+            historicalObservation.setMeasurementType(MeasurementType.MIN);
+            historicalObservations.add(historicalObservation);
+        }
+        // Llamar al método de la consulta AVERAGE
+        List<Map<String, Object>> avgMetrics = observationService.findAvgByTimeFrame(today, sensorExternalId);
+
+        // Recorrer la lista
+        for (Map<String, Object> observation : avgMetrics) {
+            HistoricalObservation historicalObservation = new HistoricalObservation();
+            historicalObservation.setDate(today);
+
+            // Asignar el ID del sensor
+            historicalObservation.setSensorExternalId(observation.get("sensorExternalId").toString());
+
+            // Crear un objeto Quantity
+            Quantity quantity = new Quantity();
+            quantity.setTime(LocalTime.now());
+
+            // Crear un objeto GeoLocation y asignar las coordenadas
+            GeoLocation geoLocation = new GeoLocation();
+            geoLocation.setLatitude(Float.parseFloat(observation.get("geoLatitude").toString()));
+            geoLocation.setLongitude(Float.parseFloat(observation.get("geoLongitude").toString()));
+            historicalObservation.setGeoLocation(geoLocation);
+
+            // Crear un objeto TimeFrame
+            TimeFrame timeFrame = new TimeFrame();
+            if (observation.get("timeFrame").toString().equals("DIURNO")) {
+                timeFrame.setName("DIURNO");
+                quantity.setValue(Float.parseFloat(observation.get("avgValue").toString()));
+            } else if (observation.get("timeFrame").toString().equals("NOCTURNO")) {
+                timeFrame.setName("NOCTURNO");
+                quantity.setValue(Float.parseFloat(observation.get("avgValue").toString()));
+            }
+
+            historicalObservation.setQuantity(quantity);
+            historicalObservation.setTimeFrame(timeFrame);
+            historicalObservation.setMeasurementType(MeasurementType.AVERAGE); // Asumiendo que es tipo promedio
+                                                                               // (Average)
+
+            // Agregar la observación histórica a la lista
+            historicalObservations.add(historicalObservation);
+        }
+
+        // GUardar en HistorialObservation LISTANDO
+        for (HistoricalObservation historicalObservation : historicalObservations) {
+            try {
+                historicalObservationService.save(historicalObservation);
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Error saving historical observation: {0}", e.getMessage());
+            }
+        }
+
+        return historicalObservations;
+    }
+
     // UnitType
 
     // Método para guardar un UnitType

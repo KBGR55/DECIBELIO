@@ -3,6 +3,7 @@ import 'package:decibelio_app_web/models/user_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/services/facade/list/list_metric_dto.dart';
 import 'package:decibelio_app_web/services/facade/list/list_metrics.dart';
+import 'package:decibelio_app_web/services/facade/list/list_noise_measurement_dto.dart';
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 
 class Facade {
@@ -119,5 +120,37 @@ class Facade {
 
     return [];
   }
+
+  // Método para obtener las mediciones de ruido, ahora acepta el sensorExternalId como parámetro
+  Future<ListNoiseMeasurementDTO> listNoiseMeasurementsDTO(String sensorExternalId) async {
+    // Realizamos la consulta pasando el sensorExternalId como parámetro en la URL
+    var response = await _conn.solicitudGet('observation/timeframe/$sensorExternalId', "NO");
+
+    // Llamamos al método para procesar la respuesta y devolver el DTO de mediciones de ruido
+    return _responseNoiseMeasurements(
+        (response.status != 'SUCCESS') ? null : response.payload);
+  }
+
+  // Método para procesar la respuesta de las mediciones de ruido
+  ListNoiseMeasurementDTO _responseNoiseMeasurements(dynamic data) {
+    var sesion = ListNoiseMeasurementDTO();
+
+    if (data != null) {
+      Map<String, dynamic> mapa = jsonDecode(data);
+
+      if (mapa.containsKey("payload")) {
+        List datos = jsonDecode(jsonEncode(mapa["payload"]));
+
+        // Procesamos los datos y los convertimos a objetos NoiseMeasurement
+        sesion = ListNoiseMeasurementDTO.fromMap(datos, mapa["status"].toString());
+      } else {
+        List myList = List.empty();
+        sesion = ListNoiseMeasurementDTO.fromMap(myList, mapa["status"].toString());
+      }
+    }
+    return sesion;
+  }
+
+  
 
 }

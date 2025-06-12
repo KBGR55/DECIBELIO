@@ -81,17 +81,17 @@ public class MqttSensorListener implements MqttCallback {
 
             client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
             MqttConnectOptions options = buildMqttConnectOptions();
-            client.connect(options);
             client.setCallback(this);
 
+            client.connect(options);
             for (String sensorId : sensorService.getAllExternalIdsActive()) {
                 String topic = topicTemplate.replace("{param}", sensorId);
                 client.subscribe(topic, qos);
                 //client.subscribe(topic, qos, this::handleMessage);
-                System.out.println("Suscrito al topic: " + topic);
+                LOGGER.info(":) :) Suscrito al topic: " + topic);
             }
         } catch (MqttException e) {
-            System.err.println("Error al conectar al broker MQTT: " + e.getMessage());
+            LOGGER.severe("Error al conectar al broker MQTT: " + e.getMessage());
             e.printStackTrace();
             handleConnectionFailure(e);
         }
@@ -120,8 +120,7 @@ public class MqttSensorListener implements MqttCallback {
 
     @Override
     public void connectionLost(Throwable cause) {
-        System.err.println("Conexión MQTT perdida: " + cause.getMessage());
-        LOGGER.severe("CONEXIÓN PERDIDA: " + cause.getMessage());
+        LOGGER.severe("CONEXIÓN MQTT PERDIDA: " + cause.getMessage());
         //cause.printStackTrace();
         // Lógica de reconexión automática
         reconnect();
@@ -183,9 +182,9 @@ public class MqttSensorListener implements MqttCallback {
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 if (!client.isConnected()) {
-                    System.out.println(" Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
+                    LOGGER.info("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
                     client.reconnect();
-                    System.out.println(" Reconexión exitosa");
+                    LOGGER.info("Reconexión exitosa");
                     return;
                 }
             } catch (MqttException e) {
@@ -197,7 +196,6 @@ public class MqttSensorListener implements MqttCallback {
                 }
             }
         }
-        System.err.println("Reconexión fallida después de " + maxAttempts + " intentos");
         LOGGER.warning("Reconexión fallida después de " + maxAttempts + " intentos");
     }
 

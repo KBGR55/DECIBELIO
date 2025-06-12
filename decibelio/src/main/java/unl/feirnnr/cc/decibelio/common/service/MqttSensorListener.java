@@ -82,8 +82,8 @@ public class MqttSensorListener implements MqttCallback {
             client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
             MqttConnectOptions options = buildMqttConnectOptions();
             client.setCallback(this);
-
             client.connect(options);
+
             for (String sensorId : sensorService.getAllExternalIdsActive()) {
                 String topic = topicTemplate.replace("{param}", sensorId);
                 client.subscribe(topic, qos);
@@ -128,7 +128,6 @@ public class MqttSensorListener implements MqttCallback {
 
     private void handleMessage(String topic, MqttMessage message) throws JsonProcessingException {
         String payload = new String(message.getPayload());
-        System.out.println("Mensaje recibido desde [" + topic + "]: " + payload);
         LOGGER.info("--- Mensaje recibido desde [" + topic + "]: " + payload);
         LOGGER.info("--- Mensaje con payload:\n" + payload);
 
@@ -166,7 +165,6 @@ public class MqttSensorListener implements MqttCallback {
         try {
             handleMessage(topic,message);
         } catch (JsonProcessingException e) {
-            System.err.println("Error al procesar el tópico a Json: " + e.getMessage());
             LOGGER.severe("Error al procesar el tópico a Json: " + e.getMessage());
             //e.printStackTrace();
         }
@@ -201,7 +199,7 @@ public class MqttSensorListener implements MqttCallback {
 
     @PreDestroy
     public void cleanup() {
-        LOGGER.info("CERRANDO CONEXIONES AL BROQUER");
+        LOGGER.info("CERRANDO CONEXIONES AL BROKER");
         try {
             if (client != null && client.isConnected()) {
                 client.disconnect();
@@ -211,5 +209,4 @@ public class MqttSensorListener implements MqttCallback {
             e.printStackTrace();
         }
     }
-
 }

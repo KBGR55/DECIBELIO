@@ -32,12 +32,12 @@ class _SideMenuState extends State<SideMenu> {
   }
 
   bool get isAdministrador {
-    if (_user == null) return true;
+    if (_user == null) return false;
     final roles = _user!['roles'];
     if (roles is List) {
-      return true;
+      return roles.contains('ADMINISTRADOR');
     }
-    return true;
+    return false;
   }
 
   @override

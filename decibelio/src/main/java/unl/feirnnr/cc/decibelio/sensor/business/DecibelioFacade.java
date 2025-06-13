@@ -324,86 +324,80 @@ public class DecibelioFacade {
     }
 
     public List<HistoricalObservation> findMetricsByDayOrNight(String sensorExternalId) {
-        LocalDate today = LocalDate.now(); // Obtener la fecha de hoy
+        LocalDate today = LocalDate.now();
         List<HistoricalObservation> historicalObservations = new ArrayList<>();
-        // Llamar al método de la consulta MAX
+    
+        // 1) Máximos diurno/nocturno
         List<Observation> maxMetrics = observationService.findMaxMetricsByDayAndNight(today, sensorExternalId);
-        // recorrer la lista
-        for (Observation observation : maxMetrics) {
-            HistoricalObservation historicalObservation = new HistoricalObservation();
-            historicalObservation.setDate(observation.getDate());
-            historicalObservation.setSensorExternalId(observation.getSensorExternalId());
-            historicalObservation.setQuantity(observation.getQuantity());
-            historicalObservation.setGeoLocation(observation.getGeoLocation());
-            historicalObservation.setTimeFrame(observation.getTimeFrame());
-            historicalObservation.setQualitativeScaleValue(observation.getQualitativeScaleValue());
-            historicalObservation.setMeasurementType(MeasurementType.MAX);
-            historicalObservations.add(historicalObservation);
+        for (Observation obs : maxMetrics) {
+            HistoricalObservation h = new HistoricalObservation();
+            h.setDate(obs.getDate());
+            h.setSensorExternalId(obs.getSensorExternalId());
+            h.setQuantity(obs.getQuantity());
+            h.setGeoLocation(obs.getGeoLocation());
+            h.setTimeFrame(obs.getTimeFrame());                  // ya era entidad managed
+            h.setQualitativeScaleValue(obs.getQualitativeScaleValue());
+            h.setMeasurementType(MeasurementType.MAX);
+            historicalObservations.add(h);
         }
-        // Llamar al método de la consulta MIN
+    
+        // 2) Mínimos diurno/nocturno
         List<Observation> minMetrics = observationService.findMinMetricsByDayAndNight(today, sensorExternalId);
-        // recorrer la lista
-        for (Observation observation : minMetrics) {
-            HistoricalObservation historicalObservation = new HistoricalObservation();
-            historicalObservation.setDate(observation.getDate());
-            historicalObservation.setSensorExternalId(observation.getSensorExternalId());
-            historicalObservation.setQuantity(observation.getQuantity());
-            historicalObservation.setGeoLocation(observation.getGeoLocation());
-            historicalObservation.setTimeFrame(observation.getTimeFrame());
-            historicalObservation.setQualitativeScaleValue(observation.getQualitativeScaleValue());
-            historicalObservation.setMeasurementType(MeasurementType.MIN);
-            historicalObservations.add(historicalObservation);
+        for (Observation obs : minMetrics) {
+            HistoricalObservation h = new HistoricalObservation();
+            h.setDate(obs.getDate());
+            h.setSensorExternalId(obs.getSensorExternalId());
+            h.setQuantity(obs.getQuantity());
+            h.setGeoLocation(obs.getGeoLocation());
+            h.setTimeFrame(obs.getTimeFrame());
+            h.setQualitativeScaleValue(obs.getQualitativeScaleValue());
+            h.setMeasurementType(MeasurementType.MIN);
+            historicalObservations.add(h);
         }
-        // Llamar al método de la consulta AVERAGE
-        List<Map<String, Object>> avgMetrics = observationService.findAvgByTimeFrame(today, sensorExternalId);
-
-        // Recorrer la lista
-        for (Map<String, Object> observation : avgMetrics) {
-            HistoricalObservation historicalObservation = new HistoricalObservation();
-            historicalObservation.setDate(today);
-
-            // Asignar el ID del sensor
-            historicalObservation.setSensorExternalId(observation.get("sensorExternalId").toString());
-
-            // Crear un objeto Quantity
-            Quantity quantity = new Quantity();
-            quantity.setTime(LocalTime.now());
-
-            // Crear un objeto GeoLocation y asignar las coordenadas
-            GeoLocation geoLocation = new GeoLocation();
-            geoLocation.setLatitude(Float.parseFloat(observation.get("geoLatitude").toString()));
-            geoLocation.setLongitude(Float.parseFloat(observation.get("geoLongitude").toString()));
-            historicalObservation.setGeoLocation(geoLocation);
-
-            // Crear un objeto TimeFrame
-            TimeFrame timeFrame = new TimeFrame();
-            if (observation.get("timeFrame").toString().equals("DIURNO")) {
-                timeFrame.setName("DIURNO");
-                quantity.setValue(Float.parseFloat(observation.get("avgValue").toString()));
-            } else if (observation.get("timeFrame").toString().equals("NOCTURNO")) {
-                timeFrame.setName("NOCTURNO");
-                quantity.setValue(Float.parseFloat(observation.get("avgValue").toString()));
-            }
-
-            historicalObservation.setQuantity(quantity);
-            historicalObservation.setTimeFrame(timeFrame);
-            historicalObservation.setMeasurementType(MeasurementType.AVERAGE); // Asumiendo que es tipo promedio
-                                                                               // (Average)
-
-            // Agregar la observación histórica a la lista
-            historicalObservations.add(historicalObservation);
+    
+        // 3) Promedios diurno/nocturno
+        List<Map<String,Object>> avgMetrics = observationService.findAvgByTimeFrame(today, sensorExternalId);
+        for (Map<String,Object> row : avgMetrics) {
+            HistoricalObservation h = new HistoricalObservation();
+            h.setDate(today);
+            h.setSensorExternalId(row.get("sensorExternalId").toString());
+    
+            // Quantity
+            Quantity q = new Quantity();
+            q.setTime(LocalTime.now());
+            q.setValue(Float.parseFloat(row.get("avgValue").toString()));
+            h.setQuantity(q);
+    
+            // GeoLocation
+            GeoLocation geo = new GeoLocation();
+            geo.setLatitude(Float.parseFloat(row.get("geoLatitude").toString()));
+            geo.setLongitude(Float.parseFloat(row.get("geoLongitude").toString()));
+            h.setGeoLocation(geo);
+    
+            // TimeFrame gestionado por JPA
+            String tfName = row.get("timeFrame").toString();
+            TimeFrame tf = timeFrameService.findByName(tfName);  // método que carga el TimeFrame con id
+            h.setTimeFrame(tf);
+    
+            h.setMeasurementType(MeasurementType.AVERAGE);
+            historicalObservations.add(h);
         }
-
-        // GUardar en HistorialObservation LISTANDO
-        for (HistoricalObservation historicalObservation : historicalObservations) {
+    
+        // 4) Persistir todas las historicalObservations
+        for (HistoricalObservation h : historicalObservations) {
             try {
-                historicalObservationService.save(historicalObservation);
+                historicalObservationService.save(h);
             } catch (Exception e) {
                 LOGGER.log(Level.SEVERE, "Error saving historical observation: {0}", e.getMessage());
             }
         }
-
+    
         return historicalObservations;
+    }
+    
+    public List<HistoricalObservation> findHistoricalBySensorAndDateRange(
+            String sensorExternalId, LocalDate startDate, LocalDate endDate) {
+        return historicalObservationService.findBySensorAndDateRange(sensorExternalId, startDate, endDate);
     }
 
     // UnitType

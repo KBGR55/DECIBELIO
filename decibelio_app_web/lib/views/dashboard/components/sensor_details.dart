@@ -1,4 +1,5 @@
 import 'dart:async'; // <– Import necesario para Timer
+import 'dart:developer';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/models/observation.dart';
 import 'package:decibelio_app_web/models/sensor_dto.dart';
@@ -38,7 +39,7 @@ class SensorDetailsState extends State<SensorDetails> {
     _pollingTimer?.cancel(); // Si ya existía un timer, lo cancelamos antes
 
     _pollingTimer = Timer.periodic(
-      const Duration(minutes: 1),
+      const Duration(minutes: 3),
       (timer) async {
         // Si quieres ver en consola cuándo se dispara:
         // print('🔄 Polling: recargando datos desde el servidor...');
@@ -72,7 +73,7 @@ class SensorDetailsState extends State<SensorDetails> {
       });
     } catch (e) {
       // Maneja errores de petición si es necesario
-      print('Error al cargar métricas o sensores: $e');
+      log('Error al cargar métricas o sensores: $e');
       setState(() {
         _isLoading = false;
       });
@@ -144,7 +145,8 @@ class SensorDetailsState extends State<SensorDetails> {
                                 ],
                               ),
                               Text(sensor.name.toString()),
-                              Text("Tipo: ${sensor.sensorType}"),
+                              Text(
+                                  "Tipo de sensor: ${sensor.sensorType == 'SOUND_LEVEL_METER' ? 'Sonómetro' : sensor.sensorType}"),
                               Text("Uso de suelo: ${sensor.landUseName}"),
                               Text(
                                   "Nivel de Ruido: ${metric.qualitativeScaleValue.name}"),

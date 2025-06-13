@@ -13,7 +13,6 @@
                       value="META-INF/initial-data.sql" />
 
             <!-- Desactivar logs de SQL para EclipseLink -->
-            <property name="eclipselink.logging.level.sql" value="OFF"/>
             <property name="eclipselink.logging.parameters" value="false"/>
             
             <!-- Desactivar logs de SQL para Hibernate -->
@@ -21,8 +20,16 @@
             <property name="hibernate.format_sql" value="false"/>
             <property name="hibernate.use_sql_comments" value="false"/>
             
-            <!-- Desactivar el logging de EclipseLink -->
-            <property name="eclipselink.logging.level" value="SEVERE"/>
+             <!-- EclipseLink: crea/ajusta tablas y columnas según tus @Entity -->
+  <property name="eclipselink.ddl-generation" value="create-or-extend-tables"/>
+<property name="eclipselink.ddl-generation.output-mode" value="database"/>
+
+  <!-- (opcional) para ver el SQL que ejecuta en consola -->
+  <property name="eclipselink.logging.level.sql" value="FINE"/>
+
+            
+            <!-- Al arrancar, Hibernate actualizará el esquema: creará tablas nuevas / columnas faltantes -->
+            <property name="hibernate.hbm2ddl.auto" value="update"/>
         </properties>
     </persistence-unit>
 </persistence>

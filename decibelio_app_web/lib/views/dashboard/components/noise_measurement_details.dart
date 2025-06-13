@@ -33,7 +33,7 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
     _pollingTimer?.cancel(); // Cancelar cualquier temporizador anterior
 
     _pollingTimer = Timer.periodic(
-      const Duration(minutes: 1), // Actualiza cada minuto
+      const Duration(minutes: 3), // Actualiza cada minuto
       (timer) async {
         await _loadSensorData(); // Cargar los datos actualizados
       },
@@ -225,7 +225,7 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                         color: _getColorForLevel(measurement.maxValue),
                                         child: Tooltip(
                                           message: _getTooltipMessage(measurement.maxValue),
-                                          child: Text(measurement.maxValue.toString()),
+                                          child: Text(measurement.maxValue.toStringAsFixed(3)),
                                         ),
                                       )),
                                       DataCell(Container(
@@ -233,7 +233,7 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                         color: _getColorForLevel(measurement.minValue),
                                         child: Tooltip(
                                           message: _getTooltipMessage(measurement.minValue),
-                                          child: Text(measurement.minValue.toString()),
+                                          child: Text(measurement.minValue.toStringAsFixed(3)),
                                         ),
                                       )),
                                       DataCell(Container(

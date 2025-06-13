@@ -200,8 +200,8 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10.0),
         ),
-        content: Row(
-          children: const [
+        content: const Row(
+          children: [
             Icon(Icons.check_circle, color: Colors.blue, size: 30),
             SizedBox(width: 10),
             Expanded(
@@ -506,7 +506,7 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                         items: const [
                           DropdownMenuItem(
                             value: 'SOUND_LEVEL_METER',
-                            child: Text('Sound Level Meter'),
+                            child: Text('Sonómetro'),
                           ),
                         ],
                         onChanged: (value) {

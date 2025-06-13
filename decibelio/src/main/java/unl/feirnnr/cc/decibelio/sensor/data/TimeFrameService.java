@@ -1,6 +1,7 @@
 package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.time.LocalTime;
+import java.util.Map;
 
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
@@ -57,5 +58,15 @@ public class TimeFrameService {
                     "No se encontró ningún TimeFrame para la hora: " + time);
         }
     }
+
+    public TimeFrame findByName(String name) {
+    String jpql = "SELECT tf FROM TimeFrame tf WHERE tf.name = :name";
+    Map<String,Object> params = Map.of("name", name);
+    return crudService.findWithQuery(jpql, params)
+                          .stream().map(result -> (TimeFrame) result)
+                          .findFirst()
+                          .orElseThrow(() -> new EntityNotFoundException("TimeFrame no encontrado: " + name));
+}
+
 
 }

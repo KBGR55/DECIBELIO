@@ -455,7 +455,7 @@ class SensorCreateControllerPageState
                         items: const [
                           DropdownMenuItem(
                             value: 'SOUND_LEVEL_METER',
-                            child: Text('Sound Level Meter'),
+                            child: Text('Sonómetro'),
                           ),
                         ],
                         onChanged: (value) {

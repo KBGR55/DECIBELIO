@@ -8,7 +8,25 @@ import java.time.LocalDate;
 import java.util.Objects;
 
 @Entity
-@TableGenerator(name = "ObservationGenerator", table = "IdentityGenerator", pkColumnName = "name", valueColumnName = "value", pkColumnValue = "Observation", initialValue = 1, allocationSize = 1)
+@Table(name="observation")
+@Inheritance(strategy = InheritanceType.JOINED)
+
+//  ─── Aquí añadimos la columna de discriminator ───
+@DiscriminatorColumn(
+    name="DTYPE",
+    discriminatorType=DiscriminatorType.STRING,
+    columnDefinition="VARCHAR(31) DEFAULT 'Observation'"
+)
+@DiscriminatorValue("Observation")
+@TableGenerator(
+    name = "ObservationGenerator",
+    table = "IdentityGenerator",
+    pkColumnName = "name",
+    valueColumnName = "value",
+    pkColumnValue = "Observation",
+    initialValue = 1,
+    allocationSize = 1
+)
 public class Observation implements Serializable {
 
     @Id

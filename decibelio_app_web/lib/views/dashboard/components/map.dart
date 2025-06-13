@@ -163,7 +163,8 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                   ],
                                 ),
                                 const SizedBox(height: 8),
-                                Text('Tipo de sensor: ${sensor.sensorType=="SOUND_LEVEL_METER"?"Sonómetro":sensor.sensorType}'),
+                                Text(
+                                    'Tipo de sensor: ${sensor.sensorType == "SOUND_LEVEL_METER" ? "Sonómetro" : sensor.sensorType}'),
                                 const SizedBox(height: 8),
                                 Text('Uso de suelo: ${sensor.landUseName}'),
                                 const SizedBox(height: 8),

@@ -5,7 +5,7 @@ import 'package:decibelio_app_web/models/respuesta_generica.dart';
 class Conexion {
   final String name = "conexion";
   static const String urlBase = "https://computacion.unl.edu.ec/decibelio/api/";
-  // static const String urlBase = 'http://localhost:9080/decibelio/api/';
+  //static const String urlBase = 'http://localhost:9080/decibelio/api/';
   static var noToken = "NO";
 
   Future<RespuestaGenerica> solicitudPost(

@@ -27,7 +27,7 @@ public class AutomaticHistoricalObservation {
     }
 
     // Esta es la tarea programada que se ejecutará automáticamente todos los días a medianoche
-    @Schedule(hour = "9", minute = "23", persistent = false) // A medianoche todos los días
+    @Schedule(hour = "0", minute = "0", persistent = false) // A medianoche todos los días
     public void fetchSensors() {
         try {
             List<Sensor> sensors = decibelioFacade.findAllSensorsActive();

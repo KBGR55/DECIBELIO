@@ -43,10 +43,13 @@
     <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
 
     <logging consoleLogLevel="INFO"
-            traceFileName="server.log"
+             consoleFormat="simple"
+             traceFileName="server.log"
              messageFileName="messages.log"
              maxFileSize="100"
-             maxFiles="10"/>
+             maxFiles="10"
+             loggingPropertiesRef="customLoggingProps"/>
+    <variable name="customLoggingProps" value="file:///config/logging.properties"/>
 
     <!-- Datasource Configuration -->
     <dataSource id="decibelioJPA_DS" jndiName="jdbc/decibelioJPA_DS">

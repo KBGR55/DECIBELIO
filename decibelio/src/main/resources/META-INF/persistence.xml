@@ -12,11 +12,17 @@
             <property name="jakarta.persistence.sql-load-script-source"
                       value="META-INF/initial-data.sql" />
 
-            <property name="eclipselink.logging.level.sql" value="FINE" />
-            <property name="eclipselink.logging.parameters" value="true" />
-            <property name="hibernate.show_sql" value="true" />
-
-            <property name="hibernate.hbm2ddl.auto" value="update"/>
+            <!-- Desactivar logs de SQL para EclipseLink -->
+            <property name="eclipselink.logging.level.sql" value="OFF"/>
+            <property name="eclipselink.logging.parameters" value="false"/>
+            
+            <!-- Desactivar logs de SQL para Hibernate -->
+            <property name="hibernate.show_sql" value="false" />
+            <property name="hibernate.format_sql" value="false"/>
+            <property name="hibernate.use_sql_comments" value="false"/>
+            
+            <!-- Desactivar el logging de EclipseLink -->
+            <property name="eclipselink.logging.level" value="SEVERE"/>
         </properties>
     </persistence-unit>
 </persistence>

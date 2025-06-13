@@ -42,6 +42,7 @@ class _SoundChartView extends State<SoundChartView> {
     "30 minutos": 30,
     "20 minutos": 20,
     "10 minutos": 10,
+    "5 minutos": 5, 
   };
 
   // Flags para habilitar panning / zoom en el gráfico

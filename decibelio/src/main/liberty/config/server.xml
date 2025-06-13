@@ -42,19 +42,15 @@
     <!-- Default SSL configuration enables trust for default certificates from the Java runtime -->
     <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
 
+    <logging consoleLogLevel="INFO"
+            traceFileName="server.log"
+             messageFileName="messages.log"
+             maxFileSize="100"
+             maxFiles="10"/>
+
     <!-- Datasource Configuration -->
     <dataSource id="decibelioJPA_DS" jndiName="jdbc/decibelioJPA_DS">
-
         <jdbcDriver id="postgresql-driver" libraryRef="postgresJDBCLib"/>
-
-        <!--
-        <properties.postgresql
-                serverName="${db.server.name}"
-                portNumber="5432"
-                databaseName="${db.name}"
-                user="${db.user}"
-                password="${db.password}"
-                -->
         <properties.postgresql
                 serverName="${db.server.name}"
                 portNumber="${db.port.number}"
@@ -62,12 +58,16 @@
                 user="postgres"
                 password="admin@987"
         />
+        <!--properties.postgresql
+                serverName="${db.server.name}"
+                portNumber="5432"
+                databaseName="${db.name}"
+                user="${db.user}"
+                password="${db.password}"-->
     </dataSource>
     <!-- Postgres Library Configuration -->
     <library id="postgresJDBCLib">
         <fileset dir="${driver.jdbc.dir}" includes="postgresql*.jar"/>
         <!--<fileset dir="jdbc" includes="postgresql*.jar"/>-->
     </library>
-
-
 </server>

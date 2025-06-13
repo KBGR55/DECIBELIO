@@ -17,18 +17,18 @@ import org.eclipse.paho.client.mqttv3.persist.MemoryPersistence;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @Singleton
 @Startup
-public class MqttSensorListener implements MqttCallback {
+public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallback
+
+    private static final Logger LOGGER = Logger.getLogger(MqttSensorListener.class.getName());
 
     @Inject
     @ConfigProperty(name = "mqtt.url")
@@ -73,25 +73,59 @@ public class MqttSensorListener implements MqttCallback {
 
     private MqttClient client;
 
+    static {
+        System.setProperty("org.eclipse.paho.client.mqttv3.trace", "true");
+    }
+
     @PostConstruct
     public void init() {
         try {
             client = new MqttClient(brokerUrl, clientId, new MemoryPersistence());
             MqttConnectOptions options = buildMqttConnectOptions();
             client.connect(options);
-            client.setCallback(this);
-
+            //client.setCallback(this);
             for (String sensorId : sensorService.getAllExternalIdsActive()) {
                 String topic = topicTemplate.replace("{param}", sensorId);
                 client.subscribe(topic, qos);
                 //client.subscribe(topic, qos, this::handleMessage);
-                System.out.println("Suscrito al topic: " + topic);
+                LOGGER.info(":) :) Suscrito al topic: " + topic);
+                System.out.println(":) :) Suscrito al topic: " + topic);
             }
+            client.setCallback(this);
         } catch (MqttException e) {
-            System.err.println("Error al conectar al broker MQTT: " + e.getMessage());
+            LOGGER.severe("Error al conectar al broker MQTT: " + e.getMessage());
             e.printStackTrace();
             handleConnectionFailure(e);
         }
+    }
+
+    @Override
+    public void messageArrived(String topic, MqttMessage message) {
+        try {
+            handleMessage(topic,message);
+        } catch (JsonProcessingException e) {
+            LOGGER.severe("Error al procesar el tópico a Json: " + e.getMessage());
+            //e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void connectionLost(Throwable cause) {
+        LOGGER.severe("CONEXIÓN MQTT PERDIDA: " + cause.getMessage());
+        //cause.printStackTrace();
+        // Lógica de reconexión automática
+        reconnect();
+    }
+
+    @Override
+    public void deliveryComplete(IMqttDeliveryToken token) {
+        // No necesario para suscripciones
+    }
+
+    @Override
+    public void connectComplete(boolean reconnect, String serverUri) {
+        LOGGER.log(Level.CONFIG, "Conectado a: " + serverUri + " (Reconexión: " + reconnect + ")");
+        System.out.println("Conectado a: " + serverUri + " (Reconexión: " + reconnect + ")");
     }
 
     private MqttConnectOptions buildMqttConnectOptions() {
@@ -115,17 +149,13 @@ public class MqttSensorListener implements MqttCallback {
         // Podrías agregar aquí notificaciones o reintentos programados
     }
 
-    @Override
-    public void connectionLost(Throwable cause) {
-        System.err.println("Conexión MQTT perdida: " + cause.getMessage());
-        cause.printStackTrace();
-        // Lógica de reconexión automática
-        reconnect();
-    }
 
     private void handleMessage(String topic, MqttMessage message) throws JsonProcessingException {
         String payload = new String(message.getPayload());
-        System.out.println("Mensaje recibido desde [" + topic + "]: " + payload);
+        //LOGGER.log(Level.INFO, "--- Mensaje recibido desde [" + topic + "]");
+        //LOGGER.info("--- Mensaje con payload:\n" + payload);
+        System.out.println("--- Mensaje recibido desde [" + topic + "] ");
+        System.out.println("--- Mensaje con payload:\n" + payload);
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> payloadMap = mapper.readValue(payload, new TypeReference<>() {});
@@ -144,6 +174,7 @@ public class MqttSensorListener implements MqttCallback {
 
         ObservationDTO observationDTO = buildInstanceObservationDTO(externalId, date, time, sonLaeq);
         decibelioFacade.insert(observationDTO);
+
     }
 
     private ObservationDTO buildInstanceObservationDTO(String externalId, LocalDate date, LocalTime time, float value) {
@@ -155,30 +186,16 @@ public class MqttSensorListener implements MqttCallback {
         return observationDTO;
     }
 
-    @Override
-    public void messageArrived(String topic, MqttMessage message) {
-        try {
-            handleMessage(topic,message);
-        } catch (JsonProcessingException e) {
-            System.err.println("Error al procesar el tópico a Json: " + e.getMessage());
-            //throw new RuntimeException(e);
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void deliveryComplete(IMqttDeliveryToken token) {
-        // No necesario para suscripciones
-    }
-
     private void reconnect() {
         int maxAttempts = 5;
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 if (!client.isConnected()) {
-                    System.out.println(" Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
+                    //LOGGER.info("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
+                    System.out.println("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
                     client.reconnect();
-                    System.out.println(" Reconexión exitosa");
+                    //LOGGER.log(Level.INFO, "RECONEXION EXITOSA");
+                    System.out.println("RECONEXION EXITOSA");
                     return;
                 }
             } catch (MqttException e) {
@@ -190,11 +207,12 @@ public class MqttSensorListener implements MqttCallback {
                 }
             }
         }
-        System.err.println("🔥 Reconexión fallida después de " + maxAttempts + " intentos");
+        LOGGER.warning("Reconexión fallida después de " + maxAttempts + " intentos");
     }
 
     @PreDestroy
     public void cleanup() {
+        LOGGER.info("CERRANDO CONEXIONES AL BROKER");
         try {
             if (client != null && client.isConnected()) {
                 client.disconnect();
@@ -204,5 +222,4 @@ public class MqttSensorListener implements MqttCallback {
             e.printStackTrace();
         }
     }
-
 }

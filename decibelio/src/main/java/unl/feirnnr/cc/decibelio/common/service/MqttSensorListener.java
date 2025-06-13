@@ -89,7 +89,6 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
                 client.subscribe(topic, qos);
                 //client.subscribe(topic, qos, this::handleMessage);
                 LOGGER.info(":) :) Suscrito al topic: " + topic);
-                System.out.println(":) :) Suscrito al topic: " + topic);
             }
             client.setCallback(this);
         } catch (MqttException e) {
@@ -125,7 +124,6 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
     @Override
     public void connectComplete(boolean reconnect, String serverUri) {
         LOGGER.log(Level.CONFIG, "Conectado a: " + serverUri + " (Reconexión: " + reconnect + ")");
-        System.out.println("Conectado a: " + serverUri + " (Reconexión: " + reconnect + ")");
     }
 
     private MqttConnectOptions buildMqttConnectOptions() {
@@ -144,7 +142,7 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
 
     private void handleConnectionFailure(MqttException e) {
         // Lógica para manejar errores iniciales
-        System.err.println("Error crítico en conexión inicial: " + e.getMessage());
+        LOGGER.log(Level.SEVERE, "Error crítico en conexión inicial: " + e.getMessage());
         e.printStackTrace();
         // Podrías agregar aquí notificaciones o reintentos programados
     }
@@ -152,10 +150,8 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
 
     private void handleMessage(String topic, MqttMessage message) throws JsonProcessingException {
         String payload = new String(message.getPayload());
-        //LOGGER.log(Level.INFO, "--- Mensaje recibido desde [" + topic + "]");
-        //LOGGER.info("--- Mensaje con payload:\n" + payload);
-        System.out.println("--- Mensaje recibido desde [" + topic + "] ");
-        System.out.println("--- Mensaje con payload:\n" + payload);
+        LOGGER.log(Level.INFO, "--- Mensaje recibido desde [" + topic + "]");
+        LOGGER.info("--- Mensaje con payload:\n" + payload);
 
         ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> payloadMap = mapper.readValue(payload, new TypeReference<>() {});
@@ -174,7 +170,6 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
 
         ObservationDTO observationDTO = buildInstanceObservationDTO(externalId, date, time, sonLaeq);
         decibelioFacade.insert(observationDTO);
-
     }
 
     private ObservationDTO buildInstanceObservationDTO(String externalId, LocalDate date, LocalTime time, float value) {
@@ -191,11 +186,9 @@ public class MqttSensorListener implements MqttCallbackExtended  { //MqttCallbac
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 if (!client.isConnected()) {
-                    //LOGGER.info("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
-                    System.out.println("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
+                    LOGGER.info("Intentando reconexión (" + attempt + "/" + maxAttempts + ")");
                     client.reconnect();
-                    //LOGGER.log(Level.INFO, "RECONEXION EXITOSA");
-                    System.out.println("RECONEXION EXITOSA");
+                    LOGGER.log(Level.INFO, "RECONEXION EXITOSA");
                     return;
                 }
             } catch (MqttException e) {

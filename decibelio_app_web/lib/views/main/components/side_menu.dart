@@ -194,7 +194,27 @@ class _SideMenuState extends State<SideMenu> {
             title: Text(
               "Estrategias para la gestión sostenible del ruido vehicular en la ciudad de Loja: Un enfoque innovador para ciudades urbanas.",
               textAlign: TextAlign.justify,
+              style: TextStyle(color: Colors.white70),
             ),
+          ),
+          Image.asset(
+            'assets/logos/favicon-oscuro.png',
+            height: 100,
+          ),
+          const SizedBox(height: 10),
+          Image.asset(
+            "assets/logos/logoUNL-HD.png",
+            height: 75,
+          ),
+          const SizedBox(height: 10),
+          Image.asset(
+            "assets/logos/LogoCarreraNombre.png",
+            height: 75,
+          ),
+          const SizedBox(height: 10),
+          Image.asset(
+            "assets/logos/logo_automotriz.png",
+            height: 75,
           ),
         ],
       ),

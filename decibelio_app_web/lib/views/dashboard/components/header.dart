@@ -75,7 +75,7 @@ class ProfileCard extends StatelessWidget {
           Row(spacing: 10,
             children: [
               Image.asset(
-                "assets/logos/logo_automotriz.png",
+                "assets/logos/logoUNL-HD.png",
                 height: 40,
               ),
               Image.asset(
@@ -83,7 +83,7 @@ class ProfileCard extends StatelessWidget {
                 height: 40,
               ),
               Image.asset(
-                "assets/logos/logoUNL-HD.png",
+                "assets/logos/logo_automotriz.png",
                 height: 40,
               ),
             ],

@@ -193,39 +193,16 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                 columnSpacing: 16.0,
                                 horizontalMargin: 8.0,
                                 columns: const [
-                                  DataColumn(
-                                    label: Text(
-                                      "",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "Máximo (dB)",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "Mínimo (dB)",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "Promedio (dB)",
-                                      style: TextStyle(
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
+                                  DataColumn(label: Text("")),
+                                  DataColumn(label: Text("Máximo (dB)", style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text("Mínimo (dB)", style: TextStyle(fontWeight: FontWeight.bold))),
+                                  DataColumn(label: Text("Promedio", style: TextStyle(fontWeight: FontWeight.bold))),
                                 ],
-                                rows: sensorMeasurements.map((measurement) {
-                                  return DataRow(cells: [
-                                    DataCell(
-                                      Row(
+                                rows: sensorMeasurements.expand((measurement) {
+                                  return [
+                                    // Fila 1: Icono + valores
+                                    DataRow(cells: [
+                                      DataCell(Row(
                                         children: [
                                           Icon(
                                             measurement.timeFrame == "DIURNO"
@@ -235,82 +212,47 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                           ),
                                           const SizedBox(width: 4),
                                           Tooltip(
-                                              message:
-                                                  'Desde ${measurement.startTime} a ${measurement.endTime}',
-                                              child: Text(
-                                                measurement.timeFrame,
-                                                style: const TextStyle(
-                                                    fontSize: 16),
-                                              ))
-                                        ],
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            color: _getColorForLevel(
-                                                measurement.maxValue),
-                                            child: Tooltip(
-                                              message: _getTooltipMessage(
-                                                  measurement.maxValue),
-                                              child: Text(measurement.maxValue
-                                                  .toString()),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                              width:
-                                                  8), // Espacio entre los textos
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
+                                            message: 'Desde ${measurement.startTime} a ${measurement.endTime}',
                                             child: Text(
-                                              measurement.maxTime.toString(),
+                                              measurement.timeFrame,
+                                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                                             ),
                                           ),
                                         ],
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Row(
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            color: _getColorForLevel(
-                                                measurement.minValue),
-                                            child: Tooltip(
-                                              message: _getTooltipMessage(
-                                                  measurement.minValue),
-                                              child: Text(measurement.minValue
-                                                  .toString()),
-                                            ),
-                                          ),
-                                          const SizedBox(
-                                              width:
-                                                  8), // Espacio entre los textos
-                                          Container(
-                                            padding: const EdgeInsets.all(8),
-                                            child: Text(
-                                              measurement.minTime.toString(),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    DataCell(
-                                      Container(
+                                      )),
+                                      DataCell(Container(
                                         padding: const EdgeInsets.all(8),
-                                        color: _getColorForLevel(
-                                            measurement.avgValue),
+                                        color: _getColorForLevel(measurement.maxValue),
                                         child: Tooltip(
-                                          message: _getTooltipMessage(
-                                              measurement.avgValue),
-                                          child: Text(measurement.avgValue
-                                              .toStringAsFixed(3)),
+                                          message: _getTooltipMessage(measurement.maxValue),
+                                          child: Text(measurement.maxValue.toString()),
                                         ),
-                                      ),
-                                    ),
-                                  ]);
+                                      )),
+                                      DataCell(Container(
+                                        padding: const EdgeInsets.all(8),
+                                        color: _getColorForLevel(measurement.minValue),
+                                        child: Tooltip(
+                                          message: _getTooltipMessage(measurement.minValue),
+                                          child: Text(measurement.minValue.toString()),
+                                        ),
+                                      )),
+                                      DataCell(Container(
+                                        padding: const EdgeInsets.all(8),
+                                        color: _getColorForLevel(measurement.avgValue),
+                                        child: Tooltip(
+                                          message: _getTooltipMessage(measurement.avgValue),
+                                          child: Text(measurement.avgValue.toStringAsFixed(3)),
+                                        ),
+                                      )),
+                                    ]),
+                                    // Fila 2: Horas
+                                    DataRow(cells: [
+                                      const DataCell(Text("")),
+                                      DataCell(Text(measurement.maxTime.toString())),
+                                      DataCell(Text(measurement.minTime.toString())),
+                                      const DataCell(Text("")),
+                                    ]),
+                                  ];
                                 }).toList(),
                               ),
                             ),

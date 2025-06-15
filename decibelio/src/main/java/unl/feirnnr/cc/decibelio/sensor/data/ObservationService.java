@@ -233,7 +233,8 @@ public class ObservationService {
     }
     
     public List<Map<String, Object>> findMetricsByTimeFrame(@NotNull LocalDate date, @NotNull String sensorExternalId) {
-        String query = "SELECT " +
+        // 1. Obtener valores agregados
+        String aggregateQuery = "SELECT " +
                 "   tf.name AS timeFrame, " +
                 "   MIN(o.quantity.value) AS minValue, " +
                 "   MAX(o.quantity.value) AS maxValue, " +
@@ -241,40 +242,67 @@ public class ObservationService {
                 "   o.sensorExternalId, " +
                 "   o.geoLocation.latitude AS geo_latitude, " +
                 "   o.geoLocation.longitude AS geo_longitude, " +
-                "   tf.startTime AS startTime, " +  // Agregado startTime
-                "   tf.endTime AS endTime " +      // Agregado endTime
+                "   tf.startTime AS startTime, " +
+                "   tf.endTime AS endTime " +
                 "FROM Observation o " +
                 "JOIN o.timeFrame tf " +
                 "WHERE o.date = :date " +
                 "AND o.sensorExternalId = :sensorExternalId " +
                 "AND tf.name IN ('DIURNO', 'NOCTURNO') " +
-                "GROUP BY tf.name, o.sensorExternalId, o.geoLocation.latitude, o.geoLocation.longitude, tf.startTime, tf.endTime";  // Asegurarme de incluir startTime y endTime en el GROUP BY
+                "GROUP BY tf.name, o.sensorExternalId, o.geoLocation.latitude, o.geoLocation.longitude, tf.startTime, tf.endTime";
     
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("date", date);
         parameters.put("sensorExternalId", sensorExternalId);
     
-        List<Object[]> results = crudService.findWithQuery(query, parameters);
+        List<Object[]> aggregateResults = crudService.findWithQuery(aggregateQuery, parameters);
     
-        // Transforming the result into a List of Maps with more descriptive keys
         List<Map<String, Object>> response = new ArrayList<>();
-        for (Object[] result : results) {
+        for (Object[] aggResult : aggregateResults) {
+            String timeFrame = (String) aggResult[0];
+            Double minValue = aggResult[1] != null ? ((Number)aggResult[1]).doubleValue() : null;
+            Double maxValue = aggResult[2] != null ? ((Number)aggResult[2]).doubleValue() : null;
+    
+            // 2. Obtener tiempo del valor mínimo
+            LocalTime minTime = getTimeForValue(date, sensorExternalId, timeFrame, minValue);
+            // 3. Obtener tiempo del valor máximo
+            LocalTime maxTime = getTimeForValue(date, sensorExternalId, timeFrame, maxValue);
+    
             Map<String, Object> map = new HashMap<>();
-            map.put("timeFrame", result[0]);
-            map.put("minValue", result[1]);
-            map.put("maxValue", result[2]);
-            map.put("avgValue", result[3]);
-            map.put("sensorExternalId", result[4]);
-            map.put("geoLatitude", result[5]);
-            map.put("geoLongitude", result[6]);
-            map.put("startTime", result[7]);  // Se añade el valor de startTime
-            map.put("endTime", result[8]);    // Se añade el valor de endTime
+            map.put("timeFrame", timeFrame);
+            map.put("minValue", minValue);
+            map.put("minTime", minTime);
+            map.put("maxValue", maxValue);
+            map.put("maxTime", maxTime);
+            map.put("avgValue", aggResult[3] != null ? ((Number)aggResult[3]).doubleValue() : null);
+            map.put("sensorExternalId", aggResult[4]);
+            map.put("geoLatitude", aggResult[5] != null ? ((Number)aggResult[5]).doubleValue() : null);
+            map.put("geoLongitude", aggResult[6] != null ? ((Number)aggResult[6]).doubleValue() : null);
+            map.put("startTime", aggResult[7]);
+            map.put("endTime", aggResult[8]);
+            
             response.add(map);
-        }    
+        }
         return response;
     }
     
-    
+    private LocalTime getTimeForValue(LocalDate date, String sensorId, String timeFrame, Double value) {
+        if (value == null) return null;
+        
+        String query = "SELECT o.quantity.time FROM Observation o " +
+                "WHERE o.date = :date AND o.sensorExternalId = :sensorId " +
+                "AND o.timeFrame.name = :timeFrame AND o.quantity.value = :value " +
+                "ORDER BY o.quantity.time ASC";
+        
+        Map<String, Object> params = new HashMap<>();
+        params.put("date", date);
+        params.put("sensorId", sensorId);
+        params.put("timeFrame", timeFrame);
+        params.put("value", value);
+        
+        List<LocalTime> results = crudService.findWithQuery(query, params);
+        return results.isEmpty() ? null : results.get(0);
+    } 
     /**
      * Genera "ALTO" / "BAJO" para una observación, dado un Sensor y su Quantity.
      * @param sensor   Sensor al cual pertenece la medición (ya debe estar cargado con LandUse).

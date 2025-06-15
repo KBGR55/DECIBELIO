@@ -82,7 +82,8 @@ class _SoundChartView extends State<SoundChartView> {
 
     // 2) Inicializamos fechas (hoy desde 00:00 hasta ahora)
     final now = DateTime.now();
-    startDate = DateTime(now.year, now.month, now.day, 0, 0);
+    // 5 dias al dia anterior
+    startDate = now.subtract(const Duration(days: 5));
     endDate = now;
 
     // 3) Configuramos controlador de transformaciones para el chart
@@ -369,210 +370,219 @@ class _SoundChartView extends State<SoundChartView> {
   }
 
   /// Builds a LineChart showing separate lines for each measurement type
+Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
+  if (entries.isEmpty) return const SizedBox.shrink();
 
-  Widget _buildLineChart(List<ObservationEntry> entries) {
-    if (entries.isEmpty) return const SizedBox.shrink();
+  // Agrupar por fecha
+  final dates = entries.map((e) => e.date).toSet().toList()..sort();
+  final datePositions = {for (var i = 0; i < dates.length; i++) dates[i]: i.toDouble()};
 
-    // Variables de estado para controlar qué puntos se muestran
-    bool showMax = true;
-    bool showAvg = true;
-    bool showMin = true;
+  // Variables de estado para controlar qué puntos se muestran
+  bool showMax = true;
+  bool showAvg = true;
+  bool showMin = true;
 
-    return StatefulBuilder(
-      builder: (context, setState) {
-        // Extrae una lista por tipo
-        final maxEntries = showMax
-            ? entries.where((e) => e.measurementType == 'MAX').toList()
-            : [];
-        final avgEntries = showAvg
-            ? entries.where((e) => e.measurementType == 'AVERAGE').toList()
-            : [];
-        final minEntries = showMin
-            ? entries.where((e) => e.measurementType == 'MIN').toList()
-            : [];
+  return StatefulBuilder(
+    builder: (context, setState) {
+      // Extrae una lista por tipo
+      final maxEntries = showMax
+          ? entries.where((e) => e.measurementType == 'MAX').toList()
+          : [];
+      final avgEntries = showAvg
+          ? entries.where((e) => e.measurementType == 'AVERAGE').toList()
+          : [];
+      final minEntries = showMin
+          ? entries.where((e) => e.measurementType == 'MIN').toList()
+          : [];
 
-        final dateLabel =
-            DateFormat('dd/MM/yyyy').format(DateTime.parse(entries.first.date));
+      // Función colorear puntos
+      Color _color(String t) => t == 'MAX'
+          ? Colors.red
+          : t == 'MIN'
+              ? Colors.blue
+              : Colors.green;
 
-        // Función colorear puntos
-        Color _color(String t) => t == 'MAX'
-            ? Colors.red
-            : t == 'MIN'
-                ? Colors.blue
-                : Colors.green;
+      // Cada serie: puntos por fecha
+      List<LineChartBarData> series = [
+        if (maxEntries.isNotEmpty)
+          LineChartBarData(
+            spots: maxEntries.map((e) => FlSpot(datePositions[e.date]!, e.value)).toList(),
+            isCurved: false,
+            barWidth: 2,
+            dotData: FlDotData(show: true),
+            color: _color('MAX'),
+          ),
+        if (avgEntries.isNotEmpty)
+          LineChartBarData(
+            spots: avgEntries.map((e) => FlSpot(datePositions[e.date]!, e.value)).toList(),
+            isCurved: false,
+            barWidth: 2,
+            dotData: FlDotData(show: true),
+            color: _color('AVERAGE'),
+          ),
+        if (minEntries.isNotEmpty)
+          LineChartBarData(
+            spots: minEntries.map((e) => FlSpot(datePositions[e.date]!, e.value)).toList(),
+            isCurved: false,
+            barWidth: 2,
+            dotData: FlDotData(show: true),
+            color: _color('MIN'),
+          ),
+      ];
 
-        // Cada serie: un solo spot en x=0
-        List<LineChartBarData> series = [
-          if (maxEntries.isNotEmpty)
-            LineChartBarData(
-              spots: [FlSpot(0, maxEntries.first.value)],
-              isCurved: false,
-              barWidth: 0,
-              dotData: FlDotData(show: true),
-              color: _color('MAX'),
+      return Column(
+        children: [
+          Text(
+            timeFrame == 'NOCTURNO' ? 'Período NOCTURNO' : 'Período DIURNO',
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              color: timeFrame == 'NOCTURNO' ? Colors.blue : Colors.orange,
             ),
-          if (avgEntries.isNotEmpty)
-            LineChartBarData(
-              spots: [FlSpot(0, avgEntries.first.value)],
-              isCurved: false,
-              barWidth: 0,
-              dotData: FlDotData(show: true),
-              color: _color('AVERAGE'),
-            ),
-          if (minEntries.isNotEmpty)
-            LineChartBarData(
-              spots: [FlSpot(0, minEntries.first.value)],
-              isCurved: false,
-              barWidth: 0,
-              dotData: FlDotData(show: true),
-              color: _color('MIN'),
-            ),
-        ];
-
-        return Column(
-          children: [
-            SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  lineBarsData: series,
-                  gridData: FlGridData(show: true),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: const Border(
-                      left: BorderSide(),
-                      bottom: BorderSide(),
+          ),
+          SizedBox(
+            height: 200,
+            child: LineChart(
+              LineChartData(
+                lineBarsData: series,
+                gridData: FlGridData(show: true),
+                borderData: FlBorderData(
+                  show: true,
+                  border: const Border(
+                    left: BorderSide(),
+                    bottom: BorderSide(),
+                  ),
+                ),
+                titlesData: FlTitlesData(
+                  leftTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 40,
+                      getTitlesWidget: (value, meta) => Text(
+                          '${value.toInt().toString()} dB',
+                          style: const TextStyle(fontSize: 10)),
                     ),
                   ),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) => Text(
-                            '${value.toInt().toString()} dB',
-                            style: const TextStyle(fontSize: 10)),
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 38,
-                        getTitlesWidget: (value, meta) {
-                          if (value.toInt() != 0) return const Text('');
-                          return SideTitleWidget(
-                            meta: meta,
-                            child: Transform.rotate(
-                              angle: -45 * 3.14 / 180, // Rotación de 45 grados
-                              child: Text(
-                                dateLabel,
-                                style: const TextStyle(
-                                  color: Colors.green, // Color verde
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 38,
+                      interval: 1,
+                      getTitlesWidget: (value, meta) {
+                        if (value.toInt() >= dates.length) return const Text('');
+                        final date = dates[value.toInt()];
+                        return SideTitleWidget(
+                          meta: meta,
+                          child: Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              DateFormat('dd/MM').format(DateTime.parse(date)),
+                              style: const TextStyle(fontSize: 10),
                             ),
-                          );
-                        },
-                      ),
-                    ),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  lineTouchData: LineTouchData(
-                    enabled: true,
-                    touchTooltipData: LineTouchTooltipData(
-                      getTooltipColor: (LineBarSpot barSpot) => Colors.black,
-                      getTooltipItems: (spots) => spots.map((spot) {
-                        final idx = spot.barIndex;
-                        final entry =
-                            [maxEntries, avgEntries, minEntries][idx].first;
-                        return LineTooltipItem(
-                          '',
-                          const TextStyle(
-                            color: Colors.black,
-                            fontWeight: FontWeight.bold,
                           ),
-                          children: [
-                            TextSpan(
-                              text: '${entry.measurementType}\n',
-                              style: const TextStyle(
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 12,
-                              ),
-                            ),
-                            TextSpan(
-                              text: '${entry.time}\n${entry.value} dB',
-                              style: const TextStyle(
-                                color: Colors.amber,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                          ],
                         );
-                      }).toList(),
+                      },
                     ),
+                  ),
+                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                ),
+                lineTouchData: LineTouchData(
+                  enabled: true,
+                  touchTooltipData: LineTouchTooltipData(
+                    getTooltipColor: (LineBarSpot barSpot) => Colors.black,
+                    getTooltipItems: (spots) => spots.map((spot) {
+                      if (spot.x.toInt() >= dates.length) return null;
+                      final date = dates[spot.x.toInt()];
+                      final entry = [maxEntries, avgEntries, minEntries][spot.barIndex]
+                          .firstWhere((e) => e.date == date);
+                      return LineTooltipItem(
+                        '',
+                        const TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        children: [
+                          TextSpan(
+                            text: '${entry.measurementType}\n',
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 12,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '${entry.time}\n${entry.value} dB',
+                            style: const TextStyle(
+                              color: Colors.amber,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 16,
+                            ),
+                          ),
+                          TextSpan(
+                            text: '\n${DateFormat('dd/MM/yyyy').format(DateTime.parse(date))}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      );
+                    }).where((item) => item != null).toList(),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            // Leyenda con GestureDetector para manejar clics
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: ['MAX', 'AVERAGE', 'MIN'].map((t) {
-                final isActive = (t == 'MAX' && showMax) ||
-                    (t == 'AVERAGE' && showAvg) ||
-                    (t == 'MIN' && showMin);
+          ),
+          const SizedBox(height: 8),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: ['MAX', 'AVERAGE', 'MIN'].map((t) {
+              final isActive = (t == 'MAX' && showMax) ||
+                  (t == 'AVERAGE' && showAvg) ||
+                  (t == 'MIN' && showMin);
 
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (t == 'MAX') {
-                        showMax = !showMax;
-                      } else if (t == 'AVERAGE') {
-                        showAvg = !showAvg;
-                      } else if (t == 'MIN') {
-                        showMin = !showMin;
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          color: isActive ? _color(t) : Colors.grey,
+              return GestureDetector(
+                onTap: () {
+                  setState(() {
+                    if (t == 'MAX') {
+                      showMax = !showMax;
+                    } else if (t == 'AVERAGE') {
+                      showAvg = !showAvg;
+                    } else if (t == 'MIN') {
+                      showMin = !showMin;
+                    }
+                  });
+                },
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        color: isActive ? _color(t) : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        t,
+                        style: TextStyle(
+                          color: isActive ? Colors.blue : Colors.grey,
+                          decoration: isActive
+                              ? TextDecoration.none
+                              : TextDecoration.lineThrough,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          t,
-                          style: TextStyle(
-                            color: isActive ? Colors.blue : Colors.grey,
-                            decoration: isActive
-                                ? TextDecoration.none
-                                : TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                );
-              }).toList(),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      );
+    },
+  );
+}
   @override
   Widget build(BuildContext context) {
     const leftReservedSize = 52.0;
@@ -758,7 +768,7 @@ class _SoundChartView extends State<SoundChartView> {
                         child: TextFormField(
                           readOnly: true,
                           decoration: const InputDecoration(
-                            labelText: "Fecha/Hora inicio",
+                            labelText: "Fecha inicio",
                             prefixIcon: Icon(Icons.calendar_today),
                             border: OutlineInputBorder(),
                           ),
@@ -807,7 +817,7 @@ class _SoundChartView extends State<SoundChartView> {
                         child: TextFormField(
                           readOnly: true,
                           decoration: const InputDecoration(
-                            labelText: "Fecha/Hora fin",
+                            labelText: "Fecha fin",
                             prefixIcon: Icon(Icons.calendar_today),
                             border: OutlineInputBorder(),
                           ),
@@ -876,37 +886,22 @@ class _SoundChartView extends State<SoundChartView> {
           ),
           const SizedBox(height: 16),
 
-          if (_historicalByFrame != null) ...[
-            // Rango de Fechas: dos charts
-            Column(
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.nights_stay, size: 20),
-                    SizedBox(width: 8),
-                    Text("NOCTURNO"),
-                  ],
-                ),
-                SizedBox(
-                  height: 300,
-                  child: _buildLineChart(_historicalByFrame!['NOCTURNO']!),
-                ),
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.wb_sunny, size: 20),
-                    SizedBox(width: 8),
-                    Text("DIURNO"),
-                  ],
-                ),
-                SizedBox(
-                  height: 300,
-                  child: _buildLineChart(_historicalByFrame!['DIURNO']!),
-                ),
-              ],
-            )
-          ] else if (_metricsHistory != null) ...[
+if (_historicalByFrame != null) ...[
+  // Rango de Fechas: dos charts
+  Column(
+    children: [
+      SizedBox(
+        height: 300,
+        child: _buildLineChart(_historicalByFrame!['NOCTURNO'] ?? [], 'NOCTURNO'),
+      ),
+      const SizedBox(height: 20),
+      SizedBox(
+        height: 300,
+        child: _buildLineChart(_historicalByFrame!['DIURNO'] ?? [], 'DIURNO'),
+      ),
+    ],
+  )
+]else if (_metricsHistory != null) ...[
             SizedBox(
               width: double.infinity,
               child: Column(

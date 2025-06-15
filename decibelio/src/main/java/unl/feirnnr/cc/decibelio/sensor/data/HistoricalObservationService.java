@@ -55,7 +55,7 @@ public class HistoricalObservationService {
             "  o.quantity_time, " +
             "  o.qualitative_scale_value_id, " +
             "  o.qualitative_scale_value_name, " +
-            "  ho.measurement_type " +                     // <-- aquí incluimos el ENUM
+            "  ho.measurement_type " +                   
             "FROM observation o " +
             "JOIN historical_observation ho ON ho.id = o.id " +
             "WHERE o.sensorexternalid = ? " +

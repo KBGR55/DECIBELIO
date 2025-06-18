@@ -323,8 +323,7 @@ public class DecibelioFacade {
         return observationService.findMetricsByTimeFrame(today, sensorExternalId);
     }
 
-    public List<HistoricalObservation> findMetricsByDayOrNight(String sensorExternalId) {
-        LocalDate today = LocalDate.now();
+    public List<HistoricalObservation> findMetricsByDayOrNight(String sensorExternalId,LocalDate today) {
         List<HistoricalObservation> historicalObservations = new ArrayList<>();
     
         // 1) Máximos diurno/nocturno

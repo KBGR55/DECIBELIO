@@ -10,6 +10,7 @@ import unl.feirnnr.cc.decibelio.sensor.business.DecibelioFacade;
 import unl.feirnnr.cc.decibelio.sensor.model.HistoricalObservation;
 import unl.feirnnr.cc.decibelio.sensor.model.Sensor;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Singleton
@@ -31,8 +32,9 @@ public class AutomaticHistoricalObservation {
     public void fetchSensors() {
         try {
             List<Sensor> sensors = decibelioFacade.findAllSensorsActive();
+            LocalDate today = LocalDate.now();
             for (Sensor sensor : sensors) {
-                List<HistoricalObservation> historicalObservations = decibelioFacade.findMetricsByDayOrNight(sensor.getExternalId());
+                List<HistoricalObservation> historicalObservations = decibelioFacade.findMetricsByDayOrNight(sensor.getExternalId(), today);
                 System.out.println("Historical observations for sensor " + sensor.getName() + ": " + historicalObservations.size());
             }
 

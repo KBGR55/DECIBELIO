@@ -97,8 +97,8 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     if (sensors != null && sensors!.data.isNotEmpty) {
       for (var sensor in sensors!.data) {
         Marker marker = Marker(
-            width: 35,
-            height: 35,
+            width: 45,
+            height: 45,
             point: LatLng(sensor.latitude, sensor.longitude),
             child: GestureDetector(
               onTap: () {
@@ -244,8 +244,8 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
               },
               child: SvgPicture.asset(
                 'assets/icons/map-marker-svgrepo-com.svg',
-                width: 35,
-                height: 35,
+                width: 45,
+                height: 45,
                 color: getValueColor(metricLast!.data.last.quantity.value),
               ),
             ));
@@ -314,7 +314,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                   FlutterMap(
                     mapController: mapController,
                     options: const MapOptions(
-                      initialCenter: _loja,
+                      initialCenter: _unl,
                       initialZoom: 14.0,
                       maxZoom: 20.0,
                       minZoom: 3.0,

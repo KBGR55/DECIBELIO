@@ -370,219 +370,240 @@ class _SoundChartView extends State<SoundChartView> {
   }
 
   /// Builds a LineChart showing separate lines for each measurement type
-Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
-  if (entries.isEmpty) return const SizedBox.shrink();
+  Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
+    if (entries.isEmpty) return const SizedBox.shrink();
 
-  // Agrupar por fecha
-  final dates = entries.map((e) => e.date).toSet().toList()..sort();
-  final datePositions = {for (var i = 0; i < dates.length; i++) dates[i]: i.toDouble()};
+    // Agrupar por fecha
+    final dates = entries.map((e) => e.date).toSet().toList()..sort();
+    final datePositions = {
+      for (var i = 0; i < dates.length; i++) dates[i]: i.toDouble()
+    };
 
-  // Variables de estado para controlar qué puntos se muestran
-  bool showMax = true;
-  bool showAvg = true;
-  bool showMin = true;
+    // Variables de estado para controlar qué puntos se muestran
+    bool showMax = true;
+    bool showAvg = true;
+    bool showMin = true;
 
-  return StatefulBuilder(
-    builder: (context, setState) {
-      // Extrae una lista por tipo
-      final maxEntries = showMax
-          ? entries.where((e) => e.measurementType == 'MAX').toList()
-          : [];
-      final avgEntries = showAvg
-          ? entries.where((e) => e.measurementType == 'AVERAGE').toList()
-          : [];
-      final minEntries = showMin
-          ? entries.where((e) => e.measurementType == 'MIN').toList()
-          : [];
+    return StatefulBuilder(
+      builder: (context, setState) {
+        // Extrae una lista por tipo
+        final maxEntries = showMax
+            ? entries.where((e) => e.measurementType == 'MAX').toList()
+            : [];
+        final avgEntries = showAvg
+            ? entries.where((e) => e.measurementType == 'AVERAGE').toList()
+            : [];
+        final minEntries = showMin
+            ? entries.where((e) => e.measurementType == 'MIN').toList()
+            : [];
 
-      // Función colorear puntos
-      Color _color(String t) => t == 'MAX'
-          ? Colors.red
-          : t == 'MIN'
-              ? Colors.blue
-              : Colors.green;
+        // Función colorear puntos
+        Color _color(String t) => t == 'MAX'
+            ? Colors.red
+            : t == 'MIN'
+                ? Colors.blue
+                : Colors.green;
 
-      // Cada serie: puntos por fecha
-      List<LineChartBarData> series = [
-        if (maxEntries.isNotEmpty)
-          LineChartBarData(
-            spots: maxEntries.map((e) => FlSpot(datePositions[e.date]!, e.value)).toList(),
-            isCurved: false,
-            barWidth: 2,
-            dotData: FlDotData(show: true),
-            color: _color('MAX'),
-          ),
-        if (avgEntries.isNotEmpty)
-          LineChartBarData(
-            spots: avgEntries.map((e) => FlSpot(datePositions[e.date]!, e.value)).toList(),
-            isCurved: false,
-            barWidth: 2,
-            dotData: FlDotData(show: true),
-            color: _color('AVERAGE'),
-          ),
-        if (minEntries.isNotEmpty)
-          LineChartBarData(
-            spots: minEntries.map((e) => FlSpot(datePositions[e.date]!, e.value)).toList(),
-            isCurved: false,
-            barWidth: 2,
-            dotData: FlDotData(show: true),
-            color: _color('MIN'),
-          ),
-      ];
-
-      return Column(
-        children: [
-          Text(
-            timeFrame == 'NOCTURNO' ? 'Período NOCTURNO' : 'Período DIURNO',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: timeFrame == 'NOCTURNO' ? Colors.blue : Colors.orange,
+        // Cada serie: puntos por fecha
+        List<LineChartBarData> series = [
+          if (maxEntries.isNotEmpty)
+            LineChartBarData(
+              spots: maxEntries
+                  .map((e) => FlSpot(datePositions[e.date]!, e.value))
+                  .toList(),
+              isCurved: false,
+              barWidth: 2,
+              dotData: FlDotData(show: true),
+              color: _color('MAX'),
             ),
-          ),
-          SizedBox(
-            height: 200,
-            child: LineChart(
-              LineChartData(
-                lineBarsData: series,
-                gridData: FlGridData(show: true),
-                borderData: FlBorderData(
-                  show: true,
-                  border: const Border(
-                    left: BorderSide(),
-                    bottom: BorderSide(),
-                  ),
-                ),
-                titlesData: FlTitlesData(
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: (value, meta) => Text(
-                          '${value.toInt().toString()} dB',
-                          style: const TextStyle(fontSize: 10)),
+          if (avgEntries.isNotEmpty)
+            LineChartBarData(
+              spots: avgEntries
+                  .map((e) => FlSpot(datePositions[e.date]!, e.value))
+                  .toList(),
+              isCurved: false,
+              barWidth: 2,
+              dotData: FlDotData(show: true),
+              color: _color('AVERAGE'),
+            ),
+          if (minEntries.isNotEmpty)
+            LineChartBarData(
+              spots: minEntries
+                  .map((e) => FlSpot(datePositions[e.date]!, e.value))
+                  .toList(),
+              isCurved: false,
+              barWidth: 2,
+              dotData: FlDotData(show: true),
+              color: _color('MIN'),
+            ),
+        ];
+
+        return Column(
+          children: [
+            Text(
+              timeFrame == 'NOCTURNO' ? 'Período NOCTURNO' : 'Período DIURNO',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                color: timeFrame == 'NOCTURNO' ? Colors.blue : Colors.orange,
+              ),
+            ),
+            SizedBox(
+              height: 200,
+              child: LineChart(
+                LineChartData(
+                  lineBarsData: series,
+                  gridData: FlGridData(show: true),
+                  borderData: FlBorderData(
+                    show: true,
+                    border: const Border(
+                      left: BorderSide(),
+                      bottom: BorderSide(),
                     ),
                   ),
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 38,
-                      interval: 1,
-                      getTitlesWidget: (value, meta) {
-                        if (value.toInt() >= dates.length) return const Text('');
-                        final date = dates[value.toInt()];
-                        return SideTitleWidget(
-                          meta: meta,
-                          child: Padding(
-                            padding: const EdgeInsets.only(top: 8.0),
-                            child: Text(
-                              DateFormat('dd/MM').format(DateTime.parse(date)),
-                              style: const TextStyle(fontSize: 10),
-                            ),
-                          ),
-                        );
-                      },
+                  titlesData: FlTitlesData(
+                    leftTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 40,
+                        getTitlesWidget: (value, meta) => Text(
+                            '${value.toInt().toString()} dB',
+                            style: const TextStyle(fontSize: 10)),
+                      ),
                     ),
+                    bottomTitles: AxisTitles(
+                      sideTitles: SideTitles(
+                        showTitles: true,
+                        reservedSize: 38,
+                        interval: 1,
+                        getTitlesWidget: (value, meta) {
+                          if (value.toInt() >= dates.length)
+                            return const Text('');
+                          final date = dates[value.toInt()];
+                          return SideTitleWidget(
+                            meta: meta,
+                            child: Padding(
+                              padding: const EdgeInsets.only(top: 8.0),
+                              child: Text(
+                                DateFormat('dd/MM')
+                                    .format(DateTime.parse(date)),
+                                style: const TextStyle(fontSize: 10),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    topTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles:
+                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
-                  topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                ),
-                lineTouchData: LineTouchData(
-                  enabled: true,
-                  touchTooltipData: LineTouchTooltipData(
-                    getTooltipColor: (LineBarSpot barSpot) => Colors.black,
-                    getTooltipItems: (spots) => spots.map((spot) {
-                      if (spot.x.toInt() >= dates.length) return null;
-                      final date = dates[spot.x.toInt()];
-                      final entry = [maxEntries, avgEntries, minEntries][spot.barIndex]
-                          .firstWhere((e) => e.date == date);
-                      return LineTooltipItem(
-                        '',
-                        const TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        children: [
-                          TextSpan(
-                            text: '${entry.measurementType}\n',
-                            style: const TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
-                            ),
-                          ),
-                          TextSpan(
-                            text: '${entry.time}\n${entry.value} dB',
-                            style: const TextStyle(
-                              color: Colors.amber,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 16,
-                            ),
-                          ),
-                          TextSpan(
-                            text: '\n${DateFormat('dd/MM/yyyy').format(DateTime.parse(date))}',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      );
-                    }).where((item) => item != null).toList(),
+                  lineTouchData: LineTouchData(
+                    enabled: true,
+                    touchTooltipData: LineTouchTooltipData(
+                      getTooltipColor: (LineBarSpot barSpot) => Colors.black,
+                      getTooltipItems: (spots) => spots
+                          .map((spot) {
+                            if (spot.x.toInt() >= dates.length) return null;
+                            final date = dates[spot.x.toInt()];
+                            final entry = [
+                              maxEntries,
+                              avgEntries,
+                              minEntries
+                            ][spot.barIndex]
+                                .firstWhere((e) => e.date == date);
+                            return LineTooltipItem(
+                              '',
+                              const TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold,
+                              ),
+                              children: [
+                                TextSpan(
+                                  text: '${entry.measurementType}\n',
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: '${entry.time}\n${entry.value} dB',
+                                  style: const TextStyle(
+                                    color: Colors.amber,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text:
+                                      '\n${DateFormat('dd/MM/yyyy').format(DateTime.parse(date))}',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ],
+                            );
+                          })
+                          .where((item) => item != null)
+                          .toList(),
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: ['MAX', 'AVERAGE', 'MIN'].map((t) {
-              final isActive = (t == 'MAX' && showMax) ||
-                  (t == 'AVERAGE' && showAvg) ||
-                  (t == 'MIN' && showMin);
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: ['MAX', 'AVERAGE', 'MIN'].map((t) {
+                final isActive = (t == 'MAX' && showMax) ||
+                    (t == 'AVERAGE' && showAvg) ||
+                    (t == 'MIN' && showMin);
 
-              return GestureDetector(
-                onTap: () {
-                  setState(() {
-                    if (t == 'MAX') {
-                      showMax = !showMax;
-                    } else if (t == 'AVERAGE') {
-                      showAvg = !showAvg;
-                    } else if (t == 'MIN') {
-                      showMin = !showMin;
-                    }
-                  });
-                },
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 12,
-                        height: 12,
-                        color: isActive ? _color(t) : Colors.grey,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        t,
-                        style: TextStyle(
-                          color: isActive ? Colors.blue : Colors.grey,
-                          decoration: isActive
-                              ? TextDecoration.none
-                              : TextDecoration.lineThrough,
+                return GestureDetector(
+                  onTap: () {
+                    setState(() {
+                      if (t == 'MAX') {
+                        showMax = !showMax;
+                      } else if (t == 'AVERAGE') {
+                        showAvg = !showAvg;
+                      } else if (t == 'MIN') {
+                        showMin = !showMin;
+                      }
+                    });
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 12,
+                          height: 12,
+                          color: isActive ? _color(t) : Colors.grey,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: 4),
+                        Text(
+                          t,
+                          style: TextStyle(
+                            color: isActive ? Colors.blue : Colors.grey,
+                            decoration: isActive
+                                ? TextDecoration.none
+                                : TextDecoration.lineThrough,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              );
-            }).toList(),
-          ),
-        ],
-      );
-    },
-  );
-}
+                );
+              }).toList(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const leftReservedSize = 52.0;
@@ -762,7 +783,7 @@ Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
 
                       const SizedBox(width: 12),
                     ] else ...[
-                      // Fecha y Hora inicio
+                      // Fecha inicio (solo fecha)
                       Expanded(
                         flex: 3,
                         child: TextFormField(
@@ -780,28 +801,18 @@ Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
                               lastDate: DateTime(2100),
                             );
                             if (pickedDate != null) {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.fromDateTime(startDate!),
-                              );
-                              if (pickedTime != null) {
-                                setState(() {
-                                  startDate = DateTime(
-                                    pickedDate.year,
-                                    pickedDate.month,
-                                    pickedDate.day,
-                                    pickedTime.hour,
-                                    pickedTime.minute,
-                                  );
-                                });
-                              }
+                              setState(() {
+                                startDate = DateTime(
+                                  pickedDate.year,
+                                  pickedDate.month,
+                                  pickedDate.day,
+                                );
+                              });
                             }
                           },
                           controller: TextEditingController(
                             text: startDate != null
-                                ? "${startDate!.month}/${startDate!.day}/${startDate!.year} "
-                                    "${startDate!.hour.toString().padLeft(2, '0')}:"
-                                    "${startDate!.minute.toString().padLeft(2, '0')}"
+                                ? "${startDate!.day}/${startDate!.month}/${startDate!.year}"
                                 : "",
                           ),
                           style: const TextStyle(
@@ -811,7 +822,7 @@ Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
                       ),
                       const SizedBox(width: 12),
 
-                      // Fecha y Hora fin
+// Fecha fin (solo fecha)
                       Expanded(
                         flex: 3,
                         child: TextFormField(
@@ -829,28 +840,18 @@ Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
                               lastDate: DateTime(2100),
                             );
                             if (pickedDate != null) {
-                              TimeOfDay? pickedTime = await showTimePicker(
-                                context: context,
-                                initialTime: TimeOfDay.fromDateTime(endDate!),
-                              );
-                              if (pickedTime != null) {
-                                setState(() {
-                                  endDate = DateTime(
-                                    pickedDate.year,
-                                    pickedDate.month,
-                                    pickedDate.day,
-                                    pickedTime.hour,
-                                    pickedTime.minute,
-                                  );
-                                });
-                              }
+                              setState(() {
+                                endDate = DateTime(
+                                  pickedDate.year,
+                                  pickedDate.month,
+                                  pickedDate.day,
+                                );
+                              });
                             }
                           },
                           controller: TextEditingController(
                             text: endDate != null
-                                ? "${endDate!.month}/${endDate!.day}/${endDate!.year} "
-                                    "${endDate!.hour.toString().padLeft(2, '0')}:"
-                                    "${endDate!.minute.toString().padLeft(2, '0')}"
+                                ? "${endDate!.day}/${endDate!.month}/${endDate!.year}"
                                 : "",
                           ),
                           style: const TextStyle(
@@ -886,22 +887,24 @@ Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
           ),
           const SizedBox(height: 16),
 
-if (_historicalByFrame != null) ...[
-  // Rango de Fechas: dos charts
-  Column(
-    children: [
-      SizedBox(
-        height: 300,
-        child: _buildLineChart(_historicalByFrame!['NOCTURNO'] ?? [], 'NOCTURNO'),
-      ),
-      const SizedBox(height: 20),
-      SizedBox(
-        height: 300,
-        child: _buildLineChart(_historicalByFrame!['DIURNO'] ?? [], 'DIURNO'),
-      ),
-    ],
-  )
-]else if (_metricsHistory != null) ...[
+          if (_historicalByFrame != null) ...[
+            // Rango de Fechas: dos charts
+            Column(
+              children: [
+                SizedBox(
+                  height: 300,
+                  child: _buildLineChart(
+                      _historicalByFrame!['NOCTURNO'] ?? [], 'NOCTURNO'),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 300,
+                  child: _buildLineChart(
+                      _historicalByFrame!['DIURNO'] ?? [], 'DIURNO'),
+                ),
+              ],
+            )
+          ] else if (_metricsHistory != null) ...[
             SizedBox(
               width: double.infinity,
               child: Column(
@@ -1153,9 +1156,27 @@ if (_historicalByFrame != null) ...[
               ),
             ),
             const SizedBox(height: 16),
-            const Text(
-              "Descripción: Cualquier cosa",
-              style: TextStyle(fontSize: 12, color: Colors.grey),
+            Container(
+              alignment: Alignment.centerLeft,
+              child: const Text.rich(
+                TextSpan(
+                  children: [
+                    TextSpan(
+                      text: 'Descripción: ',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey),
+                    ),
+                    TextSpan(
+                      text:
+                          'La gráfica muestra los niveles de ruido en tiempo real. Los usuarios pueden seleccionar el sensor y ver los datos en intervalos de 5 a 60 minutos. Sin embargo, los intervalos más específicos, solo están disponibles para usuarios con correos institucionales de la Universidad de Loja, mientras que el público general puede acceder a un intervalo de 30 minutos.',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.justify, // Justificación del texto
+              ),
             ),
             const SizedBox(height: 16),
             if (_isLoggedIn)

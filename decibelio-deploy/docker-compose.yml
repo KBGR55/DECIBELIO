@@ -58,6 +58,8 @@ services:
       - "9443:9443"
     volumes:
       - decibelio-api-logs:/logs
+      - /etc/timezone:/etc/timezone:ro
+      - /etc/localtime:/etc/localtime:ro
     logging:
       driver: "json-file"
       options:
@@ -83,6 +85,8 @@ services:
       volumes:
         - decibelio-web-bind:/usr/share/nginx/html:rw
         - ../decibelio_app_web/nginx.conf:/etc/nginx/nginx.conf:ro
+        - /etc/timezone:/etc/timezone:ro
+        - /etc/localtime:/etc/localtime:ro
       ports:
         - 80:80
       depends_on:

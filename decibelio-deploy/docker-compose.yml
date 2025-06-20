@@ -11,6 +11,7 @@ services:
     ports:
       - ${DB_PORT_PUBLIC}:5432
     volumes:
+      - /etc/timezone:/etc/timezone:ro
       - decibelio-db-data:/var/lib/postgresql/data
       #- ./init_db/init.sql:/docker-entrypoint-initdb.d/init.sql
     #net: ${NETWORK}

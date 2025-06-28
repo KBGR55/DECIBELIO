@@ -1,6 +1,7 @@
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
+import 'package:decibelio_app_web/utils/showDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
@@ -140,35 +141,10 @@ class SensorCreateControllerPageState
         });
 
         if (!mounted) return;
-        showDialog(
-   context: context,
-  builder: (context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      title: const Row(
-        children: [
-          Icon(Icons.check_circle, color: Colors.blue, size: 30),
-          SizedBox(width: 10),
-          Text('Sensor agregado correctamente'),
-        ],
-      ),
-      content: const Text(
-        'El sensor se ha registrado exitosamente en el sistema.',
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text('Aceptar'),
-        ),
-      ],
-    );
-  }, );
+           DialogUtils.showSuccessDialog(context, 'El sensor se ha registrado exitosamente en el sistema.',title: 'Sensor agregado correctamente');
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: Text("Error al agregar el sensor: ${respuesta.message}")));
+        DialogUtils.showErrorDialog(context, 'No se pudo agregar el sensor: ${respuesta.message}');
       }
     }
   }

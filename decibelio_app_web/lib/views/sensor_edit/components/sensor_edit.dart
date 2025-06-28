@@ -4,6 +4,7 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
 import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
+import 'package:decibelio_app_web/utils/showDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
@@ -68,8 +69,7 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
         TextEditingController(text: widget.sensor.externalId);
     _selectedLocation = LatLng(widget.sensor.latitude, widget.sensor.longitude);
     _selectedSensorType = widget.sensor.sensorType;
-    _selectedLandUse =
-        getLandUseValue(widget.sensor.landUseName)!;
+    _selectedLandUse = getLandUseValue(widget.sensor.landUseName)!;
     _nameUnitTypeController =
         TextEditingController(text: widget.sensor.unitTypeName);
     _abbreviationUnitTypeController =
@@ -183,40 +183,13 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
         });
 
         if (!mounted) return;
-    showDialog(
-    context: context,
-    barrierDismissible: false,  // no se cierra tocando fuera
-    builder: (BuildContext dialogContext) {
-      // Al construir el diálogo, programamos su cierre + refresh
-      Future.delayed(const Duration(seconds: 2), () {
-        // 1) cerramos el diálogo
-        Navigator.of(dialogContext).pop();
-        // 2) cerramos esta pantalla y devolvemos 'true' para que el
-        //    caller (lista de sensores) sepa que debe recargar.
-        Navigator.of(context).pop(true);
-      });
-
-      return AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        content: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.blue, size: 30),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text('Datos actualizados correctamente'),
-            ),
-          ],
-        ),
-      );
-    },
-  );
+        DialogUtils.showSuccessDialog(
+            context, 'Datos actualizados correctamente',
+            title: 'Actualizar Datos');
       } else {
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content:
-                Text("Error al actulizar los datos: ${respuesta.message}")));
+        DialogUtils.showErrorDialog(
+            context, 'Error al actulizar los datos: ${respuesta.message}');
       }
     }
   }
@@ -335,8 +308,8 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                                 prefixIcon: const Icon(Icons.map),
                               ),
                               keyboardType:
-                              const TextInputType.numberWithOptions(
-                                  signed: true, decimal: true),
+                                  const TextInputType.numberWithOptions(
+                                      signed: true, decimal: true),
                               onChanged: (value) {
                                 final lat = double.tryParse(value);
                                 if (lat != null) {
@@ -362,14 +335,14 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                                 prefixIcon: const Icon(Icons.map),
                               ),
                               keyboardType:
-                              const TextInputType.numberWithOptions(
-                                  signed: true, decimal: true),
+                                  const TextInputType.numberWithOptions(
+                                      signed: true, decimal: true),
                               onChanged: (value) {
                                 final lng = double.tryParse(value);
                                 if (lng != null) {
                                   setState(() {
-                                    _selectedLocation = LatLng(
-                                        _selectedLocation.latitude, lng);
+                                    _selectedLocation =
+                                        LatLng(_selectedLocation.latitude, lng);
                                     _mapController.move(
                                         _selectedLocation, _currentZoom);
                                   });
@@ -400,8 +373,10 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                                 onTap: (tapPosition, latlng) {
                                   setState(() {
                                     _selectedLocation = latlng;
-                                    latitudeController.text = latlng.latitude.toStringAsFixed(6);
-                                    longitudeController.text = latlng.longitude.toStringAsFixed(6);
+                                    latitudeController.text =
+                                        latlng.latitude.toStringAsFixed(6);
+                                    longitudeController.text =
+                                        latlng.longitude.toStringAsFixed(6);
                                   });
                                 },
                               ),
@@ -495,7 +470,8 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
                       const SizedBox(height: 24),
                       // Tipo de Sensor
                       DropdownButtonFormField<String>(
-                        dropdownColor: AdaptiveTheme.of(context).theme.cardColor,
+                        dropdownColor:
+                            AdaptiveTheme.of(context).theme.cardColor,
                         value: _selectedSensorType,
                         decoration: InputDecoration(
                           labelText: 'Tipo de Sensor',
@@ -519,7 +495,8 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
 
                       // Estado del Sensor
                       DropdownButtonFormField<String>(
-                        dropdownColor: AdaptiveTheme.of(context).theme.cardColor,
+                        dropdownColor:
+                            AdaptiveTheme.of(context).theme.cardColor,
                         value: _selectedSensorStatus,
                         decoration: InputDecoration(
                           labelText: 'Estado del Sensor',
@@ -543,7 +520,8 @@ class SensorEditControllerPageState extends State<SensorEditControllerPage> {
 
                       // Uso del Suelo
                       DropdownButtonFormField<String>(
-                        dropdownColor: AdaptiveTheme.of(context).theme.cardColor,
+                        dropdownColor:
+                            AdaptiveTheme.of(context).theme.cardColor,
                         value: _selectedLandUse,
                         decoration: InputDecoration(
                           labelText: 'Uso de suelo',

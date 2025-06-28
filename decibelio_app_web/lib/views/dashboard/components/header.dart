@@ -25,6 +25,7 @@ class Header extends StatelessWidget {
             "Monitoreo de Ruido",
             style: Theme.of(context).textTheme.titleLarge,
           ),
+            const Spacer(),
         if (!Responsive.isMobile(context))
           Spacer(flex: Responsive.isDesktop(context) ? 2 : 1),
         const ProfileCard(),
@@ -61,32 +62,65 @@ class ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool esTemaOscuro = Theme.of(context).brightness == Brightness.dark;
+    final double anchoPantalla = MediaQuery.of(context).size.width;
+   
+    const fullLogosThreshold  = 1400.0;  // arriba de 1400px → logos completos
+    const shortLogosThreshold =  800.0;
+
+    final bool mostrarFull  = anchoPantalla >= fullLogosThreshold;
+    final bool mostrarShort = anchoPantalla >= shortLogosThreshold && anchoPantalla < fullLogosThreshold;
+
+    // Alturas
+    final double faviconH = mostrarFull ? 105 : 70;
+    final double logoH    = mostrarFull ? 70: 55;
 
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center, 
       children: [
+        // Favicon siempre
         Image.asset(
           esTemaOscuro
-              ? 'assets/logos/favicon-oscuro.png'
-              : 'assets/logos/favicon.png',
-          height: 85,
+            ? 'assets/logos/favicon-oscuro.png'
+            : 'assets/logos/favicon.png',
+          height: faviconH, fit: BoxFit.contain,
         ),
-        if (!Responsive.isMobile(context))
-          Row(spacing: 10,
-            children: [
-              Image.asset(
-                "assets/logos/logoUNL-HD.png",
-                height: 40,
-              ),
-              Image.asset(
-                "assets/logos/LogoCarreraNombre.png",
-                height: 40,
-              ),
-              Image.asset(
-                "assets/logos/logo_automotriz.png",
-                height: 40,
-              ),
-            ],
+        const SizedBox(width: 10),
+
+        if (mostrarFull) ...[
+          Image.asset(
+            esTemaOscuro
+              ? 'assets/logos/logo_unl_claro.png'
+              : 'assets/logos/logo_unl.png',
+            height: logoH, fit: BoxFit.contain,
           ),
+          const SizedBox(width: 10),
+          Image.asset(
+            esTemaOscuro
+              ? 'assets/logos/cis_unl_claro.png'
+              : 'assets/logos/LogoCarreraNombre.png',
+            height: logoH, fit: BoxFit.contain,
+          ),
+          const SizedBox(width: 10),
+          Image.asset(
+            'assets/logos/logo_automotriz.png',
+            height: logoH, fit: BoxFit.contain,
+          ),
+        ] else if (mostrarShort) ...[
+          Image.asset( esTemaOscuro
+              ? 'assets/logos/logo_unl_short_claro.png'
+              :  'assets/logos/logo_unl_short.png',
+            height: logoH, fit: BoxFit.contain,
+          ),
+          const SizedBox(width: 10),
+          Image.asset( 'assets/logos/cis_short.png',
+            height: logoH, fit: BoxFit.contain,
+          ),
+          const SizedBox(width: 10),
+          Image.asset(
+            'assets/logos/automotriz_short.png',
+            height: logoH, fit: BoxFit.contain,
+          ),
+        ],
       ],
     );
   }

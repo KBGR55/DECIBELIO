@@ -2,15 +2,12 @@ package unl.feirnnr.cc.decibelio.sensor.data;
 
 import java.sql.Date;
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jakarta.ejb.Stateless;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.Query;
-import jakarta.persistence.TypedQuery;
 import jakarta.validation.constraints.NotNull;
 import unl.feirnnr.cc.decibelio.common.service.CrudService;
 import unl.feirnnr.cc.decibelio.sensor.model.HistoricalObservation;

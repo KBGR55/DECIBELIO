@@ -94,16 +94,32 @@ class MyApp extends StatelessWidget {
           textTheme:
               GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
                   .apply(bodyColor: Colors.white),
+          primaryTextTheme:const TextTheme( titleSmall: TextStyle(color: Colors.white )),
           canvasColor: const Color(0xFF1D1B20),
+          iconTheme: const IconThemeData(color: Colors.white),
+          buttonTheme: const ButtonThemeData(
+            textTheme:  ButtonTextTheme.primary,
+            colorScheme: ColorScheme.light(
+              primary:  Color(0xFF1D1B20),
+              onPrimary: Colors.white,
+            ),
+          )
         ),
         light: ThemeData.light().copyWith(
           primaryColor: Colors.white,
+          primaryTextTheme:const TextTheme( titleSmall: TextStyle(color: Color(0xFF182B5C), fontWeight: FontWeight.bold)),
           cardColor: Colors.white,
           scaffoldBackgroundColor: Colors.white70,
           textTheme:
               GoogleFonts.poppinsTextTheme(Theme.of(context).textTheme)
                   .apply(bodyColor: Colors.black),
-          canvasColor: const Color(0xFF0C2342),
+          canvasColor: const Color(0xFF182B5C),
+          iconTheme: const IconThemeData(color: Colors.black),
+          buttonTheme: const ButtonThemeData(
+            colorScheme: ColorScheme.light(
+              primary: Color(0xFF182B5C),
+            ),
+          )
         ),
         initial: AdaptiveThemeMode.dark,
         builder: (theme, darkTheme) {

@@ -146,43 +146,108 @@ class SensorDetailsState extends State<SensorDetails> {
                               ),
                               Text(sensor.name.toString()),
                               Text(
-                                  "Tipo de sensor: ${sensor.sensorType == 'SOUND_LEVEL_METER' ? 'Sonómetro' : sensor.sensorType}"),
-                              Text("Uso de suelo: ${sensor.landUseName}"),
-                              Text(
-                                  "Nivel de Ruido: ${metric.qualitativeScaleValue.name}"),
+                                  "${sensor.sensorType == 'SOUND_LEVEL_METER' ? 'Sonómetro' : sensor.sensorType} - ${sensor.landUseName}"),
                               Chart(
                                 range: metric.qualitativeScaleValue.name,
                                 value: double.parse(
                                     metric.quantity.value.toStringAsFixed(2)),
                               ),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5),
-                                      side: const BorderSide(
-                                        color: Color(0XFF4CAE4C),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    elevation: 0,
-                                    backgroundColor: const Color(0xFF5CB85C),
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: defaultPadding,
-                                      vertical: 15,
-                                    ),
-                                  ),
-                                  onPressed: () {
-                                    // Ubicar el sensor en el mapa
-                                    mapKey.currentState?.moveToSensor(
-                                      LatLng(sensor.latitude, sensor.longitude),
-                                      15.0, // Zoom deseado
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  // If the available width is smaller than a certain value, use a Column
+                                  if (constraints.maxWidth < 300) {
+                                    // Adjust the value as per your design
+                                    return Column(
+                                      children: [
+                                        Text(
+                                          "Nivel de Ruido: ${metric.qualitativeScaleValue.name}",
+                                          style: const TextStyle(fontSize: 16),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(
+                                            height:
+                                                8), // Adds some space between the text and button
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                             shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            side: const BorderSide(width: 1),
+                          ),
+                                            backgroundColor:
+                                                AdaptiveTheme.of(context)
+                                                    .theme
+                                                    .buttonTheme
+                                                    .colorScheme
+                                                    ?.primary,
+                                            foregroundColor:
+                                                AdaptiveTheme.of(context)
+                                                    .theme
+                                                    .buttonTheme
+                                                    .colorScheme
+                                                    ?.onPrimary,
+                                          ),
+                                          onPressed: () {
+                                            // Ubicar el sensor en el mapa
+                                            mapKey.currentState?.moveToSensor(
+                                              LatLng(sensor.latitude,
+                                                  sensor.longitude),
+                                              15.0, // Zoom deseado
+                                            );
+                                          },
+                                          child: const Tooltip(
+                                            message:
+                                                'Localizar sensor en el mapa',
+                                            child: Text('Ubicar Sensor'),
+                                          ),
+                                        ),
+                                      ],
                                     );
-                                  },
-                                  child: const Text('Localizar Sensor'),
-                                ),
+                                  } else {
+                                    // If there is enough space, use a Row
+                                    return Row(
+                                      children: [
+                                        Text(
+                                          "Nivel de Ruido: ${metric.qualitativeScaleValue.name}",
+                                          style: const TextStyle(fontSize: 16),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const Spacer(),
+                                        ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(5),
+                            side: const BorderSide(width: 1),
+                          ),
+                        backgroundColor: AdaptiveTheme.of(context)
+                            .theme
+                            .buttonTheme
+                            .colorScheme
+                            ?.primary,
+                        foregroundColor: AdaptiveTheme.of(context)
+                            .theme
+                            .buttonTheme
+                            .colorScheme
+                            ?.onPrimary,
+                        
+                      ),
+                                          onPressed: () {
+                                            // Ubicar el sensor en el mapa
+                                            mapKey.currentState?.moveToSensor(
+                                              LatLng(sensor.latitude,
+                                                  sensor.longitude),
+                                              15.0, // Zoom deseado
+                                            );
+                                          },
+                                          child: const Tooltip(
+                                            message:
+                                                'Localizar sensor en el mapa',
+                                            child: Text('Ubicar Sensor'),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  }
+                                },
                               ),
                               const SizedBox(height: 8),
                             ],

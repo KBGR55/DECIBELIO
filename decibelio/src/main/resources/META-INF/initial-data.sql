@@ -5,8 +5,8 @@ INSERT INTO public.identitygenerator(name, value) VALUES ('OptimalRange', 1);
 INSERT INTO public.identitygenerator(name, value) VALUES ('UserRol', 1);
 
 -- INICIACIÓN DE Periodos de Tiempo (UNA SOLA VEZ)
-INSERT INTO public.timeframe(id, name, starttime, endtime) VALUES (1, 'DIURNO', '07:00:00', '19:00:00');
-INSERT INTO public.timeframe(id, name, starttime, endtime) VALUES (2, 'NOCTURNO', '19:00:00', '07:00:00');
+INSERT INTO public.timeframe(id, name, starttime, endtime) VALUES (1, 'DIURNO', '07:01:00', '21:00:00');
+INSERT INTO public.timeframe(id, name, starttime, endtime) VALUES (2, 'NOCTURNO', '21:00:00', '07:00:00');
 -- ACTUALIZACIÓN DE ID del Periodos de Tiempo
 UPDATE public.identitygenerator SET value=(SELECT MAX(id) FROM public.timeframe)  WHERE name LIKE 'TimeFrame';
 

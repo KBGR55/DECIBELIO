@@ -2,6 +2,7 @@
 
 import 'dart:convert'; // Necesario para jsonDecode
 import 'package:decibelio_app_web/models/role_dto.dart';
+import 'package:decibelio_app_web/utils/showDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
@@ -97,40 +98,14 @@ class _UserTableState extends State<UserTable> {
     try {
       // No enviamos body, solo invocamos PUT al endpoint
       final respuesta = await Conexion().solicitudPut(path, {}, Conexion.noToken);
-
-      // Mostramos un AlertDialog con el mensaje devuelto por el servidor
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text(user.status ? 'Desactivar Usuario' : 'Activar Usuario'),
-          content: Text(respuesta.message),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('OK'),
-            ),
-          ],
-        ),
-      );
-
-      // Refrescamos la lista para que se refleje el cambio de estado
+       if (mounted) { DialogUtils.showSuccessDialog(context, respuesta.message,title: 'Cambiar Estado');
       _loadUserList();
+    }
     } catch (e) {
       debugPrint('Error al cambiar estado de usuario: $e');
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('No se pudo cambiar el estado: $e'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
-            ),
-          ],
-        ),
-      );
-    }
+          if (mounted) {
+      DialogUtils.showErrorDialog(context, 'No se pudo cambiar el estado: $e',);
+    } }
   }
 
    /// Abre un diálogo que lista los roles activos disponibles y permite asignar uno.
@@ -150,19 +125,9 @@ class _UserTableState extends State<UserTable> {
       }
     } catch (e) {
       debugPrint('Error al cargar roles activos: $e');
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Error'),
-          content: Text('No se pudo cargar los roles: $e'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
-            ),
-          ],
-        ),
-      );
+      if (mounted){
+      DialogUtils.showErrorDialog(context, 'No se pudo cargar los roles: $e',);
+      }
       return;
     }
 
@@ -217,40 +182,15 @@ class _UserTableState extends State<UserTable> {
                             final respAssign = await Conexion()
                                 .solicitudPut(path, {}, Conexion.noToken);
 
-                            await showDialog<void>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Asignar Rol'),
-                                content: Text(respAssign.message),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: const Text('OK'),
-                                  ),
-                                ],
-                              ),
-                            );
-
-                            Navigator.of(context).pop(); // cerrar diálogo
-                            _loadUserList(); // refrescar tabla
+                            // Mostrar un AlertDialog con el mensaje devuelto por el servidor
+                            if (mounted){
+                            DialogUtils.showSuccessDialog(context, respAssign.message, title: 'Asignar Rol');
+                           _loadUserList(); // refrescar tabla
+                            }
                           } catch (e) {
                             debugPrint('Error al asignar rol: $e');
-                            await showDialog<void>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Error'),
-                                content:
-                                    Text('No se pudo asignar el rol: $e'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(),
-                                    child: const Text('Cerrar'),
-                                  ),
-                                ],
-                              ),
-                            );
+                            if (!mounted) return;
+                            DialogUtils.showErrorDialog(context, 'No se pudo asignar el rol: $e',);
                           }
                         },
                   child: const Text('Asignar'),

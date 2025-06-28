@@ -2,29 +2,20 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:html' as html;
 import 'package:adaptive_theme/adaptive_theme.dart';
+import 'package:decibelio_app_web/models/observation_entry.dart';
 import 'package:decibelio_app_web/services/auth_service.dart';
 import 'package:decibelio_app_web/models/sensor_dto.dart';
 import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
+import 'package:decibelio_app_web/utils/chromatic_noise.dart';
+import 'package:decibelio_app_web/utils/showDialog.dart';
+import 'package:decibelio_app_web/views/dashboard/components/chart_ranges.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:logger/logger.dart';
-
-class ObservationEntry {
-  final String date;
-  final String time;
-  final double value;
-  final String measurementType;
-  ObservationEntry({
-    required this.date,
-    required this.time,
-    required this.value,
-    required this.measurementType,
-  });
-}
 
 class SoundChartView extends StatefulWidget {
   const SoundChartView({super.key});
@@ -60,8 +51,6 @@ class _SoundChartView extends State<SoundChartView> {
 
   // Flags para habilitar panning / zoom en el gráfico
   late TransformationController _transformationController;
-  bool _isPanEnabled = true;
-  bool _isScaleEnabled = true;
 
   // Historial de métricas (lista de pares: [“HH:mm”, valorDouble])
   List<(String, double)>? _metricsHistory;
@@ -122,31 +111,10 @@ class _SoundChartView extends State<SoundChartView> {
     _reloadData();
   }
 
-  /// Muestra un AlertDialog de “debes iniciar sesión” si intenta cambiar minutos sin estar logueado
   void _showLoginRequiredDialog() {
-    showDialog<void>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 30),
-              SizedBox(width: 8),
-              Text('Inicio de sesión requerido'),
-            ],
-          ),
-          content: const Text(
-            'Debes iniciar sesión con tu correo institucional para seleccionar un intervalo diferente de 30 minutos.',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Entendido'),
-            ),
-          ],
-        );
-      },
-    );
+    DialogUtils.showErrorDialog(context,
+        'Debes iniciar sesión con tu correo institucional para seleccionar un intervalo diferente de 30 minutos.',
+        title: 'Inicio de sesión requerido');
   }
 
   /// Lanza la consulta al backend para obtener métricas según el filtro actual
@@ -183,13 +151,14 @@ class _SoundChartView extends State<SoundChartView> {
             }).toList();
             _historicalByFrame = null;
           });
-
           if (showConfirmation) {
-            _showSuccessDialog('Métricas obtenidas exitosamente');
+            DialogUtils.showSuccessDialog(
+                context, 'Métricas obtenidas exitosamente');
           }
         } else {
           logger.e('Error del servidor: ${respuesta.message}');
-          _showErrorDialog('Error al obtener datos: ${respuesta.message}');
+          DialogUtils.showErrorDialog(
+              context, 'Error al obtener datos: ${respuesta.message}');
         }
       } else {
         // Modo Rango de Fechas
@@ -225,26 +194,48 @@ class _SoundChartView extends State<SoundChartView> {
               }).toList();
             });
 
+            // Si todos los frames vienen sin datos, mostrar warning y salir
+            if (grouped.values.every((lista) => lista.isEmpty)) {
+              if (!mounted) return;
+              DialogUtils.showWarningDialog(
+                context,
+                'No hay datos disponibles para el rango de fechas seleccionado',
+              );
+              return;
+            }
+
+            // Caso con datos: actualizar estado y mostrar éxito
             setState(() {
               _historicalByFrame = grouped;
               _metricsHistory = null;
             });
 
             if (showConfirmation) {
-              _showSuccessDialog('Datos históricos obtenidos exitosamente');
+              if (!mounted) return;
+              DialogUtils.showSuccessDialog(
+                context,
+                'Datos históricos obtenidos exitosamente',
+              );
             }
           } else {
-            _showErrorDialog(
-                'No se encontraron datos para el rango seleccionado');
+            if (!mounted) return;
+            DialogUtils.showErrorDialog(
+              context,
+              'No se encontraron datos para el rango seleccionado',
+            );
           }
         } else {
           logger.e('Error HTTP: ${resp.statusCode}');
-          _showErrorDialog('Error al obtener datos: ${resp.statusCode}');
+          if (!mounted) return;
+          DialogUtils.showErrorDialog(
+            context,
+            'Error al obtener datos: ${resp.statusCode}',
+          );
         }
       }
     } catch (e) {
       logger.e('Error al realizar la solicitud: $e');
-      _showErrorDialog('Error: ${e.toString()}');
+      DialogUtils.showErrorDialog(context, 'Error: ${e.toString()}');
     } finally {
       if (_isInitialLoad) {
         _isInitialLoad = false;
@@ -252,60 +243,11 @@ class _SoundChartView extends State<SoundChartView> {
     }
   }
 
-  void _showSuccessDialog(String message) {
-    if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        title: const Row(
-          children: [
-            Icon(Icons.check_circle, color: Colors.blue, size: 30),
-            SizedBox(width: 10),
-            Text('Éxito'),
-          ],
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showErrorDialog(String message) {
-    if (!mounted) return;
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.error_outline, color: Colors.red, size: 28),
-            SizedBox(width: 8),
-            Text('Error'),
-          ],
-        ),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cerrar'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Future<void> _exportCsv() async {
     if (startDate == null || endDate == null) return;
 
-    final start = DateFormat('yyyy-MM-dd').format(startDate!);
-    final end = DateFormat('yyyy-MM-dd').format(endDate!);
+    final start = DateFormat('yyyy-MM-dd').format(DateTime.now());
+    final end = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final sensorId = selectedSensor ?? _sensors.first.externalId;
     final url =
         '${Conexion.urlBase}observation/export?sensorExternalId=$sensorId&startDate=$start&endDate=$end';
@@ -321,287 +263,20 @@ class _SoundChartView extends State<SoundChartView> {
         html.Url.revokeObjectUrl(blobUrl);
       } else {
         if (!mounted) return;
-        await showDialog<void>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.red, size: 28),
-                SizedBox(width: 8),
-                Text('Error de Exportación'),
-              ],
-            ),
-            content: Text(
-              'No se pudo exportar el CSV.\nCódigo de respuesta: ${response.statusCode}',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cerrar'),
-              ),
-            ],
-          ),
+        DialogUtils.showErrorDialog(
+          context,
+          'No se pudo exportar el CSV.\nCódigo de respuesta: ${response.statusCode}',
+          title: 'Error de Exportación',
         );
       }
     } catch (e) {
       if (!mounted) return;
-      await showDialog<void>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Row(
-            children: [
-              Icon(Icons.error_outline, color: Colors.red, size: 28),
-              SizedBox(width: 8),
-              Text('Excepción'),
-            ],
-          ),
-          content: Text(
-            'Ocurrió un error al exportar:\n$e',
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cerrar'),
-            ),
-          ],
-        ),
+      DialogUtils.showErrorDialog(
+        context,
+        'No se pudo exportar el CSV.\nError: ${e.toString()}',
+        title: 'Error de Exportación',
       );
     }
-  }
-
-  /// Builds a LineChart showing separate lines for each measurement type
-  Widget _buildLineChart(List<ObservationEntry> entries, String timeFrame) {
-    if (entries.isEmpty) return const SizedBox.shrink();
-
-    // Agrupar por fecha
-    final dates = entries.map((e) => e.date).toSet().toList()..sort();
-    final datePositions = {
-      for (var i = 0; i < dates.length; i++) dates[i]: i.toDouble()
-    };
-
-    // Variables de estado para controlar qué puntos se muestran
-    bool showMax = true;
-    bool showAvg = true;
-    bool showMin = true;
-
-    return StatefulBuilder(
-      builder: (context, setState) {
-        // Extrae una lista por tipo
-        final maxEntries = showMax
-            ? entries.where((e) => e.measurementType == 'MAX').toList()
-            : [];
-        final avgEntries = showAvg
-            ? entries.where((e) => e.measurementType == 'AVERAGE').toList()
-            : [];
-        final minEntries = showMin
-            ? entries.where((e) => e.measurementType == 'MIN').toList()
-            : [];
-
-        // Función colorear puntos
-        Color _color(String t) => t == 'MAX'
-            ? Colors.red
-            : t == 'MIN'
-                ? Colors.blue
-                : Colors.green;
-
-        // Cada serie: puntos por fecha
-        List<LineChartBarData> series = [
-          if (maxEntries.isNotEmpty)
-            LineChartBarData(
-              spots: maxEntries
-                  .map((e) => FlSpot(datePositions[e.date]!, e.value))
-                  .toList(),
-              isCurved: false,
-              barWidth: 2,
-              dotData: FlDotData(show: true),
-              color: _color('MAX'),
-            ),
-          if (avgEntries.isNotEmpty)
-            LineChartBarData(
-              spots: avgEntries
-                  .map((e) => FlSpot(datePositions[e.date]!, e.value))
-                  .toList(),
-              isCurved: false,
-              barWidth: 2,
-              dotData: FlDotData(show: true),
-              color: _color('AVERAGE'),
-            ),
-          if (minEntries.isNotEmpty)
-            LineChartBarData(
-              spots: minEntries
-                  .map((e) => FlSpot(datePositions[e.date]!, e.value))
-                  .toList(),
-              isCurved: false,
-              barWidth: 2,
-              dotData: FlDotData(show: true),
-              color: _color('MIN'),
-            ),
-        ];
-
-        return Column(
-          children: [
-            Text(
-              timeFrame == 'NOCTURNO' ? 'Período NOCTURNO' : 'Período DIURNO',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: timeFrame == 'NOCTURNO' ? Colors.blue : Colors.orange,
-              ),
-            ),
-            SizedBox(
-              height: 200,
-              child: LineChart(
-                LineChartData(
-                  lineBarsData: series,
-                  gridData: FlGridData(show: true),
-                  borderData: FlBorderData(
-                    show: true,
-                    border: const Border(
-                      left: BorderSide(),
-                      bottom: BorderSide(),
-                    ),
-                  ),
-                  titlesData: FlTitlesData(
-                    leftTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 40,
-                        getTitlesWidget: (value, meta) => Text(
-                            '${value.toInt().toString()} dB',
-                            style: const TextStyle(fontSize: 10)),
-                      ),
-                    ),
-                    bottomTitles: AxisTitles(
-                      sideTitles: SideTitles(
-                        showTitles: true,
-                        reservedSize: 38,
-                        interval: 1,
-                        getTitlesWidget: (value, meta) {
-                          if (value.toInt() >= dates.length)
-                            return const Text('');
-                          final date = dates[value.toInt()];
-                          return SideTitleWidget(
-                            meta: meta,
-                            child: Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                DateFormat('dd/MM')
-                                    .format(DateTime.parse(date)),
-                                style: const TextStyle(fontSize: 10),
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    topTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                    rightTitles:
-                        AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  ),
-                  lineTouchData: LineTouchData(
-                    enabled: true,
-                    touchTooltipData: LineTouchTooltipData(
-                      getTooltipColor: (LineBarSpot barSpot) => Colors.black,
-                      getTooltipItems: (spots) => spots
-                          .map((spot) {
-                            if (spot.x.toInt() >= dates.length) return null;
-                            final date = dates[spot.x.toInt()];
-                            final entry = [
-                              maxEntries,
-                              avgEntries,
-                              minEntries
-                            ][spot.barIndex]
-                                .firstWhere((e) => e.date == date);
-                            return LineTooltipItem(
-                              '',
-                              const TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.bold,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: '${entry.measurementType}\n',
-                                  style: const TextStyle(
-                                    color: Colors.green,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: '${entry.time}\n${entry.value} dB',
-                                  style: const TextStyle(
-                                    color: Colors.amber,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text:
-                                      '\n${DateFormat('dd/MM/yyyy').format(DateTime.parse(date))}',
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ],
-                            );
-                          })
-                          .where((item) => item != null)
-                          .toList(),
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: ['MAX', 'AVERAGE', 'MIN'].map((t) {
-                final isActive = (t == 'MAX' && showMax) ||
-                    (t == 'AVERAGE' && showAvg) ||
-                    (t == 'MIN' && showMin);
-
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      if (t == 'MAX') {
-                        showMax = !showMax;
-                      } else if (t == 'AVERAGE') {
-                        showAvg = !showAvg;
-                      } else if (t == 'MIN') {
-                        showMin = !showMin;
-                      }
-                    });
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    child: Row(
-                      children: [
-                        Container(
-                          width: 12,
-                          height: 12,
-                          color: isActive ? _color(t) : Colors.grey,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          t,
-                          style: TextStyle(
-                            color: isActive ? Colors.blue : Colors.grey,
-                            decoration: isActive
-                                ? TextDecoration.none
-                                : TextDecoration.lineThrough,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        );
-      },
-    );
   }
 
   @override
@@ -636,142 +311,46 @@ class _SoundChartView extends State<SoundChartView> {
               children: [
                 Row(
                   children: [
-                    //Escala temporal
                     Expanded(
                       flex: 3,
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: "Escala Temporal",
-                          prefixIcon: Icon(Icons.access_time),
-                          border: OutlineInputBorder(),
-                        ),
-                        value:
-                            selectedTemporal, // Asegúrate de tener 'selectedText' como variable para la selección.
-                        items:
-                            ['Diaria', 'Rango de Fechas'].map((String scale) {
-                          return DropdownMenuItem<String>(
-                            value: scale,
-                            child: Text(
-                              scale,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedTemporal = value;
-                            if (selectedTemporal == 'Diaria') {
-                              _historicalByFrame = null;
-                            } else {
-                              _metricsHistory = null;
-                            }
-                          });
-                          _reloadData();
-                        },
-                        selectedItemBuilder: (BuildContext context) {
-                          return ['Diaria', 'Rango de Fechas'].map((scale) {
-                            return Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                scale,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            );
-                          }).toList();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Dropdown de Sensores
-                    Expanded(
-                      flex: 3,
-                      child: DropdownButtonFormField<String>(
-                        isExpanded: true,
-                        decoration: const InputDecoration(
-                          labelText: "Sensores",
-                          prefixIcon: Icon(Icons.sensors),
-                          border: OutlineInputBorder(),
-                        ),
-                        value: selectedSensor,
-                        items: _sensors.map((sensor) {
-                          return DropdownMenuItem<String>(
-                            value: sensor.externalId,
-                            child: Text(
-                              sensor.name,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 1,
-                              style: const TextStyle(color: Colors.white),
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (value) {
-                          setState(() {
-                            selectedSensor = value;
-                          });
-                        },
-                        selectedItemBuilder: (BuildContext context) {
-                          return _sensors.map((sensor) {
-                            return Align(
-                              alignment: Alignment.centerLeft,
-                              child: Text(
-                                sensor.name,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
-                              ),
-                            );
-                          }).toList();
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    if (selectedTemporal == 'Diaria') ...[
-                      // Dropdown “Minutos”
-                      Expanded(
-                        flex: 2,
+                      child: Tooltip(
+                        message:
+                            'Seleccione la escala temporal para ver la gráfica deseada', // El mensaje del tooltip
                         child: DropdownButtonFormField<String>(
                           isExpanded: true,
                           decoration: const InputDecoration(
-                            labelText: "Minutos",
+                            labelText: "Escala Temporal",
                             prefixIcon: Icon(Icons.access_time),
                             border: OutlineInputBorder(),
                           ),
-                          value: selectedText,
-                          items: valuesMins.keys.map((text) {
+                          value: selectedTemporal,
+                          items:
+                              ['Diaria', 'Rango de Fechas'].map((String scale) {
                             return DropdownMenuItem<String>(
-                              value: text,
+                              value: scale,
                               child: Text(
-                                text,
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 1,
+                                scale,
                                 style: const TextStyle(color: Colors.white),
                               ),
                             );
                           }).toList(),
                           onChanged: (value) {
-                            // Si no está logueado y no es "30 minutos", mostrar alerta
-                            if (!_isLoggedIn && value != "30 minutos") {
-                              // Forzamos que la selección siga siendo "30 minutos"
-                              setState(() {
-                                selectedText = "30 minutos";
-                                selectedNumericValue = valuesMins["30 minutos"];
-                              });
-                              _showLoginRequiredDialog();
-                              return;
-                            }
-                            // Si está logueado o seleccionó "30 minutos":
                             setState(() {
-                              selectedText = value;
-                              selectedNumericValue = valuesMins[value];
+                              selectedTemporal = value;
+                              if (selectedTemporal == 'Diaria') {
+                                _historicalByFrame = null;
+                              } else {
+                                _metricsHistory = null;
+                              }
                             });
+                            _reloadData();
                           },
                           selectedItemBuilder: (BuildContext context) {
-                            return valuesMins.keys.map((text) {
+                            return ['Diaria', 'Rango de Fechas'].map((scale) {
                               return Align(
                                 alignment: Alignment.centerLeft,
                                 child: Text(
-                                  text,
+                                  scale,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                 ),
@@ -780,82 +359,192 @@ class _SoundChartView extends State<SoundChartView> {
                           },
                         ),
                       ),
-
-                      const SizedBox(width: 12),
-                    ] else ...[
-                      // Fecha inicio (solo fecha)
-                      Expanded(
-                        flex: 3,
-                        child: TextFormField(
-                          readOnly: true,
+                    ),
+                    const SizedBox(width: 12),
+                    // Dropdown de Sensores
+                    Expanded(
+                      flex: 3,
+                      child: Tooltip(
+                        message:
+                            'Seleccione el sensor deseado', // El mensaje del tooltip
+                        child: DropdownButtonFormField<String>(
+                          isExpanded: true,
                           decoration: const InputDecoration(
-                            labelText: "Fecha inicio",
-                            prefixIcon: Icon(Icons.calendar_today),
+                            labelText: "Sensores",
+                            prefixIcon: Icon(Icons.sensors),
                             border: OutlineInputBorder(),
                           ),
-                          onTap: () async {
-                            DateTime? pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: startDate ?? DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
+                          value: selectedSensor,
+                          items: _sensors.map((sensor) {
+                            return DropdownMenuItem<String>(
+                              value: sensor.externalId,
+                              child: Text(
+                                sensor.name,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                                style: const TextStyle(color: Colors.white),
+                              ),
                             );
-                            if (pickedDate != null) {
-                              setState(() {
-                                startDate = DateTime(
-                                  pickedDate.year,
-                                  pickedDate.month,
-                                  pickedDate.day,
-                                );
-                              });
-                            }
+                          }).toList(),
+                          onChanged: (value) {
+                            setState(() {
+                              selectedSensor = value;
+                            });
                           },
-                          controller: TextEditingController(
-                            text: startDate != null
-                                ? "${startDate!.day}/${startDate!.month}/${startDate!.year}"
-                                : "",
-                          ),
-                          style: const TextStyle(
-                            overflow: TextOverflow.ellipsis,
+                          selectedItemBuilder: (BuildContext context) {
+                            return _sensors.map((sensor) {
+                              return Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  sensor.name,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                ),
+                              );
+                            }).toList();
+                          },
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    if (selectedTemporal == 'Diaria') ...[
+                      Expanded(
+                        flex: 2,
+                        child: Tooltip(
+                          message:
+                              'Seleccione el intervalo de tiempo en minutos', // El mensaje del tooltip
+                          child: DropdownButtonFormField<String>(
+                            isExpanded: true,
+                            decoration: const InputDecoration(
+                              labelText: "Minutos",
+                              prefixIcon: Icon(Icons.access_time),
+                              border: OutlineInputBorder(),
+                            ),
+                            value: selectedText,
+                            items: valuesMins.keys.map((text) {
+                              return DropdownMenuItem<String>(
+                                value: text,
+                                child: Text(
+                                  text,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              // Si no está logueado y no es "30 minutos", mostrar alerta
+                              if (!_isLoggedIn && value != "30 minutos") {
+                                // Forzamos que la selección siga siendo "30 minutos"
+                                setState(() {
+                                  selectedText = "30 minutos";
+                                  selectedNumericValue =
+                                      valuesMins["30 minutos"];
+                                });
+                                _showLoginRequiredDialog();
+                                return;
+                              }
+                              // Si está logueado o seleccionó "30 minutos":
+                              setState(() {
+                                selectedText = value;
+                                selectedNumericValue = valuesMins[value];
+                              });
+                            },
+                            selectedItemBuilder: (BuildContext context) {
+                              return valuesMins.keys.map((text) {
+                                return Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    text,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
+                                );
+                              }).toList();
+                            },
                           ),
                         ),
                       ),
                       const SizedBox(width: 12),
-
-// Fecha fin (solo fecha)
+                    ] else ...[
                       Expanded(
                         flex: 3,
-                        child: TextFormField(
-                          readOnly: true,
-                          decoration: const InputDecoration(
-                            labelText: "Fecha fin",
-                            prefixIcon: Icon(Icons.calendar_today),
-                            border: OutlineInputBorder(),
+                        child: Tooltip(
+                          message:
+                              'Seleccione la fecha de inicio para el rango de fechas', // El mensaje del tooltip
+                          child: TextFormField(
+                            readOnly: true,
+                            decoration: const InputDecoration(
+                              labelText: "Fecha inicio",
+                              prefixIcon: Icon(Icons.calendar_today),
+                              border: OutlineInputBorder(),
+                            ),
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: startDate ?? DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (pickedDate != null) {
+                                setState(() {
+                                  startDate = DateTime(
+                                    pickedDate.year,
+                                    pickedDate.month,
+                                    pickedDate.day,
+                                  );
+                                });
+                              }
+                            },
+                            controller: TextEditingController(
+                              text: startDate != null
+                                  ? "${startDate!.day}/${startDate!.month}/${startDate!.year}"
+                                  : "",
+                            ),
+                            style: const TextStyle(
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                          onTap: () async {
-                            DateTime? pickedDate = await showDatePicker(
-                              context: context,
-                              initialDate: endDate ?? DateTime.now(),
-                              firstDate: DateTime(2000),
-                              lastDate: DateTime(2100),
-                            );
-                            if (pickedDate != null) {
-                              setState(() {
-                                endDate = DateTime(
-                                  pickedDate.year,
-                                  pickedDate.month,
-                                  pickedDate.day,
-                                );
-                              });
-                            }
-                          },
-                          controller: TextEditingController(
-                            text: endDate != null
-                                ? "${endDate!.day}/${endDate!.month}/${endDate!.year}"
-                                : "",
-                          ),
-                          style: const TextStyle(
-                            overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 3,
+                        child: Tooltip(
+                          message:
+                              'Seleccione la fecha de fin para el rango de fechas', // El mensaje del tooltip
+                          child: TextFormField(
+                            readOnly: true,
+                            decoration: const InputDecoration(
+                              labelText: "Fecha fin",
+                              prefixIcon: Icon(Icons.calendar_today),
+                              border: OutlineInputBorder(),
+                            ),
+                            onTap: () async {
+                              DateTime? pickedDate = await showDatePicker(
+                                context: context,
+                                initialDate: endDate ?? DateTime.now(),
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (pickedDate != null) {
+                                setState(() {
+                                  endDate = DateTime(
+                                    pickedDate.year,
+                                    pickedDate.month,
+                                    pickedDate.day,
+                                  );
+                                });
+                              }
+                            },
+                            controller: TextEditingController(
+                              text: endDate != null
+                                  ? "${endDate!.day}/${endDate!.month}/${endDate!.year}"
+                                  : "",
+                            ),
+                            style: const TextStyle(
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
                         ),
                       ),
@@ -863,6 +552,22 @@ class _SoundChartView extends State<SoundChartView> {
                     ],
 
                     ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          side: const BorderSide(width: 1),
+                        ),
+                        backgroundColor: AdaptiveTheme.of(context)
+                            .theme
+                            .buttonTheme
+                            .colorScheme
+                            ?.primary,
+                        foregroundColor: AdaptiveTheme.of(context)
+                            .theme
+                            .buttonTheme
+                            .colorScheme
+                            ?.onPrimary,
+                      ),
                       onPressed: () {
                         _reloadData(showConfirmation: true);
                       },
@@ -889,21 +594,67 @@ class _SoundChartView extends State<SoundChartView> {
 
           if (_historicalByFrame != null) ...[
             // Rango de Fechas: dos charts
+            const Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(height: 14),
+                Text(
+                  'Mediciones históricas',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
             Column(
               children: [
                 SizedBox(
                   height: 300,
-                  child: _buildLineChart(
-                      _historicalByFrame!['NOCTURNO'] ?? [], 'NOCTURNO'),
+                  child: ChartRanges(
+                    entries: _historicalByFrame!['NOCTURNO'] ?? [],
+                    timeFrame: 'NOCTURNO',
+                    sensor: findSensor(selectedSensor ?? ''),
+                  ),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
-                  height: 300,
-                  child: _buildLineChart(
-                      _historicalByFrame!['DIURNO'] ?? [], 'DIURNO'),
-                ),
+                    height: 300,
+                    child: ChartRanges(
+                      entries: _historicalByFrame!['DIURNO'] ?? [],
+                      sensor: findSensor(selectedSensor ?? ''),
+                      timeFrame: 'DIURNO',
+                    )),
               ],
-            )
+            ),
+            const SizedBox(height: 16),
+            Container(
+              alignment: Alignment.centerLeft,
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Descripción: ',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    TextSpan(
+                      text:
+                          'Las gráficas muestran los registros históricos de ruido que el sensor ${findSensor(selectedSensor ?? '').name} ha captado durante para el intervalo seleccionado (${DateFormat('dd/MM/yyyy').format(startDate!)} - ${DateFormat('dd/MM/yyyy').format(endDate!)}), indicando únicamente los valores máximo, mínimo y promedio en los periodos diurno (de 7:01 a 21:00 ) y nocturno (21:01 a 7:00).',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+                textAlign: TextAlign.justify,
+              ),
+            ),
           ] else if (_metricsHistory != null) ...[
             SizedBox(
               width: double.infinity,
@@ -936,32 +687,6 @@ class _SoundChartView extends State<SoundChartView> {
                             );
                     },
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        const Text('Fijar'),
-                        Switch(
-                          value: _isPanEnabled,
-                          onChanged: (value) {
-                            setState(() {
-                              _isPanEnabled = value;
-                            });
-                          },
-                        ),
-                        const Text('Zoom'),
-                        Switch(
-                          value: _isScaleEnabled,
-                          onChanged: (value) {
-                            setState(() {
-                              _isScaleEnabled = value;
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ),
                   AspectRatio(
                     aspectRatio: 2.2,
                     child: Padding(
@@ -971,8 +696,6 @@ class _SoundChartView extends State<SoundChartView> {
                           scaleAxis: FlScaleAxis.horizontal,
                           minScale: 1.0,
                           maxScale: 25.0,
-                          panEnabled: _isPanEnabled,
-                          scaleEnabled: _isScaleEnabled,
                           transformationController: _transformationController,
                         ),
                         LineChartData(
@@ -1031,7 +754,7 @@ class _SoundChartView extends State<SoundChartView> {
                               return spotIndexes.map((spotIndex) {
                                 return TouchedSpotIndicatorData(
                                   const FlLine(
-                                    color: Colors.red,
+                                    color: Color(0xFF182B5C),
                                     strokeWidth: 1.5,
                                     dashArray: [8, 2],
                                   ),
@@ -1041,9 +764,9 @@ class _SoundChartView extends State<SoundChartView> {
                                         (spot, percent, barData, index) {
                                       return FlDotCirclePainter(
                                         radius: 6,
-                                        color: Colors.amber,
+                                        color: Colors.blue,
                                         strokeWidth: 0,
-                                        strokeColor: Colors.amber,
+                                        strokeColor: Colors.blue,
                                       );
                                     },
                                   ),
@@ -1079,8 +802,9 @@ class _SoundChartView extends State<SoundChartView> {
                                                   .toString(),
                                           symbol: '',
                                         ).format(price)} dB',
-                                        style: const TextStyle(
-                                          color: Colors.amber,
+                                        style: TextStyle(
+                                          color: ChromaticNoise.getValueColor(
+                                              price),
                                           fontWeight: FontWeight.bold,
                                           fontSize: 16,
                                         ),
@@ -1090,7 +814,7 @@ class _SoundChartView extends State<SoundChartView> {
                                 }).toList();
                               },
                               getTooltipColor: (LineBarSpot barSpot) =>
-                                  Colors.black,
+                                  const Color(0xFF212332),
                             ),
                           ),
                           titlesData: FlTitlesData(
@@ -1123,8 +847,8 @@ class _SoundChartView extends State<SoundChartView> {
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
+                                interval: 1,
                                 reservedSize: 38,
-                                maxIncluded: false,
                                 getTitlesWidget:
                                     (double value, TitleMeta meta) {
                                   final time =
@@ -1205,6 +929,15 @@ class _SoundChartView extends State<SoundChartView> {
     );
   }
 
+  SensorDTO findSensor(String external) {
+    for (SensorDTO sensor in _sensors) {
+      if (sensor.externalId == external) {
+        return sensor;
+      }
+    }
+    return SensorDTO();
+  }
+
   @override
   void dispose() {
     _pollingTimer?.cancel();
@@ -1243,7 +976,6 @@ class _ChartTitle extends StatelessWidget {
   }
 }
 
-/// Botones de transformación (pan/zoom) para el chart
 class _TransformationButtons extends StatelessWidget {
   const _TransformationButtons({
     required this.controller,

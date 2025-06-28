@@ -15,7 +15,8 @@ class UserScreen extends StatelessWidget {
       builder: (newContext) {
         return Scaffold(
           //key: newContext.read<MenuAppController>().scaffoldKey,
-          drawer: const SideMenu(),
+          drawer:
+           const SideMenu(),
           body: SafeArea(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,6 +1,8 @@
 import 'dart:async';
 
+import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
+import 'package:decibelio_app_web/utils/chromatic_noise.dart';
 import 'package:decibelio_app_web/views/dashboard/components/globals.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -59,21 +61,6 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
     _animatedMapMove(location, zoom);
   }
 
-  Color getValueColor(double? v) {
-    if (v == null) return Colors.grey;
-    if (v <= 20) return const Color(0xFF13E500);
-    if (v <= 30) return const Color(0xFF64E900);
-    if (v <= 40) return const Color(0xFF8FEC00);
-    if (v <= 50) return const Color(0xFFBAEE00);
-    if (v <= 60) return const Color(0xFFE5F000);
-    if (v <= 70) return const Color(0xFFF3D300);
-    if (v <= 80) return const Color(0xFFF5AB00);
-    if (v <= 90) return const Color(0xFFF78100);
-    if (v <= 100) return const Color(0xFFFA5700);
-    if (v <= 110) return const Color(0xFFFC2C00);
-    return const Color(0xFFFF0000);
-  }
-
   void _fetchSensors() async {
     try {
       ListSensorDTO sensorData = await _facade.listSensorDTO();
@@ -106,7 +93,6 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 String? date;
                 String? time;
                 String? escala;
-                Timer? dialogTimer;
 
                 // Buscar la métrica correspondiente al sensor
                 if (metricLast != null) {
@@ -120,31 +106,12 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                     }
                   }
                 }
-
                 showDialog(
                   context: context,
                   builder: (BuildContext context) {
-                    late void Function(void Function()) innerSetState;
-
-                    Color getValueColor(double? v) {
-                      if (v == null) return Colors.grey;
-                      if (v <= 20) return const Color(0xFF13E500);
-                      if (v <= 30) return const Color(0xFF64E900);
-                      if (v <= 40) return const Color(0xFF8FEC00);
-                      if (v <= 50) return const Color(0xFFBAEE00);
-                      if (v <= 60) return const Color(0xFFE5F000);
-                      if (v <= 70) return const Color(0xFFF3D300);
-                      if (v <= 80) return const Color(0xFFF5AB00);
-                      if (v <= 90) return const Color(0xFFF78100);
-                      if (v <= 100) return const Color(0xFFFA5700);
-                      if (v <= 110) return const Color(0xFFFC2C00);
-                      return const Color(0xFFFF0000);
-                    }
-
                     // —————— 1) Inicia el StatefulBuilder ——————
                     return StatefulBuilder(
                       builder: (context, setState) {
-                        innerSetState = setState;
                         return AlertDialog(
                           title: Text(sensor.name),
                           content: SingleChildScrollView(
@@ -175,7 +142,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                       padding: const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 4),
                                       decoration: BoxDecoration(
-                                        color: getValueColor(
+                                        color: ChromaticNoise.getValueColor(
                                             double.tryParse(value ?? '')),
                                         borderRadius: BorderRadius.circular(16),
                                       ),
@@ -208,45 +175,31 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                         );
                       },
                     );
-                    // —————— 1) Cierra el StatefulBuilder aquí ——————
-
-                    // —————— 2) Fuera del StatefulBuilder, pero dentro del mismo builder de showDialog:
-                    WidgetsBinding.instance.addPostFrameCallback((_) {
-                      dialogTimer = Timer.periodic(
-                        const Duration(minutes: 1),
-                        (_) async {
-                          try {
-                            ListMetricDTO nuevaMetricLast =
-                                await _facade.listMetricLastDTO();
-                            for (var m in nuevaMetricLast.data) {
-                              if (m.sensorExternalId == sensor.externalId) {
-                                value = m.quantity.value.toString();
-                                date = m.date;
-                                time = m.quantity.time;
-                                escala = m.qualitativeScaleValue.name;
-                                break;
-                              }
-                            }
-                            // Refresca solo el contenido del diálogo:
-                            innerSetState(() {});
-                          } catch (e) {
-                            debugPrint("Error al refrescar métricas: $e");
-                          }
-                        },
-                      );
-                    });
-                    // —————— 2) Fin del addPostFrameCallback ——————
                   },
-                ).then((_) {
-                  // —————— 3) Cancelar el Timer al cerrar el diálogo ——————
-                  dialogTimer?.cancel();
-                });
+                ).then((_) {});
               },
-              child: SvgPicture.asset(
-                'assets/icons/map-marker-svgrepo-com.svg',
-                width: 45,
-                height: 45,
-                color: getValueColor(metricLast!.data.last.quantity.value),
+              child: Tooltip(
+                message:
+                    'Para más información, dar clic', // El texto que aparecerá en el tooltip
+                child: Stack(
+                  alignment: Alignment
+                      .center, // Centra el ícono del sensor dentro del marcador
+                  children: [
+                    SvgPicture.asset(
+                      'assets/icons/map-marker-svgrepo-com.svg',
+                      width: 45,
+                      height: 45,
+                      color: ChromaticNoise.getValueColor(
+                          metricLast!.data.last.quantity.value),
+                    ),
+                    const Icon(
+                      Icons.location_on, // Cambia esto por el ícono que desees
+                      size: 20, // Ajusta el tamaño del ícono del sensor
+                      color: Colors.red,
+                      // Color del ícono
+                    ),
+                  ],
+                ),
               ),
             ));
         _markers.add(marker);
@@ -299,11 +252,36 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                 children: <Widget>[
                   MaterialButton(
                     onPressed: () => _animatedMapMove(_loja, 15),
-                    child: const Text('Loja'),
+                    child: Tooltip(
+                      message: 'Centrar el mapa en Loja', // Mensaje del Tooltip
+                      child: Text(
+                        'Loja',
+                        style: TextStyle(
+                          color: AdaptiveTheme.of(context)
+                              .theme
+                              .primaryTextTheme
+                              .titleSmall!
+                              .color,
+                        ),
+                      ),
+                    ),
                   ),
                   MaterialButton(
                     onPressed: () => _animatedMapMove(_unl, 15),
-                    child: const Text('Universidad Nacional de Loja'),
+                    child: Tooltip(
+                      message:
+                          'Centrar el mapa en la Universidad Nacional de Loja', // Mensaje del Tooltip
+                      child: Text(
+                        'Universidad Nacional de Loja',
+                        style: TextStyle(
+                          color: AdaptiveTheme.of(context)
+                              .theme
+                              .primaryTextTheme
+                              .titleSmall!
+                              .color,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),

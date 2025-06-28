@@ -43,9 +43,9 @@
     <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
 
     <logging consoleLogLevel="INFO"
-             consoleFormat="simple"
-             traceFileName="server.log"
+             traceFileName="trace.log"
              messageFileName="messages.log"
+             accessLogFileName="access.log"
              maxFileSize="100"
              maxFiles="10"
              loggingPropertiesRef="customLoggingProps"/>

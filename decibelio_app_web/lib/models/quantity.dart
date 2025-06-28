@@ -1,5 +1,5 @@
 class QuantityDTO {
-  final String time;
+  final String? time;
   final double value;
 
   QuantityDTO({required this.time, required this.value});

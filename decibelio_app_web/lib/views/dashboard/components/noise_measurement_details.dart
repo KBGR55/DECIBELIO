@@ -78,7 +78,7 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
       setState(() {
         _isLoading = false;
       });
-      print('Error al cargar los datos del sensor o las mediciones: $e');
+      debugPrint('Error al cargar los datos del sensor o las mediciones: $e');
     }
   }
 

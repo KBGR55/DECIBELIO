@@ -12,7 +12,7 @@ class SensorDTO {
   String sensorType = '';
   String sensorStatus = '';
   String landUseName = '';
-  String referenceLocation = '';
+  String? referenceLocation; // <-- Nullable (con '?')
   String unitTypeAbbreviation = '';
   String unitTypeName = '';
 

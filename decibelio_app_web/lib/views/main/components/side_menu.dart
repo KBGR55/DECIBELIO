@@ -9,8 +9,7 @@ import 'package:decibelio_app_web/services/auth_service.dart';
 import 'dart:html' as html;
 
 class SideMenu extends StatefulWidget {
-  const SideMenu({Key? key}) : super(key: key);
-
+ const SideMenu({super.key});
   @override
   State<SideMenu> createState() => _SideMenuState();
 }

@@ -2,7 +2,7 @@
 
 import 'dart:convert'; // Necesario para jsonDecode
 import 'package:decibelio_app_web/models/role_dto.dart';
-import 'package:decibelio_app_web/utils/showDialog.dart';
+import 'package:decibelio_app_web/utils/show_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/constants.dart';
@@ -182,11 +182,9 @@ class _UserTableState extends State<UserTable> {
                             final respAssign = await Conexion()
                                 .solicitudPut(path, {}, Conexion.noToken);
 
-                            // Mostrar un AlertDialog con el mensaje devuelto por el servidor
-                            if (mounted){
+                           if (!mounted) return;
                             DialogUtils.showSuccessDialog(context, respAssign.message, title: 'Asignar Rol');
                            _loadUserList(); // refrescar tabla
-                            }
                           } catch (e) {
                             debugPrint('Error al asignar rol: $e');
                             if (!mounted) return;

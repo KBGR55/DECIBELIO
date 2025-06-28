@@ -144,7 +144,11 @@ class SensorDetailsState extends State<SensorDetails> {
                                   ),
                                 ],
                               ),
-                              Text(sensor.name.toString()),
+                              Text(
+                                sensor.name.toString(),
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.bold),
+                              ),
                               Text(
                                   "${sensor.sensorType == 'SOUND_LEVEL_METER' ? 'Sonómetro' : sensor.sensorType} - ${sensor.landUseName}"),
                               Chart(
@@ -154,9 +158,7 @@ class SensorDetailsState extends State<SensorDetails> {
                               ),
                               LayoutBuilder(
                                 builder: (context, constraints) {
-                                  // If the available width is smaller than a certain value, use a Column
                                   if (constraints.maxWidth < 300) {
-                                    // Adjust the value as per your design
                                     return Column(
                                       children: [
                                         Text(
@@ -164,15 +166,14 @@ class SensorDetailsState extends State<SensorDetails> {
                                           style: const TextStyle(fontSize: 16),
                                           overflow: TextOverflow.ellipsis,
                                         ),
-                                        const SizedBox(
-                                            height:
-                                                8), // Adds some space between the text and button
+                                        const SizedBox(height: 8),
                                         ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                             shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            side: const BorderSide(width: 1),
-                          ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              side: const BorderSide(width: 1),
+                                            ),
                                             backgroundColor:
                                                 AdaptiveTheme.of(context)
                                                     .theme
@@ -214,22 +215,24 @@ class SensorDetailsState extends State<SensorDetails> {
                                         const Spacer(),
                                         ElevatedButton(
                                           style: ElevatedButton.styleFrom(
-                                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(5),
-                            side: const BorderSide(width: 1),
-                          ),
-                        backgroundColor: AdaptiveTheme.of(context)
-                            .theme
-                            .buttonTheme
-                            .colorScheme
-                            ?.primary,
-                        foregroundColor: AdaptiveTheme.of(context)
-                            .theme
-                            .buttonTheme
-                            .colorScheme
-                            ?.onPrimary,
-                        
-                      ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5),
+                                              side: const BorderSide(width: 1),
+                                            ),
+                                            backgroundColor:
+                                                AdaptiveTheme.of(context)
+                                                    .theme
+                                                    .buttonTheme
+                                                    .colorScheme
+                                                    ?.primary,
+                                            foregroundColor:
+                                                AdaptiveTheme.of(context)
+                                                    .theme
+                                                    .buttonTheme
+                                                    .colorScheme
+                                                    ?.onPrimary,
+                                          ),
                                           onPressed: () {
                                             // Ubicar el sensor en el mapa
                                             mapKey.currentState?.moveToSensor(

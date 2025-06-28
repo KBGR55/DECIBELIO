@@ -20,10 +20,10 @@ class ChartRanges extends StatefulWidget {
   });
 
   @override
-  _ChartRangesState createState() => _ChartRangesState();
+  ChartRangesState createState() => ChartRangesState();
 }
 
-class _ChartRangesState extends State<ChartRanges> {
+class ChartRangesState extends State<ChartRanges> {
   bool showMax = true;
   bool showAvg = true;
   bool showMin = true;
@@ -171,7 +171,7 @@ class _ChartRangesState extends State<ChartRanges> {
                       gridData: const FlGridData(show: true),
                       borderData: FlBorderData(
                         show: true,
-                        ),
+                      ),
                       titlesData: FlTitlesData(
                         leftTitles: AxisTitles(
                           drawBelowEverything: true,
@@ -189,23 +189,32 @@ class _ChartRangesState extends State<ChartRanges> {
                         bottomTitles: AxisTitles(
                           sideTitles: SideTitles(
                             showTitles: true,
-                            reservedSize: 38,
+                            reservedSize: 50,
                             interval: 1.0,
                             getTitlesWidget: (value, meta) {
-                              if (value.toInt() >= dates.length)
+                              if (value.toInt() >= dates.length) {
                                 return const Text('');
+                              }
                               final date = dates[value.toInt()];
                               return SideTitleWidget(
                                 meta: meta,
-                                child: Transform.rotate(
-                                  angle: -0.785398, // -45 grados en radianes
-                                  child: Text(
-                                    DateFormat('dd/MM/yyyy')
-                                        .format(DateTime.parse(date)),
-                                    style: const TextStyle(
-                                      color: Colors.green,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
+                                space: 12, // separación horizontal desde el eje
+
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 8.0,
+                                      left:
+                                          8.0), // separación adicional (vertical y horizontal)
+                                  child: Transform.rotate(
+                                    angle: -0.785398, // -45 grados en radianes
+                                    child: Text(
+                                      DateFormat('yyyy/MM/dd')
+                                          .format(DateTime.parse(date)),
+                                      style: const TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
                                 ),
@@ -222,53 +231,89 @@ class _ChartRangesState extends State<ChartRanges> {
                         enabled: true,
                         touchTooltipData: LineTouchTooltipData(
                           getTooltipColor: (barSpot) => const Color(0xFF212332),
-                          getTooltipItems: (spots) => spots
-                              .map((spot) {
-                                if (spot.x.toInt() >= dates.length) return null;
-                                final date = dates[spot.x.toInt()];
-                                final list = [
-                                  maxEntries,
-                                  avgEntries,
-                                  minEntries
-                                ][spot.barIndex];
-                                final entry =
-                                    list.firstWhere((e) => e.date == date);
-                                return LineTooltipItem(
-                                  '',
-                                  const TextStyle(
-                                      color: Colors.black,
-                                      fontWeight: FontWeight.bold),
-                                  children: [
-                                    TextSpan(
-                                      text: '${entry.measurementType}\n',
-                                      style: TextStyle(
-                                        color: color(entry.measurementType),
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 10,
-                                      ),
+                          getTooltipItems: (spots) {
+                            final List<ObservationEntry> maxEntries = showMax
+                                ? entries
+                                    .where((e) => e.measurementType == 'MAX')
+                                    .toList()
+                                : <ObservationEntry>[];
+
+                            final List<ObservationEntry> avgEntries = showAvg
+                                ? entries
+                                    .where(
+                                        (e) => e.measurementType == 'AVERAGE')
+                                    .toList()
+                                : <ObservationEntry>[];
+
+                            final List<ObservationEntry> minEntries = showMin
+                                ? entries
+                                    .where((e) => e.measurementType == 'MIN')
+                                    .toList()
+                                : <ObservationEntry>[];
+
+                            final List<List<ObservationEntry>> visibleEntries =
+                                <List<ObservationEntry>>[
+                              if (showMax) maxEntries,
+                              if (showAvg) avgEntries,
+                              if (showMin) minEntries,
+                            ];
+
+                            return spots
+                                .map((spot) {
+                                  final int dateIndex = spot.x.toInt();
+                                  if (dateIndex >= dates.length) return null;
+
+                                  final date = dates[dateIndex];
+                                  final list = visibleEntries[spot.barIndex];
+
+                                  final entry = list.firstWhere(
+                                    (e) => e.date == date,
+                                    orElse: () => ObservationEntry(
+                                      date: date,
+                                      time: 'N/A',
+                                      value: spot.y,
+                                      measurementType: 'DESCONOCIDO',
                                     ),
-                                    TextSpan(
-                                      text:
-                                          '${DateFormat('dd/MM/yyyy').format(DateTime.parse(date))} a las ${entry.time}\n',
-                                      style: const TextStyle(
+                                  );
+
+                                  return LineTooltipItem(
+                                    '',
+                                    const TextStyle(
+                                        color: Colors.black,
+                                        fontWeight: FontWeight.bold),
+                                    children: [
+                                      TextSpan(
+                                        text: '${entry.measurementType}\n',
+                                        style: TextStyle(
+                                          color: color(entry.measurementType),
                                           fontWeight: FontWeight.bold,
                                           fontSize: 10,
-                                          color: Colors.white),
-                                    ),
-                                    TextSpan(
-                                      text: '${entry.value} dB\n',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 10,
-                                        color: ChromaticNoise.getValueColor(
-                                            entry.value),
+                                        ),
                                       ),
-                                    ),
-                                  ],
-                                );
-                              })
-                              .where((item) => item != null)
-                              .toList(),
+                                      TextSpan(
+                                        text:
+                                            '${DateFormat('yyyy/MM/dd').format(DateTime.parse(date))} a las ${entry.time}\n',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                      TextSpan(
+                                        text: '${entry.value} dB\n',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                          color: ChromaticNoise.getValueColor(
+                                              entry.value),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                })
+                                .where((item) => item != null)
+                                .toList();
+                          },
                         ),
                       ),
                     ),
@@ -279,47 +324,48 @@ class _ChartRangesState extends State<ChartRanges> {
           ),
         ),
         const SizedBox(height: 8),
-       Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: ['MAX', 'AVERAGE', 'MIN'].map((t) {
-    final isActive = (t == 'MAX' && showMax) ||
-        (t == 'AVERAGE' && showAvg) ||
-        (t == 'MIN' && showMin);
-    return GestureDetector(
-      onTap: () => setState(() {
-        if (t == 'MAX') showMax = !showMax;
-        if (t == 'AVERAGE') showAvg = !showAvg;
-        if (t == 'MIN') showMin = !showMin;
-      }),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        child: Tooltip(
-          message: 'Hacer clic para ${isActive ? 'ocultar' : 'mostrar'} los puntos de la gráfica de $t.',
-          child: Row(
-            children: [
-              Container(
-                width: 12,
-                height: 12,
-                color: isActive ? color(t) : Colors.grey,
-              ),
-              const SizedBox(width: 4),
-              Text(
-                t,
-                style: TextStyle(
-                  color: isActive ? Colors.blue : Colors.grey,
-                  decoration: isActive
-                      ? TextDecoration.none
-                      : TextDecoration.lineThrough,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: ['MAX', 'AVERAGE', 'MIN'].map((t) {
+            final isActive = (t == 'MAX' && showMax) ||
+                (t == 'AVERAGE' && showAvg) ||
+                (t == 'MIN' && showMin);
+            return GestureDetector(
+              onTap: () => setState(() {
+                if (t == 'MAX') showMax = !showMax;
+                if (t == 'AVERAGE') showAvg = !showAvg;
+                if (t == 'MIN') showMin = !showMin;
+              }),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                child: Tooltip(
+                  message:
+                      'Hacer clic para ${isActive ? 'ocultar' : 'mostrar'} los puntos de la gráfica de $t.',
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 12,
+                        height: 12,
+                        color: isActive ? color(t) : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        t,
+                        style: TextStyle(
+                          color: isActive ? Colors.blue : Colors.grey,
+                          decoration: isActive
+                              ? TextDecoration.none
+                              : TextDecoration.lineThrough,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }).toList(),
-)
-  ],
+            );
+          }).toList(),
+        )
+      ],
     );
   }
 }

@@ -7,10 +7,10 @@ class QualitativeScaleCreatePage extends StatefulWidget {
   const QualitativeScaleCreatePage({super.key, required this.sensorId});
 
   @override
-  _QualitativeScaleCreatePageState createState() => _QualitativeScaleCreatePageState();
+  QualitativeScaleCreatePageState createState() => QualitativeScaleCreatePageState();
 }
 
-class _QualitativeScaleCreatePageState extends State<QualitativeScaleCreatePage> {
+class QualitativeScaleCreatePageState extends State<QualitativeScaleCreatePage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();

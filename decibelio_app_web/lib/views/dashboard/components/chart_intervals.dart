@@ -9,7 +9,7 @@ import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/services/facade/facade.dart';
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 import 'package:decibelio_app_web/utils/chromatic_noise.dart';
-import 'package:decibelio_app_web/utils/showDialog.dart';
+import 'package:decibelio_app_web/utils/show_dialog.dart';
 import 'package:decibelio_app_web/views/dashboard/components/chart_ranges.dart';
 import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -152,11 +152,13 @@ class _SoundChartView extends State<SoundChartView> {
             _historicalByFrame = null;
           });
           if (showConfirmation) {
+            if (!mounted) return;
             DialogUtils.showSuccessDialog(
                 context, 'Métricas obtenidas exitosamente');
           }
         } else {
           logger.e('Error del servidor: ${respuesta.message}');
+          if (!mounted) return;
           DialogUtils.showErrorDialog(
               context, 'Error al obtener datos: ${respuesta.message}');
         }
@@ -235,6 +237,7 @@ class _SoundChartView extends State<SoundChartView> {
       }
     } catch (e) {
       logger.e('Error al realizar la solicitud: $e');
+      if (!mounted) return;
       DialogUtils.showErrorDialog(context, 'Error: ${e.toString()}');
     } finally {
       if (_isInitialLoad) {
@@ -258,7 +261,7 @@ class _SoundChartView extends State<SoundChartView> {
         final blob = html.Blob([response.body], 'text/csv');
         final blobUrl = html.Url.createObjectUrlFromBlob(blob);
         html.AnchorElement(href: blobUrl)
-          ..setAttribute('download', 'observations_${start}_to_${end}.csv')
+          ..setAttribute('download', 'observations_$start.csv')
           ..click();
         html.Url.revokeObjectUrl(blobUrl);
       } else {
@@ -498,7 +501,7 @@ class _SoundChartView extends State<SoundChartView> {
                             },
                             controller: TextEditingController(
                               text: startDate != null
-                                  ? "${startDate!.day}/${startDate!.month}/${startDate!.year}"
+                                  ? "${startDate!.year}/${startDate!.month}/${startDate!.day}"
                                   : "",
                             ),
                             style: const TextStyle(
@@ -539,7 +542,7 @@ class _SoundChartView extends State<SoundChartView> {
                             },
                             controller: TextEditingController(
                               text: endDate != null
-                                  ? "${endDate!.day}/${endDate!.month}/${endDate!.year}"
+                                  ? "${endDate!.year}/${endDate!.month}/${endDate!.day}"
                                   : "",
                             ),
                             style: const TextStyle(
@@ -644,7 +647,7 @@ class _SoundChartView extends State<SoundChartView> {
                     ),
                     TextSpan(
                       text:
-                          'Las gráficas muestran los registros históricos de ruido que el sensor ${findSensor(selectedSensor ?? '').name} ha captado durante para el intervalo seleccionado (${DateFormat('dd/MM/yyyy').format(startDate!)} - ${DateFormat('dd/MM/yyyy').format(endDate!)}), indicando únicamente los valores máximo, mínimo y promedio en los periodos diurno (de 7:01 a 21:00 ) y nocturno (21:01 a 7:00).',
+                          'Las gráficas muestran los registros históricos de ruido que el sensor ${findSensor(selectedSensor ?? '').name} ha captado durante para el intervalo seleccionado (${DateFormat('yyyy/MM/dd').format(startDate!)} - ${DateFormat('yyyy/MM/dd').format(endDate!)}), indicando únicamente los valores máximo, mínimo y promedio en los periodos diurno (de 7:01 a 21:00 ) y nocturno (21:01 a 7:00).',
                       style: const TextStyle(
                         fontSize: 12,
                         color: Colors.grey,

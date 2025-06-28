@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/services/facade/list/list_sensor_dto.dart';
 import 'package:decibelio_app_web/utils/chromatic_noise.dart';

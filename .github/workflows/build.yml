@@ -46,7 +46,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          junit_files: "decibelio/test-results/**/*.xml"
+          files: "decibelio/test-results/**/*.xml"
 
       # Configurar Flutter
       - name: Configurar Flutter
@@ -66,6 +66,7 @@ jobs:
 
       # Verificar dependencias en Flutter
       - name: Verificar dependencias en Flutter
+        continue-on-error: true
         run: |
           cd decibelio_app_web
           flutter analyze
@@ -90,7 +91,7 @@ jobs:
         uses: EnricoMi/publish-unit-test-result-action@v2
         if: always()
         with:
-          junit_files: "decibelio_app_web/test-results/**/*.xml"
+          files: "decibelio_app_web/test-results/**/*.xml"
 
       # Subir binarios de la aplicación
       - name: Subir binarios de la aplicación

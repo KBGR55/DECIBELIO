@@ -5,7 +5,7 @@ import 'package:decibelio_app_web/models/quantity.dart';
 import 'package:decibelio_app_web/models/time_frame_dto.dart';
 
 class Observation {
-  final String date;  // String representando LocalDate
+  final String? date;  // String representando LocalDate
   final GeoLocation geoLocation;
   final int id;
   final QualitativeScaleValueDTO qualitativeScaleValue;

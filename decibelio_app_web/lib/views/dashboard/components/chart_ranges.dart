@@ -29,27 +29,33 @@ class ChartRangesState extends State<ChartRanges> {
   bool showMin = true;
   late final TransformationController _transformationController;
 
-  Widget _buildPeriodLabel(BuildContext context) {
-    final isNight = widget.timeFrame == 'NOCTURNO';
-    final icon = isNight ? Icons.nights_stay : Icons.wb_sunny;
-    final label =
-        '${isNight ? 'PERIODO NOCTURNO' : 'PERIODO DIURNO'} - ${widget.sensor.name.toUpperCase()}';
-    final color = AdaptiveTheme.of(context).theme.iconTheme.color;
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 20, color: color),
-        const SizedBox(width: 4),
-        Text(
-          label,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
+Widget _buildPeriodLabel(BuildContext context) {
+  final isNight = widget.timeFrame == 'NOCTURNO';
+  final icon = isNight ? Icons.nights_stay : Icons.wb_sunny;
+
+  // Si el theme no define iconTheme.color, damos un fallback
+  final color = AdaptiveTheme.of(context).theme.iconTheme.color
+                ?? Theme.of(context).iconTheme.color
+                ?? Colors.white;
+
+  final label =
+      '${isNight ? 'PERIODO NOCTURNO' : 'PERIODO DIURNO'} - ${widget.sensor.name.toUpperCase()}';
+
+  return Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 20, color: color),
+      const SizedBox(width: 4),
+      Text(
+        label,
+        style: TextStyle(
+          fontWeight: FontWeight.bold,
+          color: color,
         ),
-      ],
-    );
-  }
+      ),
+    ],
+  );
+}
 
   @override
   void initState() {

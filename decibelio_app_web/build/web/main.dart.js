@@ -51165,10 +51165,11 @@ s.sl(0,J.pN(s.a,A.os(0.9,0.9,1)))}}
 A.xT.prototype={
 a3(){return new A.RW()}}
 A.RW.prototype={
-SN(a){var s,r=null,q=this.a,p=q.e==="NOCTURNO",o=p?B.r7:B.r9,n=p?"PERIODO NOCTURNO":"PERIODO DIURNO"
-q=q.d.b
-s=A.cb(a).gck().k4.f
-return A.bz(A.b([A.G_(o,s,20),B.hy,A.aN(n+" - "+q.toUpperCase(),r,r,r,A.h_(r,r,s,r,r,r,r,r,r,r,r,r,r,r,B.al,r,r,!0,r,r,r,r,r,r,r,r),r,r,r)],t.p),B.o,B.m,B.aW,0,r)},
+SN(a){var s,r=null,q=this.a.e==="NOCTURNO",p=q?B.r7:B.r9,o=A.cb(a).gck().k4.f,n=o==null?A.U(a).k4.f:o
+if(n==null)n=B.j
+o=q?"PERIODO NOCTURNO":"PERIODO DIURNO"
+s=this.a.d.b
+return A.bz(A.b([A.G_(p,n,20),B.hy,A.aN(o+" - "+s.toUpperCase(),r,r,r,A.h_(r,r,n,r,r,r,r,r,r,r,r,r,r,r,B.al,r,r,!0,r,r,r,r,r,r,r,r),r,r,r)],t.p),B.o,B.m,B.aW,0,r)},
 am(){this.aE()
 var s=A.aD_()
 this.r!==$&&A.bI()

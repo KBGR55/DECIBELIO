@@ -29,33 +29,33 @@ class ChartRangesState extends State<ChartRanges> {
   bool showMin = true;
   late final TransformationController _transformationController;
 
-Widget _buildPeriodLabel(BuildContext context) {
-  final isNight = widget.timeFrame == 'NOCTURNO';
-  final icon = isNight ? Icons.nights_stay : Icons.wb_sunny;
+  Widget _buildPeriodLabel(BuildContext context) {
+    final isNight = widget.timeFrame == 'NOCTURNO';
+    final icon = isNight ? Icons.nights_stay : Icons.wb_sunny;
 
-  // Si el theme no define iconTheme.color, damos un fallback
-  final color = AdaptiveTheme.of(context).theme.iconTheme.color
-                ?? Theme.of(context).iconTheme.color
-                ?? Colors.white;
+    // Si el theme no define iconTheme.color, damos un fallback
+    final color = AdaptiveTheme.of(context).theme.iconTheme.color ??
+        Theme.of(context).iconTheme.color ??
+        Colors.white;
 
-  final label =
-      '${isNight ? 'PERIODO NOCTURNO' : 'PERIODO DIURNO'} - ${widget.sensor.name.toUpperCase()}';
+    final label =
+        '${isNight ? 'PERIODO NOCTURNO' : 'PERIODO DIURNO'} - ${widget.sensor.name.toUpperCase()}';
 
-  return Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 20, color: color),
-      const SizedBox(width: 4),
-      Text(
-        label,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: color,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 20, color: color),
+        const SizedBox(width: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: color,
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   @override
   void initState() {
@@ -144,16 +144,25 @@ Widget _buildPeriodLabel(BuildContext context) {
 
     return Column(
       children: [
-        Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-          _buildPeriodLabel(context),
-          const Spacer(),
-          Positioned(
-            top: 4,
-            right: 4,
-            child:
+        Stack(
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildPeriodLabel(context),
+                const Spacer(),
                 _TransformationButtons(controller: _transformationController),
-          ),
-        ]),
+              ],
+            ),
+            // si de verdad lo quieres en la esquina:
+            Positioned(
+              top: 4,
+              right: 4,
+              child:
+                  _TransformationButtons(controller: _transformationController),
+            ),
+          ],
+        ),
         const SizedBox(height: 16),
         SizedBox(
           height: 200,

@@ -35,7 +35,6 @@ class ChartRangesState extends State<ChartRanges> {
     final label =
         '${isNight ? 'PERIODO NOCTURNO' : 'PERIODO DIURNO'} - ${widget.sensor.name.toUpperCase()}';
     final color = AdaptiveTheme.of(context).theme.iconTheme.color;
-
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -107,6 +106,7 @@ class ChartRangesState extends State<ChartRanges> {
       if (maxEntries.isNotEmpty)
         LineChartBarData(
           spots: maxEntries
+              .where((e) => datePositions.containsKey(e.date))
               .map((e) => FlSpot(datePositions[e.date]!, e.value))
               .toList(),
           isCurved: false,

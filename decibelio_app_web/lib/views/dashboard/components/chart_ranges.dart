@@ -154,13 +154,6 @@ class ChartRangesState extends State<ChartRanges> {
                 _TransformationButtons(controller: _transformationController),
               ],
             ),
-            // si de verdad lo quieres en la esquina:
-            Positioned(
-              top: 4,
-              right: 4,
-              child:
-                  _TransformationButtons(controller: _transformationController),
-            ),
           ],
         ),
         const SizedBox(height: 16),

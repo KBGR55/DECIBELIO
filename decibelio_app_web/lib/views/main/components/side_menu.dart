@@ -158,8 +158,25 @@ class _SideMenuState extends State<SideMenu> {
                           _user = null;
                         });
                       },
+                       style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(5),
+                          side: const BorderSide(width: 1),
+                        ),
+                        backgroundColor: AdaptiveTheme.of(context)
+                            .theme
+                            .buttonTheme
+                            .colorScheme
+                            ?.primary,
+                        foregroundColor: AdaptiveTheme.of(context)
+                            .theme
+                            .buttonTheme
+                            .colorScheme
+                            ?.onPrimary,
+                      ),
                       child: const Text(
                         "Cerrar sesión",
+
                         style: TextStyle(fontSize: 12),
                       ),
                     ),

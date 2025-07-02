@@ -311,10 +311,23 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                         IconButton(
                           icon: const Icon(Icons.add),
                           onPressed: _zoomIn,
+                          style: ElevatedButton.styleFrom(
+                            foregroundColor: AdaptiveTheme.of(context)
+                                .theme
+                                .buttonTheme
+                                .colorScheme?.primary,
+                          ),
                         ),
+                        const SizedBox(height: 8),
                         IconButton(
                           icon: const Icon(Icons.remove),
                           onPressed: _zoomOut,
+                           style: ElevatedButton.styleFrom(
+                            foregroundColor: AdaptiveTheme.of(context)
+                                .theme
+                                .buttonTheme
+                                .colorScheme?.primary,
+                          ),
                         ),
                       ],
                     ),

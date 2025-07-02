@@ -158,9 +158,6 @@ class _SoundChartView extends State<SoundChartView> {
           }
         } else {
           logger.e('Error del servidor: ${respuesta.message}');
-          if (!mounted) return;
-          DialogUtils.showErrorDialog(
-              context, 'Error al obtener datos: ${respuesta.message}');
         }
       } else {
         // Modo Rango de Fechas
@@ -863,7 +860,6 @@ class _SoundChartView extends State<SoundChartView> {
                                       child: Text(
                                         time,
                                         style: const TextStyle(
-                                          color: Colors.green,
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
                                         ),

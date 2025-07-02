@@ -175,9 +175,7 @@ class _SideMenuState extends State<SideMenu> {
                             ?.onPrimary,
                       ),
                       child: const Text(
-                        "Cerrar sesión",
-
-                        style: TextStyle(fontSize: 12),
+                        "Cerrar sesión",style: TextStyle(fontSize: 12),
                       ),
                     ),
                   ],

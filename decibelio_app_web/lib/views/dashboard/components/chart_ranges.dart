@@ -219,7 +219,6 @@ class ChartRangesState extends State<ChartRanges> {
                                       DateFormat('yyyy/MM/dd')
                                           .format(DateTime.parse(date)),
                                       style: const TextStyle(
-                                        color: Colors.green,
                                         fontSize: 10,
                                         fontWeight: FontWeight.bold,
                                       ),

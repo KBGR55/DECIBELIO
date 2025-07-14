@@ -44,7 +44,6 @@ jobs:
       - name: Run OWASP Dependency-Check
         run: |
           cd decibelio
-          # Download and run OWASP Dependency-Check
           curl -sSL https://github.com/jeremylong/DependencyCheck/releases/latest/download/dependency-check-8.3.1-release.zip -o dependency-check.zip
           unzip dependency-check.zip
           ./dependency-check/bin/dependency-check.sh --project "decibelio" --scan . --format HTML --out ../dependency-check-report.html
@@ -68,11 +67,11 @@ jobs:
           cd decibelio
           mvn checkstyle:checkstyle
 
-      # Semgrep analysis (correct syntax)
+      # Semgrep analysis
       - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
 
-      # CodeQL analysis (correct syntax)
+      # CodeQL analysis
       - name: Initialize CodeQL
         if: github.event_name != 'pull_request'
         uses: github/codeql-action/init@v2
@@ -83,10 +82,10 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: github/codeql-action/analyze@v2
 
-      # Artifacts upload for reports
+      # Artifacts upload for reports (updated to v4)
       - name: Upload reports
         if: always()
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: sca-reports
           path: |
@@ -95,3 +94,4 @@ jobs:
             pmd-report.xml
             decibelio/target/checkstyle-result.xml
             dependency-check-report.html
+          retention-days: 5

@@ -25,7 +25,8 @@ class SensorDetailsState extends State<SensorDetails> {
   List<SensorDTO> _sensors = [];
   bool _isLoading = true;
 
-  Timer? _pollingTimer; // <– Campo para el Timer periódico
+  Timer? _pollingTimer; 
+  final ScrollController horizontalController = ScrollController();
 
   @override
   void initState() {
@@ -126,7 +127,15 @@ class SensorDetailsState extends State<SensorDetails> {
                         // Para cada métrica, buscamos el sensor asociado
                         SensorDTO? sensor =
                             findSensor(metric.sensorExternalId.toString());
-                        return Column(
+                        return 
+                           Scrollbar(
+                              controller: horizontalController,
+                              thumbVisibility: true,
+                              trackVisibility: true,
+                              thickness: 8,
+                              radius: const Radius.circular(4),
+                              child:
+                        Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             if (sensor != null) ...[
@@ -138,8 +147,6 @@ class SensorDetailsState extends State<SensorDetails> {
                                     child: Text(
                                       'Fecha: ${metric.date ?? 'No disponible'} a las ${metric.quantity.time ?? 'No disponible'}',
                                       style: const TextStyle(fontSize: 16),
-                                      overflow: TextOverflow
-                                          .ellipsis, // Evita que el texto se desborde
                                     ),
                                   ),
                                 ],
@@ -255,7 +262,8 @@ class SensorDetailsState extends State<SensorDetails> {
                               const SizedBox(height: 8),
                             ],
                           ],
-                        );
+                        ),);
+                        
                       }).toList(),
                     ),
         ],

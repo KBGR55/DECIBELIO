@@ -2,6 +2,7 @@ import 'package:adaptive_theme/adaptive_theme.dart';
 import 'package:decibelio_app_web/controllers/menu_app_controller.dart';
 import 'package:decibelio_app_web/responsive.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
 
 
@@ -78,10 +79,10 @@ class ProfileCard extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center, 
       children: [
         // Favicon siempre
-        Image.asset(
+        SvgPicture.asset(
           esTemaOscuro
-            ? 'assets/logos/favicon-oscuro.png'
-            : 'assets/logos/favicon.png',
+            ? 'assets/logos/logo_oscuro.svg'
+            : 'assets/logos/logo_claro.svg',
           height: faviconH, fit: BoxFit.contain,
         ),
         const SizedBox(width: 10),

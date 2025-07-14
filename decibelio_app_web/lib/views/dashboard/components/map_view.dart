@@ -4,11 +4,17 @@ import 'package:flutter/material.dart';
 
 import '../../../constants.dart';
 
-class MapView extends StatelessWidget {
-
+class MapView extends StatefulWidget {
   const MapView({
     super.key,
   });
+
+  @override
+  State<MapView> createState() => _MapViewState();
+}
+
+class _MapViewState extends State<MapView> {
+  bool _isExpanded = true; 
 
   @override
   Widget build(BuildContext context) {
@@ -29,19 +35,40 @@ class MapView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "Mapa",
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
+          InkWell(
+            onTap: () {
+              setState(() {
+                _isExpanded = !_isExpanded;
+              });
+            },
+            child: Row(
+              children: [
+                const Text(
+                  "Mapa",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  _isExpanded ? Icons.expand_less : Icons.expand_more,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  _isExpanded ? 'Ocultar Mapa' : 'Mostrar Mapa',
+                ),
+              ],
             ),
           ),
-          //SizedBox(height: defaultPadding),
-          SizedBox(
-            width: 1025.0,
-            height: 600.0,
-            child: AnimatedMapControllerPage(),
-          )
+          if (_isExpanded) ...[
+            const SizedBox(height: defaultPadding),
+            SizedBox(
+              width: 1025.0,
+              height: 600.0,
+              child: AnimatedMapControllerPage(),
+            ),
+          ],
         ],
       ),
     );

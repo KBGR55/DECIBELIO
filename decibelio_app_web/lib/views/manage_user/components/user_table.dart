@@ -1,6 +1,6 @@
 // lib/views/manage_user/components/user_table.dart
 
-import 'dart:convert'; // Necesario para jsonDecode
+import 'dart:convert'; 
 import 'package:decibelio_app_web/models/role_dto.dart';
 import 'package:decibelio_app_web/utils/show_dialog.dart';
 import 'package:flutter/material.dart';
@@ -133,8 +133,10 @@ class _UserTableState extends State<UserTable> {
 
     // 2) Mostrar diálogo con Dropdown para seleccionar un rol
     int? selectedRoleId;
+    // ignore: unused_local_variable
     String? selectedRoleType;
     await showDialog<void>(
+      // ignore: use_build_context_synchronously
       context: context,
       builder: (context) {
         return StatefulBuilder(
@@ -183,11 +185,13 @@ class _UserTableState extends State<UserTable> {
                                 .solicitudPut(path, {}, Conexion.noToken);
 
                            if (!mounted) return;
+                            // ignore: use_build_context_synchronously
                             DialogUtils.showSuccessDialog(context, respAssign.message, title: 'Asignar Rol');
                            _loadUserList(); // refrescar tabla
                           } catch (e) {
                             debugPrint('Error al asignar rol: $e');
                             if (!mounted) return;
+                            // ignore: use_build_context_synchronously
                             DialogUtils.showErrorDialog(context, 'No se pudo asignar el rol: $e',);
                           }
                         },

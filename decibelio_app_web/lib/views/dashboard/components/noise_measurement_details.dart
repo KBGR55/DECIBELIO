@@ -192,7 +192,7 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                             message: ChromaticNoise.getTooltipMessage(
                                                 measurement.maxValue),
                                             child: Text(measurement.maxValue
-                                                .toStringAsFixed(3)),
+                                                .toStringAsFixed(3),  style: const TextStyle(color: Color(0xFF182B5C), fontWeight: FontWeight.bold),),
                                           ),
                                         )),
                                         DataCell(Container(
@@ -202,7 +202,7 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                             message: ChromaticNoise.getTooltipMessage(
                                                 measurement.minValue),
                                             child: Text(measurement.minValue
-                                                .toStringAsFixed(3)),
+                                                .toStringAsFixed(3),  style: const TextStyle(color: Color(0xFF182B5C), fontWeight: FontWeight.bold),),
                                           ),
                                         )),
                                         DataCell(Container(
@@ -211,7 +211,7 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                           child: Tooltip(
                                             message: ChromaticNoise.getTooltipMessage(measurement.avgValue),
                                             child: Text(measurement.avgValue
-                                                .toStringAsFixed(3)),
+                                                .toStringAsFixed(3),  style: const TextStyle(color: Color(0xFF182B5C), fontWeight: FontWeight.bold),),
                                           ),
                                         )),
                                       ]),
@@ -219,9 +219,9 @@ class NoiseMeasurementDetailsState extends State<NoiseMeasurementDetails> {
                                       DataRow(cells: [
                                         const DataCell(Text("")),
                                         DataCell(Text(
-                                            measurement.maxTime.toString())),
+                                            measurement.maxTime.toString(),  style: const TextStyle(color: Color(0xFF182B5C), fontWeight: FontWeight.bold),)),
                                         DataCell(Text(
-                                            measurement.minTime.toString())),
+                                            measurement.minTime.toString(),  style: const TextStyle(color: Color(0xFF182B5C), fontWeight: FontWeight.bold),)),
                                         const DataCell(Text("")),
                                       ]),
                                     ];

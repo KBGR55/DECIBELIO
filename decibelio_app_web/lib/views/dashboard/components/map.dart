@@ -148,7 +148,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                                       child: Text(
                                         '${value ?? 'No disponible'} dB',
                                         style: const TextStyle(
-                                          color: Colors.white,
+                                          color: Color(0xFF182B5C),
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
@@ -272,6 +272,7 @@ class AnimatedMapControllerPageState extends State<AnimatedMapControllerPage>
                       child: Text(
                         'Universidad Nacional de Loja',
                         style: TextStyle(
+                          overflow: TextOverflow.ellipsis,
                           color: AdaptiveTheme.of(context)
                               .theme
                               .primaryTextTheme

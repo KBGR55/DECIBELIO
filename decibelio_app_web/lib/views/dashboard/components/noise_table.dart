@@ -110,7 +110,10 @@ class NoiseTable extends StatelessWidget {
       DataCell(Container(
         padding: const EdgeInsets.all(8.0),
         color: rowColor, // Aplicar el color correspondiente
-        child: _buildCellWithTooltip(nivel),
+      child:  DefaultTextStyle(
+          style: const TextStyle(color: Color(0xFF182B5C), fontWeight: FontWeight.bold),
+          child: _buildCellWithTooltip(nivel),
+        ),
       )),
       DataCell(_buildCellWithTooltip(apreciacion)),
       DataCell(_buildCellWithTooltip(ejemplos)),

@@ -9,7 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: ["ubuntu-22.04"]  # Cambiado de ubuntu-20.04 a ubuntu-22.04
+        os: ["ubuntu-22.04"]
         manifest_file: ["pom.xml"]
     runs-on: ${{ matrix.os }}
     defaults:
@@ -37,30 +37,61 @@ jobs:
       - name: Run Static Code Analysis (SCA)
         id: scan_java
         run: |
-          cd decibelio  # Navegar al directorio con el archivo pom.xml
+          cd decibelio
           mvn clean install
 
-      - name: Print JSON analysis report
-        if: ${{ always() && steps.scan_java.outputs.crda_report_json }}
-        run: cat ${{ steps.scan_java.outputs.crda_report_json }}
+      # OWASP Dependency Check
+      - name: Run OWASP Dependency-Check
+        run: |
+          cd decibelio
+          # Download and run OWASP Dependency-Check
+          curl -sSL https://github.com/jeremylong/DependencyCheck/releases/latest/download/dependency-check-8.3.1-release.zip -o dependency-check.zip
+          unzip dependency-check.zip
+          ./dependency-check/bin/dependency-check.sh --project "decibelio" --scan . --format HTML --out ../dependency-check-report.html
+        continue-on-error: true
 
-      - name: Print SARIF analysis report
-        if: ${{ always() && steps.scan_java.outputs.crda_report_sarif }}
-        run: cat ${{ steps.scan_java.outputs.crda_report_sarif }}
-
-      - name: Print Report Link
-        run: echo ${{ steps.scan_java.outputs.report_link }}
-
-      - name: Print Artifact Name
-        run: echo ${{ steps.scan_java.outputs.artifact_name }}
-
-      # Análisis estático
+      # Static analysis tools
       - name: Run SpotBugs
-        run: mvn spotbugs:spotbugs
+        run: |
+          cd decibelio
+          mvn spotbugs:spotbugs
+          mvn spotbugs:spotbugs -Dspotbugs.outputFileType=html
 
       - name: Run PMD
-        run: mvn pmd:pmd
+        run: |
+          cd decibelio
+          mvn pmd:pmd
+          cp target/pmd.xml ../pmd-report.xml || echo "PMD report not found"
 
-      # Análisis multi-lenguaje (útil si hay frontend)
-      - name: Semgrep Scan
-        uses: returntocorp/semgrep-action@
+      - name: Run Checkstyle
+        run: |
+          cd decibelio
+          mvn checkstyle:checkstyle
+
+      # Semgrep analysis (correct syntax)
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+
+      # CodeQL analysis (correct syntax)
+      - name: Initialize CodeQL
+        if: github.event_name != 'pull_request'
+        uses: github/codeql-action/init@v2
+        with:
+          languages: java
+
+      - name: Perform CodeQL Analysis
+        if: github.event_name != 'pull_request'
+        uses: github/codeql-action/analyze@v2
+
+      # Artifacts upload for reports
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: sca-reports
+          path: |
+            decibelio/target/spotbugs.html
+            decibelio/target/site/spotbugs.html
+            pmd-report.xml
+            decibelio/target/checkstyle-result.xml
+            dependency-check-report.html

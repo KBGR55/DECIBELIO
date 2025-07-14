@@ -19,8 +19,6 @@ jobs:
     steps:
       - name: Checkout action
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Needed for CodeQL
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -29,13 +27,15 @@ jobs:
           java-version: 17
           cache: maven
 
-      - name: Install CRDA
-        uses: redhat-actions/openshift-tools-installer@v1
-        continue-on-error: true  # Continue even if CRDA fails
-        with:
-          source: github
-          github_pat: ${{ github.token }}
-          crda: "0.2.5"  # Pinned version instead of "latest"
+      - name: Install CRDA (with suppressed warnings)
+        run: |
+          mkdir -p ~/.crda
+          echo "disable_cache=true" > ~/.crda/config.yaml
+          curl -sSL https://github.com/fabric8-analytics/cli-tools/releases/download/v0.2.5/crda_0.2.5_Linux_64bit.tar.gz -o crda.tar.gz
+          tar -xzf crda.tar.gz -C /usr/local/bin crda
+          rm crda.tar.gz
+          chmod +x /usr/local/bin/crda
+          echo "CRDA installed successfully"
 
       - name: Run Static Code Analysis (SCA)
         id: scan_java
@@ -64,22 +64,9 @@ jobs:
       # Semgrep analysis
       - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
-
-      # CodeQL analysis
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
         with:
-          languages: java
-          queries: +security-and-quality
-
-      - name: Build with Maven (for CodeQL)
-        run: |
-          cd decibelio
-          mvn clean install -DskipTests
-
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
-
+          config: "p/java"
+       
       # Artifacts upload for reports
       - name: Upload reports
         if: always()

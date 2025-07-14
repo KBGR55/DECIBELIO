@@ -4,7 +4,6 @@ import 'package:decibelio_app_web/services/conexion.dart';
 import 'package:decibelio_app_web/utils/show_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:flutter_map_cancellable_tile_provider/flutter_map_cancellable_tile_provider.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:geolocator/geolocator.dart';
@@ -337,8 +336,7 @@ class SensorCreateControllerPageState
                                       'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                                   userAgentPackageName:
                                       'dev.fleaflet.flutter_map.example',
-                                  tileProvider:
-                                      CancellableNetworkTileProvider(),
+                                  tileProvider:NetworkTileProvider(),
                                 ),
                                 MarkerLayer(
                                   markers: [

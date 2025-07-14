@@ -745,8 +745,8 @@ class _SoundChartView extends State<SoundChartView> {
                           ],
                           lineTouchData: LineTouchData(
                             touchSpotThreshold: 5,
-                            getTouchLineStart: (_, __) => -double.infinity,
-                            getTouchLineEnd: (_, __) => double.infinity,
+                            getTouchLineStart: (_, _) => -double.infinity,
+                            getTouchLineEnd: (_, _) => double.infinity,
                             getTouchedSpotIndicator: (
                               LineChartBarData barData,
                               List<int> spotIndexes,

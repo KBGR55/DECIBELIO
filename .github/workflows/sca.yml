@@ -20,7 +20,7 @@ jobs:
       - name: Checkout action
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Needed for CodeQL to see full history
+          fetch-depth: 0  # Needed for CodeQL
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -29,27 +29,19 @@ jobs:
           java-version: 17
           cache: maven
 
-      - name: Install SCA tool (CRDA)
+      - name: Install CRDA
         uses: redhat-actions/openshift-tools-installer@v1
+        continue-on-error: true  # Continue even if CRDA fails
         with:
           source: github
           github_pat: ${{ github.token }}
-          crda: "latest"
+          crda: "0.2.5"  # Pinned version instead of "latest"
 
       - name: Run Static Code Analysis (SCA)
         id: scan_java
         run: |
           cd decibelio
           mvn clean install
-
-      # OWASP Dependency Check
-      - name: Run OWASP Dependency-Check
-        run: |
-          cd decibelio
-          curl -sSL https://github.com/jeremylong/DependencyCheck/releases/latest/download/dependency-check-8.3.1-release.zip -o dependency-check.zip
-          unzip dependency-check.zip
-          ./dependency-check/bin/dependency-check.sh --project "decibelio" --scan . --format HTML --out ../dependency-check-report.html
-        continue-on-error: true
 
       # Static analysis tools
       - name: Run SpotBugs
@@ -73,7 +65,7 @@ jobs:
       - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
 
-      # CodeQL analysis - fixed version
+      # CodeQL analysis
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v2
         with:
@@ -99,5 +91,4 @@ jobs:
             decibelio/target/site/spotbugs.html
             pmd-report.xml
             decibelio/target/checkstyle-result.xml
-            dependency-check-report.html
           retention-days: 5

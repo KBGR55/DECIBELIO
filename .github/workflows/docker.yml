@@ -1,69 +1,114 @@
-name: 06 Build docker image
+name: 06 Build and Deploy Docker Image
 
 on:
-    workflow_dispatch:
-    workflow_call:
-        outputs:
-            image-tag:
-                description: "The tag of my image test"
-                value: ${{ jobs.docker.outputs.image-tag }}
+  workflow_dispatch:
+  workflow_call:
+    outputs:
+      image-tag:
+        description: "The tag of the built Docker image"
+        value: ${{ jobs.docker.outputs.image-tag }}
 
 env:
-    REGISTRY: ghcr.io
-    IMAGE_NAME: ${{ github.repository }}
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  POSTGRES_VERSION: 16.3-alpine
+  DB_PORT_PUBLIC: 5433
+  POSTGRES_DB: decibelio
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: admin@987
+  PGADMIN_DEFAULT_EMAIL: adminDB@unl.edu.ec
+  PGADMIN_DEFAULT_PASSWORD: admin123
 
 jobs:
-    docker:
-        outputs:
-            image-tag: ${{ steps.meta.outputs.tags }}
-        runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            packages: write
-        
-        steps:
-        - uses: actions/checkout@v3
-        - name: Download application binary
-          uses: actions/download-artifact@v4
-          with:
-            name: Application-Binary
-            path: target
-        - name: Log in to the Container registry
-          uses: docker/login-action@v2.1.0
-          with:
-            registry: ${{ env.REGISTRY }}
-            username: ${{ github.actor }}
-            password: ${{ secrets.GITHUB_TOKEN }}
-        - name: Extract metadata (tags, labels) for Docker
-          id: meta
-          uses: docker/metadata-action@v4.1.0
-          with:
-            images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-            tags: |
-              type=semver,pattern={{version}}
-              type=semver,pattern={{major}}.{{minor}}
-              type=semver,pattern={{major}}
-              type=ref,event=pr
-              type=ref,event=tag
-              type=ref,event=branch
-              type=schedule,pattern=main
-        - name: Build project
-          run: |
-            cd decibelio
-            ./mvnw clean install
-            ./mvnw liberty:package
-        - name: Build and push Docker image
-          uses: docker/build-push-action@v3.2.0
-          with:
-            context: ./decibelio
-            file: ./decibelio/Dockerfile
-            push: true
-            tags: ${{ steps.meta.outputs.tags }}
-            labels: ${{ steps.meta.outputs.labels }}
-            build-args: |
-             DRIVER_JDBC_DIR=/config/
-             DB_SERVER_NAME=decibelio-db
-             DB_PORT_NUMBER=5432
-             DB_NAME=decibeliodb
-             DB_USER=postgres
-             DB_PASSWORD=admin@987
+  docker:
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build application
+        run: |
+          cd decibelio
+          ./mvnw clean package
+          mkdir -p target/lib
+          # Add any additional build steps here
+
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=sha
+            type=ref,event=branch
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./decibelio
+          file: ./decibelio/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            DRIVER_JDBC_DIR=target/lib/
+            DB_SERVER_NAME=decibelio-db
+            DB_PORT_NUMBER=${{ env.DB_PORT_PUBLIC }}
+            DB_NAME=${{ env.POSTGRES_DB }}
+            DB_USER=${{ env.POSTGRES_USER }}
+            DB_PASSWORD=${{ env.POSTGRES_PASSWORD }}
+
+  deploy:
+    needs: docker
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Stop and remove existing containers
+        run: |
+          docker compose stop || true
+          docker rm -f decibelio-api-container || true
+          docker rmi decibelio-api:latest || true
+          docker stop decibelio-db-container || true
+
+      - name: Create local data directory
+        run: |
+          mkdir -p /home/runner/opt/docker-pgdata/decibelio
+
+      - name: Deploy with docker-compose
+        run: |
+          echo "POSTGRES_VERSION=${{ env.POSTGRES_VERSION }}" > .env
+          echo "DB_PORT_PUBLIC=${{ env.DB_PORT_PUBLIC }}" >> .env
+          echo "LOCAL_DATA_DIR_BD=/home/runner/opt/docker-pgdata/decibelio" >> .env
+          echo "POSTGRES_DB=${{ env.POSTGRES_DB }}" >> .env
+          echo "POSTGRES_USER=${{ env.POSTGRES_USER }}" >> .env
+          echo "POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}" >> .env
+          echo "PGADMIN_DEFAULT_EMAIL=${{ env.PGADMIN_DEFAULT_EMAIL }}" >> .env
+          echo "PGADMIN_DEFAULT_PASSWORD=${{ env.PGADMIN_DEFAULT_PASSWORD }}" >> .env
+          
+          docker compose --env-file .env -f docker-compose.yml up -d --remove-orphans
+
+      - name: Verify deployment
+        run: |
+          docker ps
+          docker logs decibelio-api-container

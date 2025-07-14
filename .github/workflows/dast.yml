@@ -4,103 +4,84 @@ on:
   workflow_dispatch:
     inputs:
       image-tag:
-        type: string
-        description: 'The name of the docker image to scan'
+        description: 'The Docker image to scan'
         required: true
+        type: string
 
   workflow_call:
     inputs:
       image-tag:
-        type: string
-        description: 'The name of the docker image to scan'
+        description: 'The Docker image to scan'
         required: true
+        type: string
 
 env:
   REGISTRY: ghcr.io
   APP_PORT: 9080
   IMAGE_TAG: ${{ inputs.image-tag }}
+  ZAP_PORT: 8080
 
 jobs:
   dast-scan:
     runs-on: ubuntu-latest
+    container: 
+      image: ghcr.io/zaproxy/zaproxy:stable
+      options: --network host
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2.1.0
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and run container
-        run: |
-          docker rm demoApp || true
-          echo "Starting container with image $IMAGE_TAG..."
-          docker run -d -p $APP_PORT:$APP_PORT --name demoApp $IMAGE_TAG
+      - name: Pull target image
+        run: docker pull ${{ env.IMAGE_TAG }}
 
-      - name: Wait for container to be ready
+      - name: Run target container
         run: |
-          echo "Waiting for container to be ready on port ${{ env.APP_PORT }}..."
-          timeout 1200 bash -c 'while [[ "$(curl -s -o /dev/null -w "%{http_code}" http://localhost:${{ env.APP_PORT }})" != "200" ]]; do 
-            echo "Waiting..."; 
-            sleep 5; 
-          done' || { 
-            echo "Container not ready after 1200 seconds.";
-            docker logs demoApp;
-            exit 1; 
-          }
+          docker rm -f demoApp || true
+          docker run -d \
+            -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} \
+            --name demoApp \
+            ${{ env.IMAGE_TAG }}
 
-      - name: Test application health
+      - name: Wait for application
         run: |
-          echo "Testing application health..."
-          curl -v http://localhost:${{ env.APP_PORT }}/health || {
-            echo "Health check failed. Dumping container logs...";
-            docker logs demoApp;
-            exit 1;
-          }
+          echo "Waiting for app on port ${{ env.APP_PORT }}..."
+          for i in {1..30}; do
+            if curl -sSf http://localhost:${{ env.APP_PORT }}/health >/dev/null; then
+              echo "Application ready"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Application not ready after 150 seconds"
+          docker logs demoApp
+          exit 1
 
-      - name: Create shared Docker network
+      - name: Run ZAP scan
         run: |
-          docker network create zap-network || true
-          docker network connect zap-network demoApp
+          zap-full-scan.py \
+            -t http://localhost:${{ env.APP_PORT }} \
+            -r zap_report.html \
+            -x zap_report.xml \
+            -I
 
-      - name: Run OWASP ZAP scan
-        run: |
-              echo "Running OWASP ZAP scan..."
-              docker run --rm --network zap-network -v $(pwd):/zap/wrk/:rw ghcr.io/zaproxy/zaproxy:stable zap-full-scan.py \
-                -t http://localhost:${{ env.APP_PORT }} \
-                -r /zap/wrk/zap_report.html -d
-  
-        
-
-      - name: Find ZAP report
-        run: |
-          echo "Searching for ZAP report..."
-          REPORT_PATH=$(find . -name 'zap_report.html' | head -n 1)
-          if [ -n "$REPORT_PATH" ]; then
-            echo "ZAP report found at $REPORT_PATH. Moving to working directory..."
-            mv "$REPORT_PATH" ./zap_report.html
-          else
-            echo "ERROR: ZAP report was not generated!"
-            exit 1
-          fi
-
-      - name: Upload ZAP report
+      - name: Upload ZAP reports
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
-          path: ./zap_report.html
+          name: zap-reports
+          path: |
+            zap_report.html
+            zap_report.xml
+          retention-days: 7
 
-      - name: Cleanup Docker
+      - name: Cleanup
         run: |
-          docker stop demoApp || true
-          docker rm demoApp || true
-          docker container prune --force
-          docker image prune --force
-
-      - name: Logout from Docker Registry
-        run: |
+          docker rm -f demoApp || true
           docker logout ghcr.io

@@ -53,31 +53,14 @@ jobs:
 
       - name: Print Artifact Name
         run: echo ${{ steps.scan_java.outputs.artifact_name }}
-        
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.projectKey=KBGR55_DECIBELIO
-            -Dsonar.organization=kbgr55
-            -Dsonar.projectName=DECIBELIO
-            -Dsonar.projectVersion=1.0
-            -Dsonar.sources=.
-            -Dsonar.sourceEncoding=UTF-8
-            -Dsonar.coverage.exclusions=**/* 
-            -Dsonar.java.binaries=decibelio/target/classes
-            -Dsonar.c.file.suffixes=-
-            -Dsonar.cpp.file.suffixes=-
-            -Dsonar.objc.file.suffixes=-
 
-      - name: Check if `.scannerwork` directory exists
-        run: |
-          if [ -d ".scannerwork" ]; then
-            echo "SonarQube analysis successful."
-          else
-            echo "ERROR: .scannerwork directory not found. SonarQube analysis might have failed."
-            exit 1
-          fi
+      # Análisis estático
+      - name: Run SpotBugs
+        run: mvn spotbugs:spotbugs
+
+      - name: Run PMD
+        run: mvn pmd:pmd
+
+      # Análisis multi-lenguaje (útil si hay frontend)
+      - name: Semgrep Scan
+        uses: returntocorp/semgrep-action@

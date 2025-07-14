@@ -1,4 +1,4 @@
-name: 06 Build and Deploy Docker Image
+name: 06 Build and Deploy Docker Stack
 
 on:
   workflow_dispatch:
@@ -6,21 +6,22 @@ on:
     outputs:
       image-tag:
         description: "The tag of the built Docker image"
-        value: ${{ jobs.docker.outputs.image-tag }}
+        value: ${{ jobs.build.outputs.image-tag }}
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
   POSTGRES_VERSION: 16.3-alpine
   DB_PORT_PUBLIC: 5433
-  POSTGRES_DB: decibelio
+  POSTGRES_DB: decibeliodb
   POSTGRES_USER: postgres
   POSTGRES_PASSWORD: admin@987
-  PGADMIN_DEFAULT_EMAIL: adminDB@unl.edu.ec
-  PGADMIN_DEFAULT_PASSWORD: admin123
+  LOCAL_DATA_DIR_BD: /home/runner/opt/docker-pgdata/decibelio
+  LOCAL_LOGS_DIR_API: /home/runner/opt/logs/decibelio-api
+  DRIVER_JDBC_DIR: target/lib
 
 jobs:
-  docker:
+  build:
     outputs:
       image-tag: ${{ steps.meta.outputs.tags }}
     runs-on: ubuntu-latest
@@ -41,9 +42,10 @@ jobs:
       - name: Build application
         run: |
           cd decibelio
-          ./mvnw clean package
+          ./mvnw clean package liberty:package
           mkdir -p target/lib
-          # Add any additional build steps here
+          # Copy JDBC driver if needed
+          # cp path/to/postgresql.jar target/lib/
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -61,7 +63,7 @@ jobs:
             type=sha
             type=ref,event=branch
 
-      - name: Build and push Docker image
+      - name: Build and push API image
         uses: docker/build-push-action@v4
         with:
           context: ./decibelio
@@ -70,45 +72,53 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            DRIVER_JDBC_DIR=target/lib/
+            DRIVER_JDBC_DIR=${{ env.DRIVER_JDBC_DIR }}
             DB_SERVER_NAME=decibelio-db
-            DB_PORT_NUMBER=${{ env.DB_PORT_PUBLIC }}
+            DB_PORT_NUMBER=5432
             DB_NAME=${{ env.POSTGRES_DB }}
             DB_USER=${{ env.POSTGRES_USER }}
             DB_PASSWORD=${{ env.POSTGRES_PASSWORD }}
 
   deploy:
-    needs: docker
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Stop and remove existing containers
+      - name: Verify docker-compose exists
         run: |
-          docker compose stop || true
-          docker rm -f decibelio-api-container || true
-          docker rmi decibelio-api:latest || true
-          docker stop decibelio-db-container || true
+          cd decibelio-deploy
+          if [ ! -f "docker-compose.yml" ]; then
+            echo "ERROR: docker-compose.yml not found in decibelio-deploy directory!"
+            ls -la
+            exit 1
+          fi
 
-      - name: Create local data directory
+      - name: Set up Docker Compose
         run: |
-          mkdir -p /home/runner/opt/docker-pgdata/decibelio
+          mkdir -p ${{ env.LOCAL_DATA_DIR_BD }}
+          mkdir -p ${{ env.LOCAL_LOGS_DIR_API }}
+          chmod -R 777 ${{ env.LOCAL_DATA_DIR_BD }}
+          chmod -R 777 ${{ env.LOCAL_LOGS_DIR_API }}
 
-      - name: Deploy with docker-compose
+      - name: Deploy stack
+        working-directory: ./decibelio-deploy
         run: |
           echo "POSTGRES_VERSION=${{ env.POSTGRES_VERSION }}" > .env
           echo "DB_PORT_PUBLIC=${{ env.DB_PORT_PUBLIC }}" >> .env
-          echo "LOCAL_DATA_DIR_BD=/home/runner/opt/docker-pgdata/decibelio" >> .env
+          echo "LOCAL_DATA_DIR_BD=${{ env.LOCAL_DATA_DIR_BD }}" >> .env
           echo "POSTGRES_DB=${{ env.POSTGRES_DB }}" >> .env
           echo "POSTGRES_USER=${{ env.POSTGRES_USER }}" >> .env
           echo "POSTGRES_PASSWORD=${{ env.POSTGRES_PASSWORD }}" >> .env
-          echo "PGADMIN_DEFAULT_EMAIL=${{ env.PGADMIN_DEFAULT_EMAIL }}" >> .env
-          echo "PGADMIN_DEFAULT_PASSWORD=${{ env.PGADMIN_DEFAULT_PASSWORD }}" >> .env
+          echo "DRIVER_JDBC_DIR=${{ env.DRIVER_JDBC_DIR }}" >> .env
+          echo "LOCAL_LOGS_DIR_API=${{ env.LOCAL_LOGS_DIR_API }}" >> .env
           
-          docker compose --env-file .env -f docker-compose.yml up -d --remove-orphans
+          docker compose down --remove-orphans || true
+          docker compose up -d --build
 
       - name: Verify deployment
         run: |
           docker ps
-          docker logs decibelio-api-container
+          docker logs decibelio-api
+          docker logs decibelio-db

@@ -19,6 +19,8 @@ jobs:
     steps:
       - name: Checkout action
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Needed for CodeQL to see full history
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -53,36 +55,40 @@ jobs:
       - name: Run SpotBugs
         run: |
           cd decibelio
-          mvn spotbugs:spotbugs
-          mvn spotbugs:spotbugs -Dspotbugs.outputFileType=html
+          mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs
+          mvn com.github.spotbugs:spotbugs-maven-plugin:spotbugs -Dspotbugs.outputFileType=html
 
       - name: Run PMD
         run: |
           cd decibelio
-          mvn pmd:pmd
+          mvn org.apache.maven.plugins:maven-pmd-plugin:pmd
           cp target/pmd.xml ../pmd-report.xml || echo "PMD report not found"
 
       - name: Run Checkstyle
         run: |
           cd decibelio
-          mvn checkstyle:checkstyle
+          mvn org.apache.maven.plugins:maven-checkstyle-plugin:checkstyle
 
       # Semgrep analysis
       - name: Run Semgrep
         uses: returntocorp/semgrep-action@v1
 
-      # CodeQL analysis
+      # CodeQL analysis - fixed version
       - name: Initialize CodeQL
-        if: github.event_name != 'pull_request'
         uses: github/codeql-action/init@v2
         with:
           languages: java
+          queries: +security-and-quality
+
+      - name: Build with Maven (for CodeQL)
+        run: |
+          cd decibelio
+          mvn clean install -DskipTests
 
       - name: Perform CodeQL Analysis
-        if: github.event_name != 'pull_request'
         uses: github/codeql-action/analyze@v2
 
-      # Artifacts upload for reports (updated to v4)
+      # Artifacts upload for reports
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4

@@ -191,6 +191,13 @@ class _SideMenuState extends State<SideMenu> {
                 Navigator.pushReplacementNamed(context, '/dashboard');
               },
             ),
+            DrawerListTile(
+              title: "Predicciones",
+              svgSrc: "assets/icons/menu_tran.svg",
+              press: () {
+                Navigator.pushReplacementNamed(context, '/predictions');
+              },
+            ),
 
             // “Administrar Sensores” visible sólo para ADMINISTRADOR
             if (isAdministrador)

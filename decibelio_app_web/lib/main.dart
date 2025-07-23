@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:html' as html;
 import 'package:decibelio_app_web/views/manage_user/user_screen.dart';
+import 'package:decibelio_app_web/views/predictions/predictions_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:decibelio_app_web/services/auth_service.dart';
@@ -15,6 +16,7 @@ import 'package:decibelio_app_web/views/navigation/navigation_bloc.dart';
 import 'package:decibelio_app_web/views/router/app_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +25,7 @@ void main() async {
   // 1) Detectar si existe ?code=... en la URL
   final uri = Uri.parse(html.window.location.href);
   final code = uri.queryParameters['code'];
+  await initializeDateFormatting('es_ES', null); // o 'es' si 'es_ES' no funciona
 
   if (code != null) {
     try {
@@ -76,6 +79,7 @@ class MyApp extends StatelessWidget {
       title: "Manage User",
       color: Colors.cyan,
     ),
+    '/predictions': (context) => const PredictionsScreen(title: "Prediction", color: Colors.white)
   };
 
   @override

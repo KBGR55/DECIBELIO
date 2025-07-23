@@ -63,11 +63,10 @@ class _MapViewState extends State<MapView> {
           ),
           if (_isExpanded) ...[
             const SizedBox(height: defaultPadding),
-            SizedBox(
-              width: 1025.0,
-              height: 600.0,
-              child: AnimatedMapControllerPage(),
-            ),
+          AspectRatio(
+    aspectRatio: 16 / 9,
+    child: AnimatedMapControllerPage(),
+  ),
           ],
         ],
       ),

@@ -1,11 +1,11 @@
 import 'package:decibelio_app_web/responsive.dart';
-import 'package:decibelio_app_web/views/manage_sensor/components/header.dart';
 import 'package:decibelio_app_web/views/manage_sensor/components/search_field.dart';
 import 'package:decibelio_app_web/views/manage_sensor/components/sensor_status.dart';
 import 'package:decibelio_app_web/views/manage_sensor/components/sensor_table.dart';
 import 'package:flutter/material.dart';
 
 import '../../constants.dart';
+import '../dashboard/components/header.dart';
 
 class ManageScreen extends StatefulWidget {
   const ManageScreen({super.key});
@@ -25,7 +25,7 @@ class _ManageScreenState extends State<ManageScreen> {
         padding: const EdgeInsets.all(defaultPadding),
         child: Column(
           children: <Widget>[
-            const Header(),
+            const Header(title:"Administrar Sensores",),
             const SizedBox(height: defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -47,8 +47,6 @@ class _ManageScreenState extends State<ManageScreen> {
                       if (Responsive.isMobile(context))
                         const Column(
                             children: [
-                              //const NoiseLevelTable(),
-                              //const SizedBox(height: 16),
                               SensorChart(),
                             ]
                         )
@@ -63,9 +61,6 @@ class _ManageScreenState extends State<ManageScreen> {
                     flex: 2,
                     child: Column(
                       children: [
-                        //const NoiseLevelTable(),
-                        //const SizedBox(height: 16),
-                        //RecentFiles(),
                         SensorChart(),
                       ],
                     ),

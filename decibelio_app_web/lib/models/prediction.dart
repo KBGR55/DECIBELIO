@@ -1,3 +1,4 @@
+//Author: Joan Riofrio
 class Prediction {
   final DateTime time;  // Tiempo ajustado (+5 minutos)
   final double value;   // Valor predicho

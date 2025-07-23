@@ -23,8 +23,8 @@ class NoiseLevelTable extends StatelessWidget {
         ],
       ),
       child: ExpandableButton(
-        titleExpanded: 'Mostrar menos', // Texto cuando está expandido
-        titleCollapsed: 'Mostrar Niveles de Ruido Permitidos', // Texto cuando está colapsado
+        titleExpanded: 'Mostrar menos',
+        titleCollapsed: 'Mostrar Niveles de Ruido Permitidos',
         expandedContent: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -73,7 +73,9 @@ class NoiseLevelTable extends StatelessWidget {
                   _buildDataRow("Industrial (ID3/ID4)", "70", "65"),
                 ],
               ),
+           
             ),
+          
           ],
         ),
       ),

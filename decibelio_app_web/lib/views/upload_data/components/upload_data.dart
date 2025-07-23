@@ -36,7 +36,7 @@ class SubirDatoState extends State<SubirDatoControllerPage> {
           padding: const EdgeInsets.all(defaultPadding),
           child: Column(
             children: [
-              const Header(),
+              const Header(title: 'Subir Datos',),
               AlertDialog(
                 title: const Text("Ingresar archivo con medidas de sensores"),
                 content: SingleChildScrollView(

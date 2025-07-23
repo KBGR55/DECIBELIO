@@ -1,3 +1,5 @@
+// ignore_for_file: unused_field
+
 import 'dart:async';
 import 'dart:convert';
 import 'package:adaptive_theme/adaptive_theme.dart';
@@ -86,60 +88,6 @@ class _SoundChartPredictionState extends State<SoundChartPrediction> {
     }
     setState(() => _loading = false);
   }
-
-  // ───────── PETICIONES ─────────
-  /**Future<void> _fetchAllPredictions() async {
-    Future<Map<String, dynamic>?> _call(String horizon) async {
-      final int stepsPerDay = switch (horizon) {
-        '30m' => 48,
-        'hour' => 24,
-        '6h' => 4,
-        _ => throw Exception('Horizonte no soportado: $horizon'),
-      };
-
-      final uri = Uri.parse('$apiRecursive/predict_recursive/$horizon?steps=$stepsPerDay');
-      debugPrint('➡️  GET $uri');
-
-      final r = await http.get(uri);
-      debugPrint('⬅️  [$horizon] status ${r.statusCode}');
-      debugPrint('⬅️  [$horizon] body   ${r.body}');
-
-      if (r.statusCode == 200) {
-        return jsonDecode(r.body);
-      } else {
-        return null;
-      }
-    }
-
-    try {
-      final j30 = await _call('30m');
-      final j1h = await _call('hour');
-      final j6h = await _call('6h');
-
-      debugPrint('📊 m30 json: $j30');
-      debugPrint('📊 h1  json: $j1h');
-      debugPrint('📊 h6  json: $j6h');
-
-      if (j30 != null && j1h != null && j6h != null) {
-        final p30 = _mapResponse(j30);
-        final p1  = _mapResponse(j1h);
-        final p6  = _mapResponse(j6h);
-
-        debugPrint('✅ puntos 30m: ${p30.length}  '
-            '1h: ${p1.length}  6h: ${p6.length}');
-
-        setState(() {
-          pred30m = p30;
-          pred1h  = p1;
-          pred6h  = p6;
-        });
-      } else {
-        debugPrint('❌ Alguna de las respuestas no fue 200');
-      }
-    } catch (e) {
-      debugPrint('❗ Excepción al obtener predicciones: $e');
-    }
-  }*/
 
   List<Prediction> _mapResponse(Map<String, dynamic> apiJson) {
     final times   = apiJson['timestamps']  as List<dynamic>;
@@ -351,8 +299,8 @@ class _SoundChartPredictionState extends State<SoundChartPrediction> {
 
   LineTouchData _touchData() => LineTouchData(
     touchSpotThreshold: 5,
-    getTouchLineStart: (_, __) => -double.infinity,
-    getTouchLineEnd: (_, __) => double.infinity,
+    getTouchLineStart: (_, _) => -double.infinity,
+    getTouchLineEnd: (_, _) => double.infinity,
     getTouchedSpotIndicator: (bar, indexes) => indexes
         .map((i) => TouchedSpotIndicatorData(
       const FlLine(
@@ -397,30 +345,6 @@ class _SoundChartPredictionState extends State<SoundChartPrediction> {
   }
 }
 
-/* ───────── Widgets auxiliares ───────── */
-
-/**class _LegendRow extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) => const Row(children: [
-    _LegendDot(color: Colors.blue,   label: '30 min'),
-    SizedBox(width: 12),
-    _LegendDot(color: Colors.green,  label: '1 h'),
-    SizedBox(width: 12),
-    _LegendDot(color: Colors.orangeAccent, label: '6 h'),
-  ]);
-}*/
-
-class _LegendDot extends StatelessWidget {
-  final Color color;
-  final String label;
-  const _LegendDot({required this.color, required this.label});
-  @override
-  Widget build(BuildContext context) => Row(children: [
-    Icon(Icons.circle, size: 10, color: color),
-    const SizedBox(width: 4),
-    Text(label, style: const TextStyle(fontSize: 12))
-  ]);
-}
 
 class _DescripcionBox extends StatelessWidget {
   const _DescripcionBox();

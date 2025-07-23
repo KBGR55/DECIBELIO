@@ -52,13 +52,11 @@ class _SoundDayPredictionState extends State<SoundDayPrediction> {
     // Calculate the Duration from midnight for the current time
     // This effectively extracts just the time-of-day component
     final nowTimeOfDay = Duration(hours: now.hour, minutes: now.minute, seconds: now.second, milliseconds: now.millisecond);
-    print("Current time's duration from midnight: ${nowTimeOfDay.inMinutes} minutes");
 
     int closestIndex = 0;
     // Initialize minDiff with a large value (e.g., 24 hours in minutes)
     Duration minDiff = const Duration(days: 1); // Represents a full day's difference
 
-    print("\n--- Evaluating timestamps ---");
     for (int i = 0; i < timestamps.length; i++) {
       final currentTimestamp = timestamps[i];
       final timestampTimeOfDay = Duration(hours: currentTimestamp.hour, minutes: currentTimestamp.minute, seconds: currentTimestamp.second, milliseconds: currentTimestamp.millisecond);
@@ -87,15 +85,9 @@ class _SoundDayPredictionState extends State<SoundDayPrediction> {
       now.add(Duration(hours: 3)),                   // 3 hours from now
     ];
 
-    print("List of timestamps being checked:");
     for (var i = 0; i < myTimestamps.length; i++) {
-      print("  [$i]: ${myTimestamps[i].toIso8601String()}");
     }
-    print("---------------------------------");
 
-    final int index = getClosestIndexToNow(myTimestamps);
-    print("\nThe function returned index: $index");
-    print("The closest timestamp found: ${myTimestamps[index].toIso8601String()}");
   }
 
 
@@ -154,8 +146,8 @@ class _SoundDayPredictionState extends State<SoundDayPrediction> {
 
   @override
   Widget build(BuildContext context) {
-    DateTime now = new DateTime.now();
-    DateTime dateToday = new DateTime(now.year, now.month, now.day);
+    DateTime now = DateTime.now();
+    DateTime dateToday = DateTime(now.year, now.month, now.day);
 
     return Listener(
       onPointerSignal: (ps) {

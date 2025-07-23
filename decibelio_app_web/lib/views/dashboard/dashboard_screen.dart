@@ -14,6 +14,7 @@ class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   @override
+
   Widget build(BuildContext context) {
     return SafeArea(
       child: SingleChildScrollView(
@@ -21,7 +22,7 @@ class DashboardScreen extends StatelessWidget {
         padding: const EdgeInsets.all(defaultPadding),
         child: Column(
           children: [
-            const Header(),
+            const Header(title: "Monitoreo de Ruido",),
             const SizedBox(height: defaultPadding),
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,18 +32,14 @@ class DashboardScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       const MapView(),
-                      //LineChartSample12(sensorData: data),
                       const SizedBox(height: 16),
                       const NoiseLevelTable(),
                       const SizedBox(height: defaultPadding),
-                      // Asegúrate de que RecentFiles esté habilitado para evitar problemas
-                      //const NoiseLevelTable(),
                       const SoundChartView(),
                       if (Responsive.isMobile(context))
                         const SizedBox(height: defaultPadding),
                       if (Responsive.isMobile(context))
                         const Column(children: [
-                          //const NoiseLevelTable(),
                           NoiseTable(),
                           SizedBox(height: 16),
                           SensorDetails(),
@@ -60,8 +57,6 @@ class DashboardScreen extends StatelessWidget {
                     flex: 2,
                     child: Column(
                       children: [
-                        //const NoiseLevelTable(),
-                        //const SizedBox(height: 16),
                         NoiseTable(),
                         SizedBox(height: 16),
                         SensorDetails(),

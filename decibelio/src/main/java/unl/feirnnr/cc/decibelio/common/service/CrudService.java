@@ -21,6 +21,7 @@ import java.util.logging.Logger;
  */
 
 @Stateless
+
 public class CrudService {
 
     static final Logger LOGGER = Logger.getLogger(CrudService.class.getSimpleName());
@@ -31,7 +32,7 @@ public class CrudService {
     EntityManager em;
 
     public <T> T create(T t) {
-        //LOGGER.log(Level.INFO, "sing in create: {0}", t);
+            //LOGGER.log(Level.INFO, "sing in create: {0}", t);
         this.em.persist(t);
         this.em.flush();
         this.em.refresh(t);

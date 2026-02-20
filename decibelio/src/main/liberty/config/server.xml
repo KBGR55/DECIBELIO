@@ -42,14 +42,34 @@
     <!-- Default SSL configuration enables trust for default certificates from the Java runtime -->
     <ssl id="defaultSSLConfig" trustDefaultCerts="true" />
 
-    <logging consoleLogLevel="INFO"
-             traceFileName="trace.log"
-             messageFileName="messages.log"
-             accessLogFileName="access.log"
-             maxFileSize="100"
-             maxFiles="10"
-             loggingPropertiesRef="customLoggingProps"/>
-    <variable name="customLoggingProps" value="file:///config/logging.properties"/>
+    <!-- Configuración de salidas de log del server -->
+
+    <!-- Configuración de logging -->
+    <logging
+            consoleFormat="SIMPLE"
+            consoleLogLevel="INFO"
+            messageFormat="SIMPLE"
+            messageSource="message,trace,accessLog"
+            isoDateFormat="true"
+            maxFileSize="100"
+            maxFiles="5"
+            traceSpecification="*=info:unl.feirnnr.*=fine"
+    />
+    <logging  traceSpecification="JPA=all" />
+
+    <!--
+    <logging
+            consoleFormat="json"
+            consoleSource="message,accessLog"
+            messageFormat="json"
+            messageSource="message,trace,accessLog"
+            appsWriteJson="true"
+            isoDateFormat="true"
+            maxFileSize="100"
+            maxFiles="5"
+            jsonFieldMappings="ibm_messageId:messageId, ibm_datetime:timestamp, message:logMessage"
+    />
+    -->
 
     <!-- Datasource Configuration -->
     <dataSource id="decibelioJPA_DS" jndiName="jdbc/decibelioJPA_DS">

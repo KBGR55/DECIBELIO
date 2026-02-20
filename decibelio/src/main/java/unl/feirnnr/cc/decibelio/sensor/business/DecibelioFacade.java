@@ -324,6 +324,9 @@ public class DecibelioFacade {
     }
 
     public List<HistoricalObservation> findMetricsByDayOrNight(String sensorExternalId,LocalDate today) {
+
+        String abbrevation = sensorService.findUnitTypeAbbreviationByExternalId(sensorExternalId);
+
         List<HistoricalObservation> historicalObservations = new ArrayList<>();
     
         // 1) Máximos diurno/nocturno
@@ -365,6 +368,7 @@ public class DecibelioFacade {
             Quantity q = new Quantity();
             q.setTime(LocalTime.now());
             q.setValue(Float.parseFloat(row.get("avgValue").toString()));
+            q.setAbbreviation(abbrevation);
             h.setQuantity(q);
     
             // GeoLocation
